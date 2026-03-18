@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sport Hub - Find Your Perfect Match</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">sports_tennis</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sport Hub</h1>
+</div>
+<!-- Center Navigation -->
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Matchmaking</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Profile</a>
+</nav>
+<!-- Profile Avatar -->
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/10 border-2 border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW6sb2usEHgSVWQ406lknbA6SDoD6pI9hSvPxK2SDtgad8euCsK3iYn68JKrCoHBFX2Ii7aG2j-N1NVozI4vpoP8lOv0s55iG9Bp5S2dufCbAXv36hwfg6HluU8mp8j9RAkGQ6b2g5gnSwiq94CizjHeX1F05WYNuIC-GmroT7bVswv_rjSOwNmd54w263nCFqYa2nZPodnOh1-NOy9ZPErytGixekGQLnamnneOnpomcgATvOqol4YeJSa4Wk7na58xBAQ156cOY"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Hero Section -->
+<section class="relative rounded-xl lg:rounded-xl overflow-hidden mb-12">
+<div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent z-10"></div>
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Professional blue tennis court with racket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmGtp-E7wKffkiMg5OFbwJkMPjcwBCct6fIes50GOGGnfwebfE1luz7m4DXWxhLl48Ui5k5kei8zBuVNgYWt5JBfj0JlT-GO6YLXgTRS0JhKlsDMQIRdbDl5rE42BONc9CPK88iiHoz3Gb1XgqJ4OnQKldIKVRgW_5WDW1AQl8SK3s5PlyJWUFWizXl-rnBSVlp-7M8J3RqB16jP43p5UwfdTL-a-Am9pVT372KkNwIF9CFttBJy-Kqe_WHRK92o1BD04EVLvdmsk"/>
+<div class="relative z-20 px-8 py-20 md:py-32 lg:px-16 max-w-2xl">
+<h1 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
+                    Find Your Perfect Match
+                </h1>
+<p class="text-lg text-slate-200 mb-8 max-w-lg">
+                    Join the largest community of racket sports enthusiasts. Connect with players of your skill level and book premium courts instantly.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
+<span class="material-symbols-outlined">person_search</span>
+                        Find Players
+                    </button>
+<button class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">calendar_today</span>
+                        Book Court
+                    </button>
+</div>
+</div>
+</section>
+<!-- Recommended Matches -->
+<section class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Recommended Matches</h2>
+<a class="text-primary font-semibold text-sm hover:underline" href="#">View All</a>
+</div>
+<div class="flex gap-6 overflow-x-auto pb-4 hide-scrollbar">
+<!-- Match Card 1 -->
+<div class="min-w-[300px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="relative h-40">
+<img class="w-full h-full object-cover" data-alt="Indoor tennis match action shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZTy7RRBrMMHe0GxD0W3qLx5MqvCfs15ssShaZJ0YF7T5ZZztG0CZXm_flIig8nhpmtMGeR8NJ0jfAMJfvXFyaQvg6tuAwlGlpGCaQinp32HUNobqFZ36sfBEIKkGNUmaRd0ql90jVQec-zFoEuKWSk7pr_3rGDAzRzWOmITX9W-8iWkWgEgBDe5oJyb6a1MVr41FZccSQR1VuBNgBC2Z1-r5a3FEeG0lQgXNdj5M5HH63REofu7avWez9eVmGISCuuh4mB006HMo"/>
+<div class="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">Competitive</div>
+</div>
+<div class="p-5">
+<h3 class="font-bold text-lg mb-1">Advanced Tennis Singles</h3>
+<div class="flex items-center text-slate-500 dark:text-slate-400 text-sm gap-2 mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Today 6:00 PM
+                            <span class="mx-1">•</span>
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Central Arena
+                        </div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="size-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Player profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUVE7Bq74WS2O98SigWtADnrIB0qiShyM7Hg6eQHUNHnsP82Q6zfhtRglShuSLx5TK55Zv1ykGzvnJMi-cn9WvviNTsRWZ2JVx-jC8GzvjnvwcuYUaGbykWxFS8hyFEGh_DPrh45CXpAdTWrTx31-qrPDLOE2CMiUSQkRVN9_QNC2CDhgcgYh6erS8mNUk0C4i-jVli_hU9XvSMJg1oaF0InSEORA_o7qcCyOBX_q7JujP3nS2jyLZyzF4PSpwsEv6Dvo4GzAPJX8"/>
+<div class="size-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold">+1</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-4 py-2 rounded-lg text-sm transition-colors">Join Match</button>
+</div>
+</div>
+</div>
+<!-- Match Card 2 -->
+<div class="min-w-[300px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="relative h-40">
+<img class="w-full h-full object-cover" data-alt="Badminton racket and shuttlecock on court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgjLxxxFQxHpZgg30LMHN9clpf6Dqjv7htT7g-bC83ZhuVOIhmhXR1WLVqvogtij0OshnX9Na0qYIQVyDRMXWJSh3A9tWy9pfJ3jC-aqtsSGqxbZa_JqRrmmCNfzVhzi1tuiWpMggI9O0kkZLJrxURqx3-wp_2V60iQprvsRE0UxxlAtqs8BRdS_MUhzHcCObAqqbl9tUNdU-IE7IdHLY6C7HsiivRBvHmRGS0UXutmq3NScjH0X8FYPPs2MJGt5f0oWBp3x0jMBU"/>
+<div class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Friendly</div>
+</div>
+<div class="p-5">
+<h3 class="font-bold text-lg mb-1">Intermediate Badminton</h3>
+<div class="flex items-center text-slate-500 dark:text-slate-400 text-sm gap-2 mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Tomorrow 10:00 AM
+                            <span class="mx-1">•</span>
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            West Sports Hub
+                        </div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="size-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Female player profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDujuecLqeAGpjvpJ83TYVCYc06NnAeeL4MEXxLQbXvYmtNtRFC3sd3fCssvRA34XrGXfBpIlXhnAx11fn1C1Lm5usVVP5nErdI_PA68B4XX4W58rlTJk4bXtzp3_LD3kH_Nr6Lo615_1X2R1ptBgBmw4IUd5jkOuRs-efoARpL-ywKk4i6AOkIZzH2o3Foegz3oYz13PiZbtsPxkjcEtRfJWZ7jlPnfLBZVMlGJ3HpbvSuaTlYAs0nWx3UVkhjlryHmpLK-Yo4Mps"/>
+<img class="size-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Male player profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACHUbgQxpDxYX-6ts8gfc8jBKCFlJoGpWFma6skmNXmxqdlGgddiI1ZjJEk9dbDumffgBgyXo7jupHWhf6-BWEhSqDdBWo8wfbAvYcS-6j8x2hr66AUcn3ZaCX-yxgJnaDZkz5WAr3LSeMBzLUVtbaT0dlWPiMu60N6Qc0Hw-6Md9A5Ur3FfIVBS-XBeB6ix-eHfdh2E1Aelqmo2_QHttzBtqCGC7RZs7N4IsKpRUNXIKKRTJ9SU-BHIBBNfLotajZ_K6NNwlA6ZQ"/>
+<div class="size-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-4 py-2 rounded-lg text-sm transition-colors">Join Match</button>
+</div>
+</div>
+</div>
+<!-- Match Card 3 -->
+<div class="min-w-[300px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="relative h-40">
+<img class="w-full h-full object-cover" data-alt="Pickleball court with colorful paddles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCZms0q2ESpaDHRdZkf9dE4qMQZVkgjJF0HnN65HWF8MiraPWap2EeqIu5B7lpZay82on8EwiajwpFEaLc1mBLtzup2a-2NvPWKA3XU36SNDcXt-gXNlhyrefVLm2peEdMau0QNC2KvvV6JmiocZGK85Vy0y1YJaMXMWTYDMndO9e6k4o50HhcXXRpw7Pmk8OkE_yboqgbxG0tyqV8PUsxVgj6n3ll8iXu_RU0HbcH2QNCTKjyz_4eA2XCg2RBtRGz0zIqIBFgcMk"/>
+<div class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">Casual</div>
+</div>
+<div class="p-5">
+<h3 class="font-bold text-lg mb-1">Casual Pickleball</h3>
+<div class="flex items-center text-slate-500 dark:text-slate-400 text-sm gap-2 mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Friday 5:00 PM
+                            <span class="mx-1">•</span>
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Sunnyvale Park
+                        </div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img class="size-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Player profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJltQB4lJgS6elN1iftfCyl_n5HBEP0j_xJkKu8o8SUu28nW-ZpKxhvmTE5KvRTwL06e1t1hYxppuU14VoLYRyrB7-Khb8Iy7AVm4zWPRFRqv9uusxNIXrIciMsOBnbaRk3XB3t4g7Jb1THJtTTp_I1VcyPYXo_gHWpr-tj95_hcTr9OHAD7S1w26jBmsoEijoqrSvhaA_0uXVETsD7iDV2UWhjKppEjq0kQ89mvU1yke0NQsJMfzIqwDtzzd2xjTr0n_GHfwCkeE"/>
+<div class="size-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold">+3</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-4 py-2 rounded-lg text-sm transition-colors">Join Match</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Suggested Players & Nearby Courts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Suggested Players -->
+<div class="lg:col-span-2">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Suggested Players</h2>
+<a class="text-primary font-semibold text-sm hover:underline" href="#">See More</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Player 1 -->
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<img class="size-16 rounded-full object-cover" data-alt="Portrait of an athletic male player" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANCPA1RsIoRkhzqqh-JRBEY5jifMop0t_XlHA99NH2WTa1vOcXXGJyT4ojWhc5eqon5c3CBeB_BXEEs1GmCOwGkza4AOTFOrUCnFdoRz0cr5O3qZYj_T-XkUOJ9_2ktWjlgVPkfGvmo242d93BG4-fYYnqTki_EQzyDWIxHw90-I5KPodkgOFcr2OuJ2zvJOTEjJHmL77YOUq7VFAtHrdgDUmNLJgjYhyAI9QbZaj_urfOXxuGCEk28JCU4Ft1f6VYEm4E1BFSOHI"/>
+<div class="ml-4 flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white">Marcus Chen</h4>
+<p class="text-slate-500 text-sm">Tennis • Advanced</p>
+<div class="flex items-center mt-1">
+<span class="material-symbols-outlined text-amber-400 text-xs fill-1">star</span>
+<span class="text-xs font-bold ml-1">4.9</span>
+<span class="text-slate-400 text-xs ml-1">(42 matches)</span>
+</div>
+</div>
+<button class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+</div>
+<!-- Player 2 -->
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<img class="size-16 rounded-full object-cover" data-alt="Portrait of an athletic female player" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpKTc3HptGVECAad2Yxp3-9xVeu6eaoGsk7oAxFtIiPmf5RTUsz4kHynUsvwkucip4j_g_deUHsSLiFvAV1EsOEt6_svS6Xivf75yi-J-CEsXsH4eyeYPxCxKdNuU48L3CmKbPmmffGzcwpfhf8xgqA0k-MgaSJAA0WCsuGtQoUGnc3D-bAEOU8n9NRsYyA9l_1KNkkfbnktAW4K7dSJvQ9YDI1s0yNzQR6BM-OUFLR4lR-sTWOCL237PN8tO5aqkPj7rjeEjIht8"/>
+<div class="ml-4 flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white">Sarah Jenkins</h4>
+<p class="text-slate-500 text-sm">Badminton • Pro</p>
+<div class="flex items-center mt-1">
+<span class="material-symbols-outlined text-amber-400 text-xs fill-1">star</span>
+<span class="text-xs font-bold ml-1">5.0</span>
+<span class="text-slate-400 text-xs ml-1">(128 matches)</span>
+</div>
+</div>
+<button class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+</div>
+<!-- Player 3 -->
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<img class="size-16 rounded-full object-cover" data-alt="Portrait of a smiling male player" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsCff4e5atKhJFSWZ0UhdWwhC20YPYbBy32lSvbv78hfD8MFRblGEc8hWTVFKMOBRTx-pGfq-ZueuTIM4VcZ8WfZkDe_vH1WRKEwGLr4hZRvVuaC23VLCcPqi3zBkE-YByt2zRlxR5y2y3KieuIIgMTZKaM4vFkOKiFj5CB6HTiHWfsK5dQEirjyfRM-TqG43ovB0ePHQejQvUYwLiDn40sDzSNioYUlSl-j727VwsUmgYoaISPJ7wpu5VLjpGZvAwLelaidVf-qg"/>
+<div class="ml-4 flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white">David Miller</h4>
+<p class="text-slate-500 text-sm">Pickleball • Intermediate</p>
+<div class="flex items-center mt-1">
+<span class="material-symbols-outlined text-amber-400 text-xs fill-1">star</span>
+<span class="text-xs font-bold ml-1">4.7</span>
+<span class="text-slate-400 text-xs ml-1">(15 matches)</span>
+</div>
+</div>
+<button class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+</div>
+<!-- Player 4 -->
+<div class="flex items-center p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+<img class="size-16 rounded-full object-cover" data-alt="Portrait of a female player with headband" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDStI3GpKDG8WUBOv3aIgrEZbhG3lOtCHLhlkjEO0BLi8WXmK_z7Pltq6uA4Ug9xz8AxTBsb0awMfkm-CVJzOydOmssVCXJj_UHn4f74X0ooJW1WM5x3Bq-sYz5-irG10Rh10RX8cWvlLNuw2kVMOFbX_VMXkzcobRcRlge78h2moQHl3jBuWmvFSac_FfuNw57xY0N2r1o7HsBJpzgNv71Unv85AZJlWSIF1r6b7UmgSYdFAVA2iyCl6Lt9CCg6z_tpjWZMcDTzDw"/>
+<div class="ml-4 flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white">Elena Rodriguez</h4>
+<p class="text-slate-500 text-sm">Tennis • Beginner</p>
+<div class="flex items-center mt-1">
+<span class="material-symbols-outlined text-amber-400 text-xs fill-1">star</span>
+<span class="text-xs font-bold ml-1">4.5</span>
+<span class="text-slate-400 text-xs ml-1">(8 matches)</span>
+</div>
+</div>
+<button class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Nearby Courts -->
+<div>
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Nearby Courts</h2>
+<a class="text-primary font-semibold text-sm hover:underline" href="#">Maps</a>
+</div>
+<div class="space-y-4">
+<!-- Court 1 -->
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="High quality outdoor tennis court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVuMggvVL3K3LQJ9NvhMzCvM9r4CE_680-nm1iKD6EUH5RT-Q-APnpgK9Jxri9WpYYaL5UgafCC3OPzfZLvzoEjucgH020pN6eeVEjBytzt3sZglMu0HXfaXVk86ReKi0Iy0t3E4Jz88odvKlByH4u3K4QS6MEWc3CplCGFLwdrZ6ZA2BB0utxIjfkxSSAmBaNPCrhRRInJ5Cj6CYzasX8dJxDoJ_AzqxKegjuPwRWlYYS0mJlR6XjMsb8qSaIlCHa6_XssgM_B7U"/>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Riverside Tennis Club</h4>
+<p class="text-slate-500 text-xs mb-1">1.2 miles away • 8 Courts</p>
+<div class="flex items-center gap-2">
+<span class="text-emerald-500 text-xs font-bold flex items-center">
+<span class="size-2 bg-emerald-500 rounded-full mr-1.5"></span>
+                                    Available Now
+                                </span>
+</div>
+<p class="text-primary font-bold text-sm mt-1">$25/hr</p>
+</div>
+</div>
+<!-- Court 2 -->
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Brightly lit indoor badminton court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClmWd8DMT5qhOlwT3rQUzGqli8zUAXciYb3H8ezQ_Vwt_EN9PoFA7718bCqMnLmBKt9EYO7iJuqnuJyACEyMuOesrBVXI3a-UZ0r5-rvzPbxeNLiRdwneuGJlmw1n7uiHbbjtIa6RsVDJL9C4cW5pX-6Loy_qtOpA26032Qzp0IPfU6wN_4wnVJHG9lsBtnbLaYWaTsVcwiZK9B8WpBhwcohDWRSjCStkEvnnEUk6L_7BBkDfd35gLEJs2PJqQeuw0O5OblZwbadw"/>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Grand Slam Indoor Arena</h4>
+<p class="text-slate-500 text-xs mb-1">2.5 miles away • 12 Courts</p>
+<div class="flex items-center gap-2">
+<span class="text-amber-500 text-xs font-bold flex items-center">
+<span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>
+                                    Limited Slots
+                                </span>
+</div>
+<p class="text-primary font-bold text-sm mt-1">$40/hr</p>
+</div>
+</div>
+<!-- Court 3 -->
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Suburban community pickleball courts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuAe5iNalp54kRzY7KLWNQqB08M0uK-JggRo4QoL-o_lodbVTr79YbMZwVuBS0Anm0s-uk63toIHGAgt99grT37fUmd-eiJRQao8qqN1VXYgU2ENj0b4thP_0tWuw9WrW0BnHYaT3ThCzarqtEv6Q7Q45uFi0LMmTpKirlvcyqR1yuheW-HetXsEUvLCGERYmAigVRHP79yqx6lh4TOymmCLZIOytj5fJKNN34lHU-Ghg00JS2YnN43hoiuzQkXGYmPPUSWSjmu44"/>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Sunnyvale Sports Park</h4>
+<p class="text-slate-500 text-xs mb-1">3.1 miles away • 4 Courts</p>
+<div class="flex items-center gap-2">
+<span class="text-emerald-500 text-xs font-bold flex items-center">
+<span class="size-2 bg-emerald-500 rounded-full mr-1.5"></span>
+                                    Available Now
+                                </span>
+</div>
+<p class="text-primary font-bold text-sm mt-1">$15/hr</p>
+</div>
+</div>
+</div>
+<div class="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-40 relative">
+<img class="w-full h-full object-cover grayscale opacity-50 dark:invert" data-alt="Stylized map showing local sports venues" data-location="San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADgOSzYyJd8j5uc75VgmP67HRNrgeWnvBL4yajbnb-aPZr6yMk28wDKQho0ZwWQBRQ7p3W_AC_GaKCyerzl2t6vH66rh_utJjsk7cm2LGCus1cYe4gNk74NzmD9VzzpHz60fqRltVaYj5L_D_wPAMMdQ2KmQEgIC_tEAHUMTZrEuSFPMWdriZfD9XiuCpBNaaiJOZSYLO_Rn3TvO6qhrJSPd5A7EzDquBmNFn4se3uc_2D2QZTqIiTrnNhs2PJAgCIDihpPNihNTM"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold py-2 px-4 rounded-lg shadow-lg text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">map</span>
+                            Explore Map View
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-20">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">sports_tennis</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sport Hub</h1>
+</div>
+<div class="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary" href="#">About Us</a>
+<a class="hover:text-primary" href="#">Community Guidelines</a>
+<a class="hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary" href="#">Terms Of Service</a>
+<a class="hover:text-primary" href="#">Help Center</a>
+</div>
+<div class="flex gap-4">
+<a class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">chat</span>
+</a>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
+                © 2024 Sport Hub Inc. All Rights Reserved. Title Case Everything.
+            </div>
+</div>
+</footer>
+</body></html>

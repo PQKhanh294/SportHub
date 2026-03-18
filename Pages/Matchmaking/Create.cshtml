@@ -1,0 +1,74 @@
+@page
+@model SportHub.Pages.Matchmaking.CreateModel
+@{
+    ViewData["Title"] = "T?o tr?n m?i";
+}
+
+<section class="max-w-3xl mx-auto space-y-6">
+    <div>
+        <h1 class="text-3xl font-black tracking-tight">T?o tr?n m?i</h1>
+        <p class="text-slate-500 dark:text-slate-400">??ng tr?n ?? tìm ??i th? phù h?p.</p>
+    </div>
+
+    <form method="post" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-sm">
+        <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2">Tiêu ?? tr?n</label>
+            <input asp-for="Input.Title" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            <span asp-validation-for="Input.Title" class="text-xs text-red-500"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Mã sân (CourtID)</label>
+                <input asp-for="Input.CourtId" type="number" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Môn th? thao (SportID)</label>
+                <input asp-for="Input.SportId" type="number" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <span asp-validation-for="Input.SportId" class="text-xs text-red-500"></span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Ngày thi ??u</label>
+                <input asp-for="Input.MatchDate" type="date" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Gi? b?t ??u</label>
+                <input asp-for="Input.StartTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Gi? k?t thúc</label>
+                <input asp-for="Input.EndTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Lo?i tr?n</label>
+                <select asp-for="Input.MatchType" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+                    <option>Singles</option>
+                    <option>Doubles</option>
+                    <option>Mixed</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">S? ng??i t?i ?a</label>
+                <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold mb-2">Mô t?</label>
+            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90">T?o tr?n</button>
+            <a asp-page="/Matchmaking/Index" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold">Quay l?i</a>
+        </div>
+    </form>
+</section>

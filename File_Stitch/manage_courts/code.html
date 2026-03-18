@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563EB",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "12px",
+                        "lg": "16px",
+                        "xl": "24px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>Court Owner Dashboard - Court Management</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">sports_tennis</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-tight">CourtMaster</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Owner Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">stadium</span>
+<span class="text-sm font-semibold">My Courts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-sm font-semibold">Bookings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-semibold">Customers</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-semibold">Revenue</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-semibold">Settings</span>
+</a>
+<div class="flex items-center gap-3 px-3 py-4 mt-2">
+<img alt="Owner Avatar" class="size-9 rounded-full object-cover" data-alt="Professional headshot of a court owner" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPZVnkHEtydzOamI9BjVXGzzaZdFBoXz1COxzcYM8yGrFz4tYLJYvCTC-SJp1AiYJ9muTxu4qgpE0hJkTO5EkuuExxSR4pRWJUUtPpPIfw0OuqpTVujuzNlR_EBidVnWyjksb6LiFMWixx1Ax-bkylrpzBEBz14-HxAetuQupOLqgVSV2ZcVhosy-6QWjek3gQzcnEcz_whrccgslhtwObce1TG6zYLy25AcHYh3Erkyz-vj0tpyAuDhlcS8tVpIHfy5eqxV_AaUU"/>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-bold text-slate-900 dark:text-white truncate">Alex Rivers</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Pro Club Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
+<!-- Header Section -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-8 py-6 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Court Management</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Add, update, and manage your sport facility listings.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Add New Court</span>
+</button>
+</div>
+<!-- Tabs & Search -->
+<div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-px">
+<div class="flex gap-8">
+<button class="pb-4 border-b-2 border-primary text-primary text-sm font-bold tracking-wide">All Courts</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 text-sm font-bold tracking-wide">Active</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 text-sm font-bold tracking-wide">Under Maintenance</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 text-sm font-bold tracking-wide">Archived</button>
+</div>
+<div class="relative w-full max-w-sm mb-4 md:mb-0">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Search courts by name or amenity..." type="text"/>
+</div>
+</div>
+</header>
+<!-- Court Grid -->
+<div class="px-8 pb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img alt="Main Basketball Court" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern indoor basketball court with polished wood floors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq5gAa4bbj97OpeOtObG7BlFy_BQnzrvd4rauvesC5pIMUXMJ16mKaEcTGVq3MNWe_abVbSIRzH5GXUOu2t0Uce32DPFt51IJwl7RYIR3Rpfgjs2sF9blBelu_DoVz1RdK67ik4Y033BxZwbXCIDhqKU0livqlsQ-rHw6eF8ISTNerr218druuHNRIkngMgQ03JCQNYxi4hxtmGltsMOMMFW4w_0J9SLDzRXv3XguXQIOpITDBanEtgYrJtSWBYoxkvz8r_vbNBf0"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary">sports_basketball</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">Basketball</span>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+<div class="p-5">
+<div class="flex items-start justify-between">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">North Wing Arena</h3>
+<span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-black uppercase tracking-widest rounded">Active</span>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Main Block, 2nd Floor</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">AC</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Showers</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Scoreboard</span>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<span class="text-lg font-black text-primary">$45<span class="text-xs text-slate-400 font-normal">/hr</span></span>
+<button class="text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1">
+                                    View Schedule <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img alt="Tennis Court" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Professional blue hardcourt tennis court outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPBd7luD1eNdHmA80n3Hpti63AY-9lquzWBXIjabZa5WpT0T2YYB9IENr-pc207EtQMTZIIZn1-0qvtWX4FjoWmsUo_jQRoSVERJR4lzr7VxkGYcK1-g1UMDGI4tElN0UYAWQ3KLqaDmpfW2PbCz8LJue_FXcbV1af4XuCjYsKW7lt_22IYSUTkimz0E8h4BvhqANHw9j8ox6OMsxwOuu6dM1Pwj7xhoStoRqG64sSIJj8YYOTKPbUf82fqFS0-9z75uUmys6wPkk"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary">sports_tennis</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">Tennis</span>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+<div class="p-5">
+<div class="flex items-start justify-between">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Blue Sky Outdoor A</h3>
+<span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-black uppercase tracking-widest rounded">Active</span>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Rooftop Terrace</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Night Lights</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Water Station</span>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<span class="text-lg font-black text-primary">$35<span class="text-xs text-slate-400 font-normal">/hr</span></span>
+<button class="text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1">
+                                    View Schedule <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300">
+<div class="relative h-48 overflow-hidden">
+<img alt="Soccer Turf" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Artificial grass soccer turf for small-sided games" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK1WP4oH9RcjxtJyzAYDeRmFuLvS3vD-UZ_lhFIHPJdBC7opFPtRhyVL_PRkcdS2wI1oEW7DD9K1l-AV0XFu85jdDnwAiKdzGHliTrr99zGlu0AyIqlWLssIEhHTp9eczkV4KILcZDdAptYeAoJEe7smSpQphh7rSNYkzXAaCxw9FY4tqy0v20LBjn8S5C6poWfI_MY_90i-AyTZt17yQbi0-Ax9bGxhLaqFdYHgDsA9wIMcpj4-bLpDOyzI-3oB6YuoE4sNWkogc"/>
+<div class="absolute top-3 left-3 px-3 py-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary">sports_soccer</span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-200">Soccer</span>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+<div class="p-5">
+<div class="flex items-start justify-between">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Pro Turf 5v5</h3>
+<span class="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest rounded">Cleaning</span>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>West Field Section</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Lockers</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-300">Bibs</span>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<span class="text-lg font-black text-primary">$60<span class="text-xs text-slate-400 font-normal">/hr</span></span>
+<button class="text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1">
+                                    View Schedule <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add New Card Placeholder -->
+<div class="group border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center p-8 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer min-h-[380px]">
+<div class="size-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary/20 group-hover:text-primary transition-all mb-4">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<h4 class="text-slate-900 dark:text-white font-bold">Add Another Court</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 text-center mt-2 max-w-[180px]">Expand your business with a new listing.</p>
+</div>
+</div>
+</div>
+<!-- Management Form (Floating Modal Simulation Style) -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+<div class="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+<div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h3 class="text-xl font-black text-slate-900 dark:text-white">Edit Court Details</h3>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<form class="p-8 space-y-6">
+<div class="grid grid-cols-2 gap-6">
+<div class="col-span-2 space-y-2">
+<label class="text-xs font-black uppercase tracking-widest text-slate-500">Court Name</label>
+<input class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" type="text" value="North Wing Arena"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-black uppercase tracking-widest text-slate-500">Sport Type</label>
+<select class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none">
+<option>Basketball</option>
+<option>Tennis</option>
+<option>Soccer</option>
+<option>Padel</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-black uppercase tracking-widest text-slate-500">Hourly Rate ($)</label>
+<input class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" type="number" value="45"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-black uppercase tracking-widest text-slate-500">Amenities</label>
+<div class="flex flex-wrap gap-3">
+<label class="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg cursor-pointer">
+<input checked="" class="hidden" type="checkbox"/>
+<span class="material-symbols-outlined text-sm">ac_unit</span>
+<span class="text-xs font-bold">Air Conditioning</span>
+</label>
+<label class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+<input class="hidden" type="checkbox"/>
+<span class="material-symbols-outlined text-sm">shower</span>
+<span class="text-xs font-bold">Showers</span>
+</label>
+<label class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+<input class="hidden" type="checkbox"/>
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-xs font-bold">Free Wi-Fi</span>
+</label>
+</div>
+</div>
+<div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<button class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800" type="button">Cancel</button>
+<button class="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 shadow-lg shadow-primary/20" type="submit">Save Changes</button>
+</div>
+</form>
+</div>
+</div>
+</main>
+</div>
+</body></html>

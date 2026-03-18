@@ -1,0 +1,20 @@
+@page
+@{
+    ViewData["Title"] = "B?n ?? sân";
+    ViewData["ActivePage"] = "SearchCourts";
+}
+
+<section class="space-y-6">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <h1 class="text-4xl font-black tracking-tight">B?n ?? sân</h1>
+        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-primary text-white font-bold">Quay l?i tìm sân</a>
+    </div>
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+        <div class="h-[520px] relative">
+            <img class="w-full h-full object-cover grayscale opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtxQUkkEiLHDOKhV0kqlhXdgBtOY4BQtycjiolcz1teKxIu7OfLDRnEd3_ggO8n8rCBrHTglrWa3GYROacVVzMDBOpC-G6okAT2mK73DOfXnHyykNzEtuZDK5EUneYKXptE0EXN19liIr-hM1vEpyfFRItA_lpYw5ZzLl9WYS-caVohVU_OtND6pg5tuj2ArPLIJOMv4CSVlnKpSSG05KfLP3cdZ7r92jGUtq3ep9MKrcwJEdat8TLIrCP4V6T_IEUSCaO4hvhxpM" alt="Map" />
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="bg-primary text-white p-3 rounded-full shadow-2xl animate-bounce"><span class="material-symbols-outlined">location_on</span></div>
+            </div>
+        </div>
+    </div>
+</section>

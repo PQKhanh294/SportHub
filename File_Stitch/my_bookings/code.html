@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 md:px-20 lg:px-40 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">sports_tennis</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Sport Hub</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Matchmaking</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Search Courts</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Profile</a>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center rounded-xl size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-xl size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8">
+<div class="layout-content-container flex flex-col w-full max-w-[1024px] px-6 lg:px-10 gap-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">My Bookings</h1>
+<p class="text-slate-500 dark:text-slate-400">Manage Your Sport Schedules And Reservations</p>
+</div>
+<div class="border-b border-slate-200 dark:border-slate-800">
+<div class="flex gap-8 overflow-x-auto no-scrollbar">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-2 whitespace-nowrap" href="#">
+<span class="text-sm font-bold tracking-wide">All Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 pb-3 pt-2 transition-all whitespace-nowrap" href="#">
+<span class="text-sm font-bold tracking-wide">Upcoming</span>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 pb-3 pt-2 transition-all whitespace-nowrap" href="#">
+<span class="text-sm font-bold tracking-wide">Completed</span>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 pb-3 pt-2 transition-all whitespace-nowrap" href="#">
+<span class="text-sm font-bold tracking-wide">Cancelled</span>
+</a>
+</div>
+</div>
+<div class="flex flex-col gap-6 py-4">
+<div class="flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-full md:w-60 h-40 bg-center bg-no-repeat bg-cover rounded-lg shrink-0" data-alt="Modern padel court with blue turf and glass walls" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBDHI4sSQCdO0IwK1wAbqHKyS9LXaviDMKESrzZEnqWoCdko5MiZZFbmgiRb_aA1hTwdM646a7I_qaMggbEhyuK9akM99BqnA0d8m8ZarTwBv8crNyK5cxjennKM5MerRkQ-TpLSOrZB7aCtNTQOHQspxxQPf4UfiYeLF7cn9l_7sQ-gQ7nNmuKoALvPR_Oaql5jFSs30RoLSDrDtHDDLFuDzO5eT0olO4wOKbRDHTlb2DYxI1OKyMrnEfgYwsVbpqmoYcwMwq0oxE");'></div>
+<div class="flex flex-col flex-1 justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-start justify-between">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold">Elite Padel Court Center</h3>
+<span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                                            Pending Verification
+                                        </span>
+</div>
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+<span>Oct 24, 2023</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span>10:00 AM - 11:00 AM</span>
+</div>
+<div class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-sm">
+<span class="material-symbols-outlined text-lg">payments</span>
+<span>Total Price: $45.00</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex-1 md:flex-none px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
+                                        View Details
+                                    </button>
+<button class="flex-1 md:flex-none px-6 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                        Cancel Booking
+                                    </button>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-full md:w-60 h-40 bg-center bg-no-repeat bg-cover rounded-lg shrink-0" data-alt="Outdoor clay tennis courts at a river club" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCaHlQgJa_49ZLyRmNSyxT3HrXa9GuEN2_hkWjSjysnHTkbcKGS9-BbufiHvbddN80TMMNue38yV7HUp01629V4HdkQysHoGn6PiEMJM-1ErFoVLKLYGqoQYa6XpDc0wbAIPOTkJUM92YrBP0_3YTelOARP5wZBKgK472-JKr0ifoeZUY0258waSJoZEEC6da7fgjeaDpuEINGhitZIHm-UHc7q7t1rinMDbFfGroNaLLziSOZjnfzOzP3SITfBg028hWfn8hdell8");'></div>
+<div class="flex flex-col flex-1 justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-start justify-between">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold">Riverside Tennis Club</h3>
+<span class="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                                            Confirmed
+                                        </span>
+</div>
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+<span>Oct 26, 2023</span>
+</div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span>04:00 PM - 06:00 PM</span>
+</div>
+<div class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-sm">
+<span class="material-symbols-outlined text-lg">payments</span>
+<span>Total Price: $60.00</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex-1 md:flex-none px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
+                                        View Details
+                                    </button>
+<button class="flex-1 md:flex-none px-6 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                        Cancel Booking
+                                    </button>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm opacity-80 transition-shadow">
+<div class="w-full md:w-60 h-40 bg-center bg-no-repeat bg-cover rounded-lg shrink-0 grayscale" data-alt="Vibrant indoor multi-sport arena" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCjgGWRwiDUsndn_ZiX6dMMRv0c5tnzE42uMzxBZ5NMEcW7Vb6xNe0PyU6BWie1kc6kI_9oN4xRxKlRy9PvD89jrYLi3y0Troq1nvb_E50TVP2M2FP1x721Pg6kqMHVAIEkwKf1DCaiQDoOnn5ReJ3r7RFwU3GLl8_QKaoJlaYxIDExTbJ7kf7ta8GcQDnQFXIlc6-rV0vMCuFd-vszXG0ramL_38PJFyDjgjGNdMYL0BbDF3eRlxLHyVbE4cNafBQ7e3PZJ4zECC4");'></div>
+<div class="flex flex-col flex-1 justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-start justify-between">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold">Grand Slam Indoor Arena</h3>
+<span class="inline-flex items-center rounded-full bg-rose-100 dark:bg-rose-900/30 px-2.5 py-0.5 text-xs font-semibold text-rose-800 dark:text-rose-300">
+                                            Rejected
+                                        </span>
+</div>
+<div class="flex flex-col gap-2 mt-2">
+<div class="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-sm line-through">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+<span>Oct 28, 2023</span>
+</div>
+<div class="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-sm line-through">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span>09:00 AM - 10:30 AM</span>
+</div>
+<div class="flex items-center gap-2 text-slate-400 dark:text-slate-500 font-semibold text-sm">
+<span class="material-symbols-outlined text-lg">payments</span>
+<span>Refund Processed: $35.00</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex-1 md:flex-none px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-bold cursor-not-allowed">
+                                        View Details
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 py-10 px-6 mt-10">
+<div class="max-w-[1024px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">sports_tennis</span>
+<span class="font-bold text-lg">Sport Hub</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm">© 2023 Sport Hub. All Rights Reserved.</p>
+<div class="flex gap-6">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

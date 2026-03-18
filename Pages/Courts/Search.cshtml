@@ -1,0 +1,56 @@
+@page
+@model SportHub.Pages.Courts.SearchModel
+@{
+    ViewData["Title"] = "Tìm sân";
+}
+
+<section class="space-y-8">
+    <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+            <h1 class="text-4xl font-black tracking-tight">Tìm sân</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">Khám phá các c?m sân g?n v? trí c?a b?n.</p>
+        </div>
+        <a asp-page="/Courts/Map" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">Xem b?n ??</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <aside class="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold mb-4">B? l?c</h3>
+            <form method="get" class="space-y-3">
+                <input asp-for="Query" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none" placeholder="Tìm theo tên sân" />
+                <select asp-for="SportId" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none">
+                    <option value="">T?t c? môn</option>
+                    <option value="1">Pickleball</option>
+                    <option value="2">Tennis</option>
+                    <option value="3">Badminton</option>
+                </select>
+                <input type="date" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none" />
+                <button type="submit" class="w-full py-2.5 bg-primary text-white rounded-lg font-bold">Áp d?ng</button>
+            </form>
+        </aside>
+
+        <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            @if (Model.Courts.Count == 0)
+            {
+                <div class="col-span-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-slate-500 dark:text-slate-400">
+                    Không tìm th?y sân phù h?p v?i b? l?c hi?n t?i.
+                </div>
+            }
+            @foreach (var court in Model.Courts)
+            {
+                <article class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all">
+                    <div class="relative h-48">
+                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="@court.ImageUrl" alt="Court" />
+                        <span class="absolute top-3 right-3 bg-white/90 text-primary text-xs font-bold px-3 py-1 rounded-full">@court.PriceDisplay</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg">@court.CourtName</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">@court.VenueName</p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">@court.SportName</p>
+                        <a asp-page="/Courts/Details" asp-route-id="@court.CourtId" class="inline-flex w-full justify-center py-2.5 bg-slate-100 dark:bg-slate-800 font-bold rounded-lg hover:bg-primary hover:text-white transition-all">Xem chi ti?t</a>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>

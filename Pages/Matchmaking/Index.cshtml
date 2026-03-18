@@ -1,0 +1,61 @@
+@page
+@model SportHub.Pages.Matchmaking.IndexModel
+@{
+    ViewData["Title"] = "Ghép tr?n";
+}
+
+<section class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight">Ghép tr?n thông minh</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-lg mt-2">Tìm ??i th? phù h?p theo trình ??, th?i gian và ??a ?i?m.</p>
+        </div>
+        <div class="flex gap-3">
+        <a asp-page="/Matchmaking/Create" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all inline-flex items-center gap-2">
+            <span class="material-symbols-outlined">bolt</span>
+            T?o tr?n m?i
+        </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <aside class="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">filter_list</span>B? l?c tr?n ??u</h3>
+            <div class="space-y-4">
+                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
+                    <option>Tennis</option><option>Badminton</option><option>Pickleball</option>
+                </select>
+                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
+                    <option>Intermediate</option><option>Beginner</option><option>Advanced</option>
+                </select>
+                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
+                    <option>Any time</option><option>Morning</option><option>Evening</option>
+                </select>
+            </div>
+        </aside>
+
+        <div class="lg:col-span-3 space-y-4">
+            @foreach (var match in Model.Matches)
+            {
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex flex-col md:flex-row gap-5">
+                        <img class="size-20 rounded-2xl object-cover" src="@match.HostImage" alt="Host" />
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-2 py-1 rounded">@match.MatchType</span>
+                                <span class="text-xs font-bold text-green-600">?? phù h?p: @match.MatchScore%</span>
+                            </div>
+                            <h3 class="text-xl font-extrabold mb-3">@match.Title</h3>
+                            <div class="text-sm text-slate-500 dark:text-slate-400 flex flex-wrap gap-4">
+                                <span>@match.StartText</span><span>@match.Venue</span><span>@match.Participants / @match.MaxParticipants ?ã tham gia</span>
+                            </div>
+                            <div class="flex justify-end mt-4">
+                                <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20">Xem chi ti?t</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,34 @@
+@page
+@{
+    ViewData["Title"] = "Ng??i ch?i";
+    ViewData["ActivePage"] = "Matchmaking";
+}
+
+<section class="space-y-6">
+    <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+            <h1 class="text-4xl font-black tracking-tight">Ng??i ch?i g?i ý</h1>
+            <p class="text-slate-500 dark:text-slate-400">Nh?ng ng??i ch?i có ?? phù h?p cao cho tr?n ti?p theo c?a b?n.</p>
+        </div>
+        <a asp-page="/Matchmaking/Index" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">Quay l?i ghép tr?n</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        @for (var i = 1; i <= 6; i++)
+        {
+            <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-4 mb-4">
+                    <img class="size-16 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANCPA1RsIoRkhzqqh-JRBEY5jifMop0t_XlHA99NH2WTa1vOcXXGJyT4ojWhc5eqon5c3CBeB_BXEEs1GmCOwGkza4AOTFOrUCnFdoRz0cr5O3qZYj_T-XkUOJ9_2ktWjlgVPkfGvmo242d93BG4-fYYnqTki_EQzyDWIxHw90-I5KPodkgOFcr2OuJ2zvJOTEjJHmL77YOUq7VFAtHrdgDUmNLJgjYhyAI9QbZaj_urfOXxuGCEk28JCU4Ft1f6VYEm4E1BFSOHI" alt="Player" />
+                    <div>
+                        <h3 class="font-bold">Alex Player @(i)</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Tennis • Intermediate</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-primary">?? phù h?p: @(90 - i)%</span>
+                    <button class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-bold">M?i</button>
+                </div>
+            </article>
+        }
+    </div>
+</section>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563EB",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Sport Hub - Payment Verification</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 md:px-20 py-4">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">sports_tennis</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight uppercase">Sport Hub</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Matchmaking</a>
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold">JD</div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex justify-center py-10 px-4 md:px-0">
+<div class="max-w-[800px] w-full flex flex-col gap-8">
+<!-- Progress Stepper -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Booking Progress</h3>
+<span class="text-sm font-bold text-primary">Step 3 of 3</span>
+</div>
+<div class="relative flex items-center justify-between w-full">
+<div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0"></div>
+<div class="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 z-0 transition-all duration-500" style="width: 100%;"></div>
+<div class="z-10 flex flex-col items-center gap-2 group">
+<div class="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-xs font-bold text-slate-900 dark:text-white uppercase">Select Time</span>
+</div>
+<div class="z-10 flex flex-col items-center gap-2 group">
+<div class="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-xs font-bold text-slate-900 dark:text-white uppercase">Payment</span>
+</div>
+<div class="z-10 flex flex-col items-center gap-2 group">
+<div class="size-10 rounded-full bg-primary text-white flex items-center justify-center font-bold ring-4 ring-primary/20 shadow-xl shadow-primary/30">
+<span class="material-symbols-outlined text-base">verified</span>
+</div>
+<span class="text-xs font-bold text-primary uppercase">Confirmation</span>
+</div>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-8 border-b border-slate-100 dark:border-slate-800 text-center">
+<h1 class="text-slate-900 dark:text-white text-3xl font-extrabold tracking-tight">Verify Your Payment</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-2">Please upload your transaction proof to complete your booking</p>
+</div>
+<div class="p-8 space-y-8">
+<!-- Summary Card -->
+<div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-lg border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+<div>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Amount</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">$45.00</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Court Reference</p>
+<p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-1">Court #04 - Premium Turf</p>
+</div>
+</div>
+<!-- Upload Section -->
+<div class="flex flex-col gap-4">
+<p class="text-slate-800 dark:text-slate-200 font-bold uppercase text-sm tracking-wide">Upload Bank Receipt</p>
+<div class="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 px-10 py-16 transition-all hover:border-primary/50 group cursor-pointer">
+<div class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">cloud_upload</span>
+</div>
+<div class="flex flex-col items-center gap-2 text-center">
+<p class="text-slate-900 dark:text-white text-lg font-bold">Drag And Drop Your Receipt Image Here</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Supports JPG, PNG, PDF up to 5MB</p>
+</div>
+<button class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold shadow-sm hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-sm">attach_file</span>
+<span>Select File</span>
+</button>
+</div>
+</div>
+<!-- Form Field -->
+<div class="space-y-3">
+<label class="block">
+<p class="text-slate-800 dark:text-slate-200 font-bold uppercase text-sm tracking-wide pb-2">Transaction ID (Optional)</p>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">fingerprint</span>
+<input class="w-full pl-12 pr-4 h-14 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Enter Transaction Reference Number" type="text"/>
+</div>
+</label>
+</div>
+<!-- Note -->
+<div class="flex gap-3 p-4 rounded-lg bg-blue-50 dark:bg-primary/10 border border-blue-100 dark:border-primary/20">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="text-blue-700 dark:text-blue-300 text-sm font-medium">Our Team Will Verify Your Payment Within 15-30 Minutes.</p>
+</div>
+<!-- CTAs -->
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-14 rounded-lg font-bold text-lg shadow-lg shadow-primary/25 transition-all active:scale-95">
+<span class="material-symbols-outlined">send</span>
+<span>Submit For Verification</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 h-14 rounded-lg font-bold text-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+<span>Back To Payment</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Support -->
+<div class="text-center py-6">
+<p class="text-slate-500 dark:text-slate-400 text-sm">
+                        Need Help? <a class="text-primary font-bold hover:underline" href="#">Contact Sport Hub Support</a>
+</p>
+</div>
+</div>
+</main>
+</div>
+</body></html>

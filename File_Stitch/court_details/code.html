@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Sport Hub - Court Details</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Global Navbar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 lg:px-40 py-3 bg-white dark:bg-slate-900">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Sport Hub</h2>
+</div>
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Matchmaking</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Bookings</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 h-full placeholder:text-slate-500 px-4 pl-2 text-sm font-normal" placeholder="Search For Courts" value=""/>
+</div>
+</label>
+<div class="flex items-center gap-3">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold tracking-tight hover:opacity-90 transition-opacity">
+                            Profile
+                        </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200 dark:border-slate-700" data-alt="User profile avatar photo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDITAnyICfjUoGkl51Ozrouz0mtd5OQGWqH2GCL9OAm6uoeCOLTgm_I8IJh5NEQZPkk4eg9B9w5goIgRvwDsRbTkrHXIC1JcDijzfY578S1U-wFiJsGJDebeHndV2OYq2QfhUiHylUlq-WNWyTEoh-AoGD0MsV7p-SOu9_G1Q5ngarVZNOASVarmGKLodtv3G4ZfU0Dxhx6_Ce4PYWIxRWTQyDwKDpo0jHdgsO-7C6n7cnOR7v9Yef335EpN_JzgzZBq1xznryR-e0");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="px-6 lg:px-40 py-8 flex-1">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-8">
+<!-- Header & Title -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-slate-100 text-4xl font-black leading-tight tracking-tight">Elite Padel Court Center</h1>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-xl">location_on</span>
+<p class="text-base font-normal">Downtown Sports Complex, Avenue 52, New York</p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 rounded-xl h-11 px-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">share</span>
+                                Share
+                            </button>
+<button class="flex items-center gap-2 rounded-xl h-11 px-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+                                Save
+                            </button>
+</div>
+</div>
+<!-- Image Gallery -->
+<div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-[500px]">
+<div class="md:col-span-2 md:row-span-2 bg-cover bg-center rounded-xl relative group overflow-hidden" data-alt="Main view of professional padel court" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHBxb5mOtwtPLRL5iLOL3N2ia6cQPxzsMvFrnaU-mvIzkN-OFZf-WmxktE2brADSGM8XqvCXWyZX5RI0rLcjNbLPQqAA7MBNg9nWV_EgTr0tZseI1GjDxtA7uyryYCoFe30E3hS6phBiX8SyZU2lxwHdp5ukU5bdCqUM51Yh61cBE-FhONkfUQtsWW1zNn3NYcNngF09ABcjqd6YjVd6XMNMOfGvNJQSt7hTQRySVKZaCC2soLSkTSTAnkmHKoiLMdL3yB3jeOYkU");'>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+</div>
+<div class="md:col-span-1 md:row-span-1 bg-cover bg-center rounded-xl overflow-hidden" data-alt="Close up of padel rackets and balls" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNdYcTiwrKQiy9VostkFD6h2EjmSVFFm1cGamHBvUZT_I9ipjQz9gqmHmJIiFMDn7O4X236QZ8dfi0JXOcv_GfdkjDbUgmUMR4xBvhwMwBVTN2CDiHj_3w1szWSxQseon-qXOoYWRzU2X01sVZ5RQzBDvn_ojn9RhTCGkP87TMdwaXQT14VkUz7RJXXQJsXZqBHC_zXZDJJWSucImFkXfzxYBixJT6AZGPMv2uhr9C_MjKtWhHC4Tjq6eFmfIO6HlZzdMt3VN3Lag");'></div>
+<div class="md:col-span-1 md:row-span-1 bg-cover bg-center rounded-xl overflow-hidden" data-alt="Indoor padel arena lighting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD8SofEHXPmXoQkVoD3l8nfML8Tf0SeNcVmmCQqir7i32e0DTV0wFAj2AIdxRLAo3ZZlwZdVENxVbPj4Op1itIOT4VvmA8UQhFtnmHibGvOXyft8sJBmkX47MdfxbN9GL0M2Z-oK2cl8LROKPaykWsn-rfNZuFKPbJaKguaKW-IZVqn7a_SRuE0E5ToYcsJqBKcjeNrPZ7hFy-Bw9GBJcUf8XNKYNw17FUS-XPerKQP5FWgrEKeTnOibVDzgReMiBozrbT5aozt_nU");'></div>
+<div class="md:col-span-1 md:row-span-1 bg-cover bg-center rounded-xl overflow-hidden" data-alt="Padel court net detail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQdpfzekA5RbwYFhlwxxjYWh4LMAzQKwG20nXJvnl30p67bNkJPSZjClqBOsN0WdiB1Rcj86fLbxdJ3NFF8o1u39FefIrrd2cGQzBvRuozVNilkl24_XZGF6mPAW0uc92egNsyy4X_y4ED-Y2zChozcoiETNmr_jpG2DoGX45Ju1mp85FQUAy8R7cInQzaAJB35Cl6KJcmTPR1RtllJyO2SYJspfhrUg3pm5zfrCYOIL8FsnkozIBuxPE6lA0K4_nSQ7CZXSo_534");'></div>
+<div class="md:col-span-1 md:row-span-1 relative bg-cover bg-center rounded-xl overflow-hidden" data-alt="Group of people playing padel" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmf_VtK062rkI_LhIpIlOnzjS-YvCed8r6hBPSThl7nBcwxiCE7N-PZ0UAqfFA-R8TCni_zpoQZGfs9iFSymdqH27ZFXp_b7UIRZWdKnVhFLK0cVcgjkl0JHxDrIAfe-qE_4Cp50y8Wf9lvO17NaZVTODmw1eClROxOQTVUWWNoCra7LHLZE6xIj9kSICS_JCtM9M8zlDYqOOCbI8ow_lnEkCGaswjvxo1f-P5Qj-HWkD_dCSTRpKC7x9kq0xWw4GLov5eOPR7NEA");'>
+<button class="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-bold shadow-lg">
+                                View All 24 Photos
+                            </button>
+</div>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Details -->
+<div class="lg:col-span-2 space-y-8">
+<!-- Description -->
+<section>
+<h2 class="text-2xl font-bold mb-4">About This Venue</h2>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
+                                    Welcome To Elite Padel Court Center, The Premier Destination For Padel Enthusiasts In The City. Our Facility Features 6 State-Of-The-Art Indoor Courts With World-Class Lighting And Professional Turf. Whether You Are A Professional Athlete Or A Beginner, Our Modern Complex Offers The Perfect Environment For Your Match.
+                                </p>
+</section>
+<!-- Amenities -->
+<section>
+<h2 class="text-2xl font-bold mb-6">Premium Amenities</h2>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">wifi</span>
+</div>
+<span class="font-medium">Free High Speed WiFi</span>
+</div>
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">shower</span>
+</div>
+<span class="font-medium">Luxury Showers</span>
+</div>
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">local_parking</span>
+</div>
+<span class="font-medium">Private Parking</span>
+</div>
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">local_cafe</span>
+</div>
+<span class="font-medium">Coffee Bar</span>
+</div>
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">sports_tennis</span>
+</div>
+<span class="font-medium">Equipment Rental</span>
+</div>
+<div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">ac_unit</span>
+</div>
+<span class="font-medium">Air Conditioned</span>
+</div>
+</div>
+</section>
+<!-- Map Snippet -->
+<section>
+<h2 class="text-2xl font-bold mb-4">Location</h2>
+<div class="w-full h-[300px] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 relative">
+<img class="w-full h-full object-cover grayscale opacity-60" data-alt="Map of downtown sports district" data-location="New York" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtxQUkkEiLHDOKhV0kqlhXdgBtOY4BQtycjiolcz1teKxIu7OfLDRnEd3_ggO8n8rCBrHTglrWa3GYROacVVzMDBOpC-G6okAT2mK73DOfXnHyykNzEtuZDK5EUneYKXptE0EXN19liIr-hM1vEpyfFRItA_lpYw5ZzLl9WYS-caVohVU_OtND6pg5tuj2ArPLIJOMv4CSVlnKpSSG05KfLP3cdZ7r92jGUtq3ep9MKrcwJEdat8TLIrCP4V6T_IEUSCaO4hvhxpM"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-primary text-white p-3 rounded-full shadow-2xl flex items-center justify-center animate-bounce">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+<div class="flex items-center gap-3">
+<div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+<span class="material-symbols-outlined text-slate-500">directions</span>
+</div>
+<p class="font-medium">5.2 Miles From Your Location</p>
+</div>
+<button class="text-primary font-bold text-sm">Open In Maps</button>
+</div>
+</section>
+</div>
+<!-- Right Column: Booking Widget -->
+<div class="lg:col-span-1">
+<div class="sticky top-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800">
+<div class="flex justify-between items-center mb-4">
+<p class="text-slate-500 dark:text-slate-400 font-medium">Starting From</p>
+<p class="text-3xl font-black text-primary">$45<span class="text-sm font-normal text-slate-400">/Hour</span></p>
+</div>
+<!-- Date Picker -->
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Select Date</label>
+<div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex flex-col items-center justify-center min-w-[64px] h-20 rounded-xl bg-primary text-white shadow-lg shadow-primary/25">
+<span class="text-xs font-medium opacity-80">Mon</span>
+<span class="text-xl font-bold">12</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-20 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
+<span class="text-xs font-medium text-slate-500">Tue</span>
+<span class="text-xl font-bold">13</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-20 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
+<span class="text-xs font-medium text-slate-500">Wed</span>
+<span class="text-xl font-bold">14</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[64px] h-20 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
+<span class="text-xs font-medium text-slate-500">Thu</span>
+<span class="text-xl font-bold">15</span>
+</button>
+</div>
+</div>
+<!-- Time Slots -->
+<div>
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Available Time Slots</label>
+<div class="grid grid-cols-2 gap-2">
+<button class="py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">08:00 AM</button>
+<button class="py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed">09:00 AM</button>
+<button class="py-2 border-2 border-primary rounded-lg text-sm font-bold text-primary bg-primary/5">10:00 AM</button>
+<button class="py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">11:00 AM</button>
+<button class="py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">12:00 PM</button>
+<button class="py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">01:00 PM</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex justify-between text-sm">
+<span class="text-slate-600 dark:text-slate-400">Court Hire (1 Hour)</span>
+<span class="font-bold">$45.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-600 dark:text-slate-400">Service Fee</span>
+<span class="font-bold">$2.50</span>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<span class="text-lg font-bold">Total</span>
+<span class="text-2xl font-black text-primary">$47.50</span>
+</div>
+<button class="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity mt-4">
+                                        Book Now
+                                    </button>
+<p class="text-center text-xs text-slate-400 mt-4 px-4">
+                                        By Clicking Book Now, You Agree To Our Terms Of Service And Cancellation Policy.
+                                    </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Section -->
+<footer class="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-12 px-6 lg:px-40">
+<div class="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="col-span-2">
+<div class="flex items-center gap-3 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl">sports_tennis</span>
+<h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">Sport Hub</h2>
+</div>
+<p class="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
+                            The Ultimate Platform For Sports Enthusiasts. Discover, Book, And Play On The Best Courts In Your City. Join Our Community Today.
+                        </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+</div>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 mb-6">Quick Links</h3>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Find Courts</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Tournaments</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Coaching</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 mb-6">Legal</h3>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms Of Use</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Refund Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-sm text-slate-500">
+                    © 2024 Sport Hub Inc. All Rights Reserved.
+                </div>
+</footer>
+</div>
+</div>
+</body></html>

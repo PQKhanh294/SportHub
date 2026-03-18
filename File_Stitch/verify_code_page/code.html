@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#2560e9",
+              "background-light": "#f6f6f8",
+              "background-dark": "#111621",
+            },
+            fontFamily: {
+              "display": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Verify Code - Sport Hub</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<!-- Background Image with Overlay -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 bg-slate-900/60 z-10"></div>
+<img alt="Close up of a tennis racket and ball on a blue court" class="w-full h-full object-cover" data-alt="Professional tennis racket and ball on court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcITGb34b34CxMiGFl5GIsBUgpvhJKNpU3BfuA1wwvR4tp3fUAwXdlUuhp-6g2xLOOt5AUdrKOa0J7sqUIxAIruJ00vpR4rI3yk30Eyil-eynHSAAaLNhEu5C0vVuMlRCBuGU4WFw85s2eLilMGoF4Jy03z7QLHXSnKPCf5T4MoHVVQD5RjgG7e--m-HkSpv3TGLG9QeFGDcuj2ugt_isFpukN2Gecpbsx4-elNRWcSyDnT806liKNbcEEcBmk-8zYxShjzcfvnus"/>
+</div>
+<!-- Layout Container -->
+<div class="relative z-20 flex min-h-screen flex-col">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between px-6 py-6 lg:px-12">
+<div class="flex items-center gap-2 text-white">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl">sports_tennis</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Sport Hub</h2>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex flex-1 items-center justify-center px-4 pb-12">
+<div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-8 lg:p-10">
+<div class="flex flex-col items-center text-center space-y-2 mb-8">
+<div class="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Verify Code</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">
+                        Enter The Six Digit Code Sent To Your Email
+                    </p>
+</div>
+<form class="space-y-8">
+<!-- OTP Inputs -->
+<div class="flex justify-between gap-2 sm:gap-4">
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" type="text" value="4"/>
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" type="text" value="8"/>
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" type="text" value="2"/>
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-lg focus:border-primary focus:ring-primary dark:bg-slate-800 dark:text-white transition-all outline-none" maxlength="1" placeholder="·" type="text"/>
+</div>
+<!-- Countdown and Resend -->
+<div class="flex flex-col items-center gap-4">
+<div class="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-full border border-slate-100 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-400 text-lg">timer</span>
+<span class="text-slate-700 dark:text-slate-300 font-semibold tabular-nums">01:59</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">
+                            Didn't Receive The Code? 
+                            <a class="text-primary font-semibold hover:underline decoration-2 underline-offset-4" href="#">Resend Code</a>
+</p>
+</div>
+<!-- Verify Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]" type="submit">
+                        Verify
+                    </button>
+</form>
+<div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-center">
+<button class="flex items-center gap-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-base">arrow_back</span>
+                        Back To Login
+                    </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="px-6 py-8 text-center">
+<p class="text-white/60 text-xs">
+                © 2024 Sport Hub Global. All Rights Reserved.
+            </p>
+</footer>
+</div>
+</body></html>

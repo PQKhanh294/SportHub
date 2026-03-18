@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sport Hub - Match Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">sports_volleyball</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Sport Hub</span>
+</div>
+<!-- Desktop Menu -->
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Home</a>
+<a class="text-primary border-b-2 border-primary pb-1 text-sm font-semibold" href="#">Matchmaking</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Profile</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden ring-2 ring-primary/20" data-alt="User profile avatar image circle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDzhsbddDPhpSfoSlO2jApJQ4T7TBr_-ZtFqs89IgAT_u_qHuLH2Z2sDdJVnjuqeDRRBv31WYmgKze8psESDGVmZ_qT4PiA89vz7ZRFA9hltju4TKMDGLxYaMRoV9BDbFWHqXDWvBSV7WGAI6uhRMXUmeIdageXPBA3FLzbNZB-yG0etrK1Zp3unu-OB_gFY5PvAjCbedDaQap28RTlnYj4zgH66kVxRLQGgyp9LzMz_GCsBdGhyuxJkocb2iv6ewAyHuyyZ9nLbWE')">
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Match Info -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Match Card Hero -->
+<section class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="relative h-64 w-full bg-slate-300 dark:bg-slate-800" data-alt="High quality overhead view of football pitch" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE')">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<span class="inline-block px-3 py-1 bg-primary text-xs font-bold rounded-full uppercase tracking-wider mb-2">Football</span>
+<h1 class="text-3xl font-black">Friday Night Football</h1>
+</div>
+</div>
+<div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Time And Date</p>
+<p class="text-slate-500 dark:text-slate-400">Friday, Oct 25 • 7:00 PM - 9:00 PM</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Location</p>
+<p class="text-slate-500 dark:text-slate-400">Downtown Sports Complex, Pitch 4</p>
+<button class="mt-2 text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+                                        View On Map <span class="material-symbols-outlined text-xs">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-slate-800/50 rounded-lg p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-4">
+<span class="text-sm font-medium text-slate-500">Spots Available</span>
+<span class="text-lg font-bold text-primary">4 / 10 Left</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[60%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Player List -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Confirmed Players</h2>
+<span class="text-sm font-medium text-slate-500">6 Attending</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Player Card 1 -->
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+<div class="relative">
+<div class="h-12 w-12 rounded-full overflow-hidden" data-alt="Player profile photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBF1pqY65NMjdsGeKDL80xsgtR_QlvJPR68gxI-OJzCcQmDpweNIh_JMxXWl4OqBOoGPCqz0oUnyUM2p44B-51zLG0MreBXGxRaK1MlIaDFenTtnNRh2B4kH5ydvqqaT_JlP23SgdX0MQWCQcBiWaLBPgVT2mVrrlsez2wrFFszgPuzVfHgygX7nveDt4epGRmZ55TmeOd7ZaaILjP7FKcbcQm3hR87Ts5lkjuxQLdozK2xgGqM4MIxM5ta9JXnRZM8mCVke4w_lIU')"></div>
+<div class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Alex Rivers (Host)</p>
+<div class="flex items-center gap-1">
+<span class="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded">Striker</span>
+<span class="text-xs px-2 py-0.5 bg-primary/10 text-primary font-bold rounded">Pro</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">more_vert</span>
+</div>
+<!-- Player Card 2 -->
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+<div class="h-12 w-12 rounded-full overflow-hidden" data-alt="Player profile photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBN6vlNI3koXWPCfTYX3W4p5nbs0qAI2QiTZnvEV1V6XA7kJuY_55-scAPy7cCRhYyT4rjt06TJZCokIyar9T5iZi6ymlprO7D2drML406Zne0Ksg0WgkN7eLmW-2bXWW0yTRzf4wWwr_0KTzsU68bvn4CAt-TMZ_n94HUdc8tqNyEiLWnw1L5yphYh_7xvlsWIO1B6vjb30NDiRX4LSpbBrxuu6f35WneZgUGCivNxu5I-aF9U8ZwOoTYJiY5WfF2zaR0N5_G8SbA')"></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Sam Jenkins</p>
+<div class="flex items-center gap-1">
+<span class="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded">Midfield</span>
+<span class="text-xs px-2 py-0.5 bg-primary/10 text-primary font-bold rounded">Intermediate</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">more_vert</span>
+</div>
+<!-- Player Card 3 -->
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+<div class="h-12 w-12 rounded-full overflow-hidden" data-alt="Player profile photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDLPvxSBwbgaeiSGf8hXRSKraFt9s98M4dpuS3qsN_2N-uHTKeEdCbbupgvvAef1aS0UnzgDnmu22ishG0PnFaIFDj30vK3V0Wr2qt8K5TSYj03DOjU_vg8HmfN00rE2nAdcSrbpivbp8ZSd_hRQ6kcARWfT-_BPjvoEqcFLr2IGdmUsWYcNCHKGqeHxnWBH9alTj25f08ZLK3b8y4nWD7N0thb3gveIpL8cOjCM00--MdmAUsfxqUx2g5Gr_F5YznSWqTH1eaqJ3M')"></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Jordan Lee</p>
+<div class="flex items-center gap-1">
+<span class="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded">Defense</span>
+<span class="text-xs px-2 py-0.5 bg-primary/10 text-primary font-bold rounded">Advanced</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">more_vert</span>
+</div>
+<!-- Player Card 4 -->
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+<div class="h-12 w-12 rounded-full overflow-hidden" data-alt="Player profile photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCTfHwcU1W3f6d-5SGNCkLOaMwkqI5hSvhO8aMq3elQrxWnH6hH9PVCKNlslN-Wr0ACU6SZgp-S0Vujl9MfG5MB-yYv4_n8FYUbUOKHQsje1QWaQYgB9v9jXoenFe_-SXZxcsj0pDSLxN9DSjDSmQxYdHrRU3Lhck_eOFhnnILaBzaFiUvi_9IKVLPa64vKFRZl-b3s1S0S0_p7hidIyMfphZrrbI_xygFFbZInEpYv-sYVcJtIGvt8-vtw5X6cedYa-bz_HhHdDtg')"></div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Taylor Swift</p>
+<div class="flex items-center gap-1">
+<span class="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded">Goalkeeper</span>
+<span class="text-xs px-2 py-0.5 bg-primary/10 text-primary font-bold rounded">Pro</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">more_vert</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Host Management -->
+<aside class="lg:col-span-4 space-y-6">
+<!-- Join Requests (Host Only) -->
+<section class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">person_add</span>
+<h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Join Requests</h2>
+</div>
+<div class="space-y-6">
+<!-- Request 1 -->
+<div class="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full overflow-hidden" data-alt="Requesting player avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAZPYnZTZoW1nksGFZnl9kP-pITC1K-xnep8aTh59plBR4CH_IRkHm_lEkaLXn7VWVZCfX0LGvTiICcud-d9_e7QsdfwzVG2IMsDOKD096mg25qIlKncxissG4AwU8Pi9WxIxmcT5JzEGpjQciBsO_kYxsDED0cQiKxBgbrw5fq36dPuvesgg3r49Mj94HbSzqeaLySebIBnb4wRORuSwjdyw9lU6aU4A5cZGEX4VqwGjtGs8n4N62TTaUBP17Mm4qyFOf4bQTcyUY')"></div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Marco Rossi</p>
+<p class="text-xs text-slate-500">Skill: Advanced • 4.8 Rating</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-white text-sm font-bold py-2 rounded-lg hover:bg-primary/90 transition-colors">Accept</button>
+<button class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-bold py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Reject</button>
+</div>
+</div>
+<!-- Request 2 -->
+<div class="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full overflow-hidden" data-alt="Requesting player avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB4WnqjM2-VdaxtCt4doGENbEoRdrNm7S5xgWVkf6JotLlf5uZl14IV-k1IVH68TsANweUJgnAvX5nurzivrxwrEc_NpvIaJqQ7_Mzx6COn5NSkA6uizFlPAHS9IHDYM6sDT8Pfl18tqVo8xKF4j7EVUtvL5deXvZLgAT3o9mOIsmbkBS1H25wVl14emRO57iZsFQBXX_IJui35WlS_o1uCFofum1C17Ie_RNFlplEh7f4IT0GWukV80URR3T7HutHlq40Sbox9pgo')"></div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Lisa Wong</p>
+<p class="text-xs text-slate-500">Skill: Intermediate • 4.5 Rating</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-white text-sm font-bold py-2 rounded-lg hover:bg-primary/90 transition-colors">Accept</button>
+<button class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-bold py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Reject</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Additional Info / Sticky Button -->
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl p-6 border border-primary/20">
+<h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Match Rules</h3>
+<ul class="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">check_circle</span>
+                            Bring your own bibs if possible
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">check_circle</span>
+                            No sliding tackles allowed
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">check_circle</span>
+                            Be there 10 mins early
+                        </li>
+</ul>
+<button class="w-full mt-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity">
+                        Invite Friends
+                    </button>
+</div>
+<!-- Match Location Mini Map Placeholder -->
+<div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<div class="h-40 bg-slate-200 dark:bg-slate-800 relative" data-alt="Interactive map view showing match location" data-location="London" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_mc6Q3v5IlTSR06QNnbxn1rzFUUmj382s2E3iTwFKB5tcVqPzYwU649sRcYP_8ztH0Ztz5gLNHFQ-aHodVTNySyZMh2bghKaoKvAnqFV54y3m52gZZjUGokD8nyZ87fbXwiuAM97rJoJ6cHVhmGETkTXEAzu_bdK7jfKbQAp35pxocdaHSZamtajWeBf13SODZPFSkcLEKXczsoevJqrAyvrTCcZhFHexgVqCH8Iitrtdw1jIUW9b_ltsEJGdnWRKbTHrnUHRw28')">
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-primary text-white p-2 rounded-full shadow-lg animate-bounce">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+</div>
+</div>
+<div class="p-3 bg-white dark:bg-slate-900 text-center">
+<p class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Get Directions</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer Space -->
+<footer class="mt-12 py-8 border-t border-slate-200 dark:border-slate-800 text-center">
+<p class="text-slate-500 text-sm font-medium">© 2024 Sport Hub Inc. All Rights Reserved.</p>
+</footer>
+</body></html>

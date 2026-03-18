@@ -1,0 +1,47 @@
+@page "{id:int?}"
+@model SportHub.Pages.Courts.DetailsModel
+@{
+    ViewData["Title"] = "Chi ti?t sân";
+    var item = Model.Item;
+}
+
+@if (item == null)
+{
+    <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+        <p class="text-slate-500 dark:text-slate-400">Không tìm th?y sân.</p>
+    </section>
+}
+else
+{
+
+<section class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-4xl font-black tracking-tight">@item.CourtName</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">@item.VenueName, @item.Address</p>
+        </div>
+        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">Quay l?i tìm sân</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-[420px]">
+        <img class="md:col-span-2 md:row-span-2 w-full h-full object-cover rounded-xl" src="@item.Images[0]" alt="Main court" />
+        <img class="w-full h-full object-cover rounded-xl" src="@item.Images[1]" alt="Gallery" />
+        <img class="w-full h-full object-cover rounded-xl" src="@item.Images[2]" alt="Gallery" />
+        <img class="w-full h-full object-cover rounded-xl" src="@item.Images[3]" alt="Gallery" />
+        <img class="w-full h-full object-cover rounded-xl" src="@item.Images[4]" alt="Gallery" />
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+            <h2 class="text-2xl font-bold mb-4">Gi?i thi?u sân</h2>
+            <p class="text-slate-600 dark:text-slate-400">@item.Description</p>
+        </div>
+        <aside class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6">
+            <p class="text-slate-500 mb-1">Giá t?</p>
+            <p class="text-3xl font-black text-primary mb-4">@item.MinPriceDisplay<span class="text-sm text-slate-400">/gi?</span></p>
+            <a asp-page="/Bookings/MyBookings" class="w-full inline-flex justify-center py-3 bg-primary text-white rounded-xl font-bold">??t sân ngay</a>
+        </aside>
+    </div>
+</section>
+
+}

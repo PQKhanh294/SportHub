@@ -1,0 +1,43 @@
+@page
+@model SportHub.Pages.Auth.LoginModel
+@{
+    ViewData["Title"] = "??ng nh?p";
+    Layout = "_AuthLayout";
+}
+
+<section class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 min-h-[78vh]">
+    <img class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqFm-aKP5EiL6q4BUrYnrOkr3P1MOFlI23qXs44yF0IIpGLNOl9Ne0xtH345c0ogmqAGgr7UXvo5AGIzk7O4g21CS8S9__eCz1vYYMR9OTmF_fDmqTUbunaEPwHsZZ0ywkP_bRSlae0vOnNpTmZpQtOMUSiga_lRYfKev5qw9VNqFjikaM53-zrAwScQ__km5awA7jvVdOtGEs7uyB8uWkPKvjh8NAViagalz3vXsc-54fQsHos1eeZOE5n4F1gH--M7jRKzE1npU" alt="Tennis court" />
+    <div class="absolute inset-0 bg-slate-900/65"></div>
+
+    <div class="relative z-10 flex items-center justify-center min-h-[78vh] p-6">
+        <div class="w-full max-w-[480px] bg-white/95 dark:bg-slate-900/95 rounded-xl border border-white/20 dark:border-slate-700 shadow-2xl">
+            <div class="px-8 pt-10 pb-6 text-center">
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Chào m?ng quay l?i</h1>
+                <p class="mt-2 text-slate-500 dark:text-slate-400">??ng nh?p tài kho?n Sport Hub c?a b?n</p>
+            </div>
+
+            <form method="post" class="px-8 pb-10 space-y-5">
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">??a ch? email</label>
+                    <input asp-for="Input.Email" type="email" class="w-full h-12 px-4 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nh?p email c?a b?n" />
+                    <span asp-validation-for="Input.Email" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">M?t kh?u</label>
+                    <input asp-for="Input.Password" type="password" class="w-full h-12 px-4 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nh?p m?t kh?u" />
+                    <span asp-validation-for="Input.Password" class="text-xs text-red-500"></span>
+                </div>
+
+                <button type="submit" class="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-md transition-all">??ng nh?p ngay</button>
+
+                <p class="text-center text-sm text-slate-600 dark:text-slate-400">
+                    Ch?a có tài kho?n?
+                    <a asp-page="/Auth/Register" class="font-bold text-primary hover:underline ml-1">??ng ký ngay</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</section>

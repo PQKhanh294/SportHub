@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sport Hub - AI Matchmaking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 md:px-10 lg:px-40 py-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block text-2xl">sports_tennis</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-extrabold tracking-tight">Sport Hub</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Home</a>
+<a class="text-primary dark:text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Matchmaking</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/10 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar male smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGMLqhKdbmicpg9oI7hLp6Uv-167uz1-wXDW2Vjpu_qkBAV7KpDMh_6EWvgpYCbNbh2s7S8rD12rtplhGGNeTYDRVRMy45dQrmJ8J1bpNoad5k-bhI9le94P8VkKoPFWa7DReBSEVlT1vLSiVZnmxdpY1KjuT_DnY8QVV3cgbtXOmdDlHMGxWMaW2TNhOpd1IRHMjALDXQXmxn7AO90u89oXuTN-Et4EM-XMRrf_sAvxmhisBvyMzGjsVRiqjT4L-8RGOR-X5E1tE"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full px-4 md:px-10 py-8">
+<!-- Hero Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+<div>
+<h1 class="text-slate-900 dark:text-white text-4xl md:text-5xl font-black tracking-tight mb-2">AI Matchmaking</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg">Find Your Perfect Game Partners With Precision</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/25 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">bolt</span>
+                    Find Match Instantly
+                </button>
+</div>
+<!-- Recommended Matches (Horizontal Scroll) -->
+<section class="mb-12">
+<h2 class="text-slate-900 dark:text-white text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary filled-icon">auto_awesome</span>
+                    Recommended Matches
+                </h2>
+<div class="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
+<!-- Recommendation Card 1 -->
+<div class="flex-none w-28 snap-start group cursor-pointer text-center">
+<div class="relative mb-3">
+<div class="size-24 mx-auto rounded-full p-1 bg-gradient-to-tr from-primary to-cyan-400">
+<img class="w-full h-full rounded-full object-cover border-4 border-white dark:border-background-dark" data-alt="Alex profile picture professional athlete" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3-k6OS9i1xrDnwDkPpfafncSFDToK0ZDQQuvTs9SG_3DHF3pAfykSm-H1CSbqPzcVREy5aJDiVa58f4mxiSilPt-c6KYNMuKk-YUXASGhvtQGJgKdSwko8FlcEaV4M_7KS7fuV8RFAA02pJUgqvISAVcV7-OsrdjZhfnkD0Xr2_UqViV07erCHy4aizpWwAdMLVh16iG-dPKsnauLtDjTUe606ZVU6nkNOKTM7OCe_kseQE95JI-Y_HtiV3qmrs5l1z9wu7JLb7s"/>
+</div>
+<div class="absolute -bottom-1 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-background-dark">98%</div>
+</div>
+<p class="text-slate-900 dark:text-white font-bold text-sm">Alex Chen</p>
+<p class="text-slate-500 text-xs">Tennis • Pro</p>
+</div>
+<!-- Recommendation Card 2 -->
+<div class="flex-none w-28 snap-start group cursor-pointer text-center">
+<div class="relative mb-3">
+<div class="size-24 mx-auto rounded-full p-1 bg-slate-200 dark:bg-slate-700 group-hover:bg-primary transition-colors">
+<img class="w-full h-full rounded-full object-cover border-4 border-white dark:border-background-dark" data-alt="Jordan profile picture smiling athlete" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBknjV5FUt0hIcxI4FqLHxO35gikRaqSknBtq23__oU8jrWsHp52ZWxZTwvxd4DO6Gv1R53qTzLbHPNfvMmTMZMTHjLW9je9FiUbmW0McTCisVwfYjFXrvF2FrxXXncXY6-n7UPU1ZF6do74LR5TxuGpP8MoBp7nsHNO1C4Aw3YgM96FISMdc9ozqMBrxGvcnxw9rr3kTfD1yu6FFqbBHxZHeJkxwWwBIW7l4TATlNyfgZ4KPeMg9Vuahqf5jIZ-QxWsJKzmRmZcc"/>
+</div>
+<div class="absolute -bottom-1 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-background-dark">94%</div>
+</div>
+<p class="text-slate-900 dark:text-white font-bold text-sm">Jordan Lee</p>
+<p class="text-slate-500 text-xs">Padel • Int</p>
+</div>
+<!-- More recommendations... -->
+<div class="flex-none w-28 snap-start group cursor-pointer text-center">
+<div class="relative mb-3">
+<div class="size-24 mx-auto rounded-full p-1 bg-slate-200 dark:bg-slate-700">
+<img class="w-full h-full rounded-full object-cover border-4 border-white dark:border-background-dark" data-alt="Taylor profile picture active male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZkJnePHUfkAZWobRqL7gDDVGjQ9FIyLFAEUzUrI1bYPZ3SfCl-3IWACJi2CyBqjPddg6gJrUxaMsp88NA7NNsimaGf5Mr5foICsUCN3zKuWqBNENTYfdZAtnWiZmOi0W92wqifXkc51hq-83Y3daIJncp7KLOCbFCR3Ly0eFHgTRXNGiYwLFM-j2F01mSeSrxphaB7va96OgaZw56VAd-_-_DnvfddXG1ez0iF-nYugO6n6ggr03GtMF3HyoiXfv9Y62vm5WH6BA"/>
+</div>
+<div class="absolute -bottom-1 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-background-dark">92%</div>
+</div>
+<p class="text-slate-900 dark:text-white font-bold text-sm">Taylor P.</p>
+<p class="text-slate-500 text-xs">B-ball • Pro</p>
+</div>
+<div class="flex-none w-28 snap-start group cursor-pointer text-center">
+<div class="relative mb-3">
+<div class="size-24 mx-auto rounded-full p-1 bg-slate-200 dark:bg-slate-700">
+<img class="w-full h-full rounded-full object-cover border-4 border-white dark:border-background-dark" data-alt="Morgan profile picture athlete woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZkTPbv4I2NpmPHzSVy2vJXXdyFb0hT3rBeakgnTE0q39N9xQuoQsvB_u9PGAX0hQXwpyDO8Drlz2TATGtLam7vKdohNXOBdaIFq_kemxdnld2L1FR_H32P52ytf-FzU1KkHv1zh7a27exmwj5haUbI2JKwuMNCZwWwhPBi_0LaJ97VQvysA1jJ7H9xyQCPzhfDb7r2Hra3Ws-TDD4spAcgftD9WZzKt31EeYIyFouKfNm3s01FRn5NdEjSvORF-HZb_ldZV_b1Yk"/>
+</div>
+<div class="absolute -bottom-1 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-background-dark">89%</div>
+</div>
+<p class="text-slate-900 dark:text-white font-bold text-sm">Morgan J.</p>
+<p class="text-slate-500 text-xs">Soccer • Adv</p>
+</div>
+<div class="flex-none w-28 snap-start group cursor-pointer text-center">
+<div class="relative mb-3">
+<div class="size-24 mx-auto rounded-full p-1 bg-slate-200 dark:bg-slate-700">
+<img class="w-full h-full rounded-full object-cover border-4 border-white dark:border-background-dark" data-alt="Casey profile picture focused male athlete" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcRXavCt1yT0RO3BqtT_-SPFUyrw9iK3X2aOmiq9tyEfFkFjXQHBKquRLNM1mWG4GVgVvyTR7IGuqcvAlFjBZfNEMsbKgJvAbiZIZ_Ien7ZW9NEtbZ4_MdsNBWXVv619DRX-8mQy0Rt4JqOMUHNQ-pDlJBl3TQPcACDtMepbmmi5thQ3IrJ5uZjn0B4oPpw0cX1x3xOyF3xWsGwjmp22hVtkNzRJg1LKt0j5xgFfE-cznMmkh1bhs71rD56XiD0urcgn3n8fDnGCE"/>
+</div>
+<div class="absolute -bottom-1 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-background-dark">87%</div>
+</div>
+<p class="text-slate-900 dark:text-white font-bold text-sm">Casey Ray</p>
+<p class="text-slate-500 text-xs">Padel • Beg</p>
+</div>
+</div>
+</section>
+<!-- Filters & Active Matches -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+<!-- Filters Sidebar -->
+<aside class="lg:col-span-1 space-y-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<h3 class="text-slate-900 dark:text-white font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">filter_list</span>
+                            Filter Matches
+                        </h3>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Sport Type</label>
+<select class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary">
+<option>Tennis</option>
+<option>Padel</option>
+<option>Basketball</option>
+<option>Soccer</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Skill Level</label>
+<div class="grid grid-cols-2 gap-2">
+<button class="py-2 px-3 bg-primary text-white text-xs font-bold rounded-lg">Intermediate</button>
+<button class="py-2 px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-lg hover:bg-slate-200">Advanced</button>
+<button class="py-2 px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-lg hover:bg-slate-200">Beginner</button>
+<button class="py-2 px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-lg hover:bg-slate-200">Pro</button>
+</div>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Time Frame</label>
+<select class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary">
+<option>Any Time</option>
+<option>Morning (6AM - 12PM)</option>
+<option>Afternoon (12PM - 5PM)</option>
+<option>Evening (5PM - 10PM)</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Location Radius</label>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" type="range"/>
+<div class="flex justify-between text-[10px] text-slate-500 font-bold mt-1">
+<span>2 KM</span>
+<span>25 KM</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 dark:bg-primary/10 p-6 rounded-2xl border border-primary/20">
+<h4 class="text-primary font-bold text-sm mb-2">Want better matches?</h4>
+<p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4">Complete your sports profile and AI will find more compatible players for your skill level.</p>
+<button class="text-primary text-xs font-bold hover:underline">Update Profile →</button>
+</div>
+</aside>
+<!-- Match Cards List -->
+<div class="lg:col-span-3 space-y-4">
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-slate-900 dark:text-white font-bold text-xl">Matches Near You</h2>
+<span class="text-slate-500 text-sm font-medium">12 Games Found</span>
+</div>
+<!-- Match Card 1 -->
+<div class="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="flex-shrink-0 flex flex-col items-center">
+<div class="relative">
+<img class="size-20 rounded-2xl object-cover border-2 border-primary/20" data-alt="Game host profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALTzsl3HIXmUVzYbJp9BGERq98PtuYn7CL1IBPSHx3OrkFpRQTd6zNEwo2EOB2GAHS2n3LC0cu5aySM-IHeJtj0RLOAh-XJIVbRYXNwJnzO_vg_zLdZ1I2DUp8Oau0htb6fbzwIpuzo-z_0f6jhNLsN2kI6hKxv61AU141cH6oO2MWjiEcxo4vPxnS-smCZF-xDE6loPZWlYgw4BRwbJGXrc9jUVUA8j-cmjl61KwL1qwdpecYKC7Bo9cEFPXU1nHtK_XjUeQWQlM"/>
+<div class="absolute -top-2 -right-2 bg-green-500 size-4 rounded-full border-2 border-white dark:border-slate-900"></div>
+</div>
+<span class="mt-2 text-xs font-bold text-slate-900 dark:text-white">Elena R.</span>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="bg-primary/10 text-primary text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded">Tennis Doubles</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[18px] filled-icon">verified_user</span>
+<span class="text-xs font-bold tracking-tight">Match Score: 92%</span>
+</div>
+</div>
+<span class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200 dark:border-green-800">Perfect Match</span>
+</div>
+<h3 class="text-xl font-extrabold text-slate-900 dark:text-white mb-4">Intermediate Friendly Doubles Match</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">schedule</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Time</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Today, 18:30</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">location_on</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Location</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Central Courts</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">group</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Players</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">2 / 4 Joined</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">payments</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Cost</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">$12.50 / pp</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+<button class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors">View Details</button>
+<button class="px-8 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform">Join Now</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Match Card 2 -->
+<div class="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="flex-shrink-0 flex flex-col items-center">
+<div class="relative">
+<img class="size-20 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700" data-alt="Game host profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfhKc8cZXEPbzAJU1PnJYnRvlkcCNDAT7DhXvXUJvQjZ64vC3QLXkqSbB78xxCtnNJxPLyeGRjHnPqAeXjoeZ9E00X0qlecKAvXuiNVmAaLmRomYlHCprYMP1YcOsGvC9Hh-uZnZsr85AGjpUxMjOZlo-7RA0v1l8TLuD_xakfuTSJjBd6H2LcbG5pFGOrzlVqeKZEw9wZPaqJ2e1thviaS7Q06oaK08VyyVhLNDrRGoVT5450TofbzfmxnN-KLcgfNsjQnJR8H9Q"/>
+</div>
+<span class="mt-2 text-xs font-bold text-slate-900 dark:text-white">Marcus T.</span>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded">Basketball 3v3</span>
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="text-xs font-bold tracking-tight">Match Score: 78%</span>
+</div>
+</div>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full">Good Match</span>
+</div>
+<h3 class="text-xl font-extrabold text-slate-900 dark:text-white mb-4">Competitive Street Ball - Skills Required</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">schedule</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Time</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tomorrow, 17:00</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">location_on</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Location</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">West Side Park</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">group</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Players</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">5 / 6 Joined</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">payments</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Cost</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Free</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+<button class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors">View Details</button>
+<button class="px-8 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform">Join Now</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Match Card 3 -->
+<div class="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group opacity-90">
+<div class="flex flex-col md:flex-row gap-6">
+<div class="flex-shrink-0 flex flex-col items-center">
+<div class="relative">
+<img class="size-20 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700" data-alt="Game host profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFwLOKr1fgVxWD0KCN0r2rLOCyxgdZCdm_nWSo5sl4TkTQiwsatS_HiNoXKDwO96QZvnfdNGy0dFtY10PZDOiKgHn28JPF0-zLveeG7lp6SyOjwQz9SiCIvFsH9FdnYA6pkZ01WG4I5A76jRLdiD2YmnSx-KMrKXCBMkYARBs0MMXz97B03MMi90Wax7967KAGVMlHqdc171Zns6zbQvD5S2q5AQJHQqTpgBZmZykC_R3ocJ5TcUg0wHfG7hv__nD2ThQGDH6XbK0"/>
+</div>
+<span class="mt-2 text-xs font-bold text-slate-900 dark:text-white">Sarah W.</span>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+<div class="flex items-center gap-3">
+<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded">Padel Singles</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[18px] filled-icon">verified_user</span>
+<span class="text-xs font-bold tracking-tight">Match Score: 88%</span>
+</div>
+</div>
+<span class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200 dark:border-green-800">Perfect Match</span>
+</div>
+<h3 class="text-xl font-extrabold text-slate-900 dark:text-white mb-4">Padel Singles - Pro Level Training</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">schedule</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Time</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Sat, 09:00</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">location_on</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Location</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Arena Padel</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">group</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Players</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">1 / 2 Joined</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">payments</span>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-slate-400 uppercase">Cost</span>
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">$20.00 / pp</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+<button class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors">View Details</button>
+<button class="px-8 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] transition-transform">Join Now</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex justify-center pt-6">
+<button class="flex items-center gap-2 text-slate-500 font-bold hover:text-primary transition-colors">
+                            Load More Games
+                            <span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Action Button for Mobile -->
+<button class="md:hidden fixed bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-50">
+<span class="material-symbols-outlined text-2xl">bolt</span>
+</button>
+</div>
+</body></html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sport Hub</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563EB",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0">
+        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqFm-aKP5EiL6q4BUrYnrOkr3P1MOFlI23qXs44yF0IIpGLNOl9Ne0xtH345c0ogmqAGgr7UXvo5AGIzk7O4g21CS8S9__eCz1vYYMR9OTmF_fDmqTUbunaEPwHsZZ0ywkP_bRSlae0vOnNpTmZpQtOMUSiga_lRYfKev5qw9VNqFjikaM53-zrAwScQ__km5awA7jvVdOtGEs7uyB8uWkPKvjh8NAViagalz3vXsc-54fQsHos1eeZOE5n4F1gH--M7jRKzE1npU" alt="Background" />
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]"></div>
+    </div>
+
+    <header class="relative z-20 p-6 lg:p-10 flex items-center">
+        <a asp-page="/Index" class="flex items-center gap-2 group">
+            <div class="bg-primary p-2 rounded-lg text-white">
+                <span class="material-symbols-outlined">sports_tennis</span>
+            </div>
+            <span class="text-xl font-black text-white tracking-tighter uppercase">Sport Hub</span>
+        </a>
+    </header>
+
+    <main class="relative z-10 flex items-center justify-center min-h-[calc(100vh-140px)] p-4">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-5 py-2 rounded-xl shadow-lg" id="toast-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-5 py-2 rounded-xl shadow-lg" id="toast-error">@TempData["ErrorMessage"]</div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="relative z-10 p-8 text-center">
+        <p class="text-xs text-white/50 font-medium uppercase tracking-widest">© @DateTime.Now.Year Sport Hub. ?ã ??ng ký b?n quy?n.</p>
+    </footer>
+
+    <script>
+        ['toast-success', 'toast-error'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) setTimeout(() => el.remove(), 3000);
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

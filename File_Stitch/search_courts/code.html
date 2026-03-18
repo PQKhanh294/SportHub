@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sport Hub - Search Courts</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2560e9",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">sports_tennis</span>
+<h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Sport Hub</h2>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-semibold" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-semibold" href="#">Matchmaking</a>
+<a class="text-primary border-b-2 border-primary pb-1 text-sm font-semibold" href="#">Search Courts</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-semibold" href="#">Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-semibold" href="#">Profile</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Global Search" type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">notifications</button>
+<div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiM_6otw9gWpTr-W-zEUZJIltf0oTQWpg3CcYCgMGJDRj0h1TwioQKpxyxPFz3bd83lT8cvXVdZ25c2m0zF7uVKVprrALZWevJEEVpwcLG-w-GTHs7NqbV5vkQUqs7zGQ9nCbAuDWRgPj7HLbYwu97vmO_4V11IY0xOqO1HhzoUQkBJUXHVT8jjokt23-PqrqkFmCydOcbTxBlOQsR_KCXI26mMf_1mB7jd8iRegVHSSZUVXpcSvugPAHlcB_4Fxn6Pud0l6nr2fk"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto w-full flex flex-1 overflow-hidden">
+<!-- Sidebar Filters -->
+<aside class="w-72 border-r border-slate-200 dark:border-slate-800 p-6 hidden lg:flex flex-col gap-8 shrink-0 bg-white/50 dark:bg-background-dark/50">
+<div>
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">tune</span>
+                        Filters
+                    </h3>
+<div class="space-y-6">
+<!-- Sport Type -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-400">Sport Type</label>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm font-medium group-hover:text-primary transition-colors">Tennis</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm font-medium group-hover:text-primary transition-colors">Basketball</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm font-medium group-hover:text-primary transition-colors">Padel</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5" type="checkbox"/>
+<span class="text-sm font-medium group-hover:text-primary transition-colors">Soccer</span>
+</label>
+</div>
+</div>
+<!-- Price Range -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-400">Price Per Hour</label>
+<div class="px-2">
+<input class="w-full accent-primary h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer" type="range"/>
+<div class="flex justify-between mt-2 text-xs font-medium text-slate-500">
+<span>$10</span>
+<span>$100+</span>
+</div>
+</div>
+</div>
+<!-- Amenities -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-400">Amenities</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary/30 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">shower</span> Showers
+                                </button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium bg-primary/10 border-primary/30 text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">local_parking</span> Parking
+                                </button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary/30 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">lightbulb</span> Lighting
+                                </button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary/30 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">store</span> Pro Shop
+                                </button>
+</div>
+</div>
+<!-- Date/Time -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-400">Availability</label>
+<div class="space-y-2">
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary" type="date"/>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary" type="time"/>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto">
+<button class="w-full py-3 bg-primary text-white font-bold rounded-lg shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all active:scale-95">Apply Filters</button>
+<button class="w-full mt-4 py-2 text-slate-500 font-medium hover:text-slate-800 dark:hover:text-slate-300 transition-colors text-sm">Clear All</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<section class="flex-1 overflow-y-auto p-6 md:p-10">
+<!-- Search and Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Search Courts</h1>
+<p class="text-slate-500 dark:text-slate-400">Discover 48 venues near your current location.</p>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<span class="text-sm font-semibold">Sort By:</span>
+<select class="border-none bg-transparent p-0 text-sm font-bold text-primary focus:ring-0">
+<option>Recommended</option>
+<option>Price: Low to High</option>
+<option>Distance</option>
+<option>Rating</option>
+</select>
+</div>
+<div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+<button class="p-2 bg-white dark:bg-slate-800 text-primary border-r border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined">grid_view</span>
+</button>
+<button class="p-2 bg-slate-50 dark:bg-slate-900 text-slate-400">
+<span class="material-symbols-outlined">list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Court Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+<!-- Court Card 1 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Blue outdoor tennis court with net" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDM84Fzfc-P87JSXiTsebvH3b1RA7qa1aymfMak9JVRfm5Tv9kPqhiDN5QtRpjSD697VKK8brO-7TLfgEM1V5iHP9qpenCEiD4OH9GK20ptqZwAEM7JfJRmYQdhQ_RmltyTDA_JCmVeuerQlGHijRBWuBZxZCqikmKhsQFVkia4D0ztgAbG9FMGsEm6zP33SCGv-7vLRcv5b3JO9tBR4Ak2QLRAEVVFIC3KOrmovQdmFqt9OFgEVzkCg-j1PGXaEBNlWDuLby7ysak"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $25/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Available Now
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Blue Sky Arena</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">4.9</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                Downtown Sports District
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">shower</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Showers</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">local_parking</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Parking</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">restaurant</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Cafe</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-primary hover:text-white transition-all mt-auto group-active:scale-95">Book Court</button>
+</div>
+</div>
+<!-- Court Card 2 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Indoor shiny basketball court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDxZd5Vx4oG10LfElX0y1Rl_BcGpcPK7TpDNJ8h3mDviz62tBfWmbIUGHnXvap4QbxTOrUDH0VW0YpuED4Dva1hVQujZb-txG747_bvTpgXGEslVDKjkDB5McIRLaNt3wjIbSe8JM-hCvA7Yxq9xgbNbtd4LWBN6zrHuSFG22RpliRAT-EKjtImTdDm4fmlrUrdeU6pCfhsxIgMBiIW4bTDIPgag0CWicL51n8-cbEPH27WGN3b0vo3LGMXrb-8vqWCzAubZImWs"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $45/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-slate-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Booked
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Elite Indoor Center</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">4.7</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                North Plaza Mall
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">ac_unit</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">AC</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">checkroom</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Locker</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">wifi</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">WiFi</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-lg cursor-not-allowed mt-auto">View Schedule</button>
+</div>
+</div>
+<!-- Court Card 3 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Modern padel court with glass walls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4FHSxEC4dtzCoqDV01YvXjRRkfNWvXUx5DcnvtPxWyi7nDzOndgPskfzzboSFR42qy5RnzwdnyUXZaohpkyxMeQp7GJdqFd_b3bNxeRQFkgUwZe6b10OpXeo2pbu_J7Q918D6wYSb05k_xgRN_YdMK7aI4rxR-6CvdOyZVPHBzb06lSJcH85tYALO4uDJvtdzWagR9qZ08gLO51qevAYD2UPQZCPlgDtb_qWHipeXr-crrLBU39TPDu8tvL4R6QdhyYCRHrc0FAk"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $30/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Available Now
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Padel Masters Hub</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">5.0</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                Riverside Park
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">lightbulb</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Lights</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">store</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Shop</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">local_parking</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Parking</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-primary hover:text-white transition-all mt-auto">Book Court</button>
+</div>
+</div>
+<!-- Court Card 4 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Red clay tennis court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdpjXeYtci7VDBKFrqBicbl1ibdxtIEhABzwMXKZspIuJMh1x19SaAnmCukDT8lY7jBWzjzMs_pqtnfgbDilrhCtGi9aWkWu4LCbsgfgq8rsNadVHJO3IzqVwpzesXRgOaM1WlHAh7JJyTGqJXQZz1LeomxLe1rr5q_iiL2s35K8_C4cJp5uI8st0YjGKFQLVNtk5595Z3nmMo-7rMCRVjLXGgAULLpL-iQbc4Z7-UWLnQuCaLnuRd-7u_J6QbL53EA_E5X039BaE"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $20/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Available Now
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Clay Classics Club</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">4.6</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                Heritage Avenue
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">shower</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Showers</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">water_drop</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Water</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-primary hover:text-white transition-all mt-auto">Book Court</button>
+</div>
+</div>
+<!-- Court Card 5 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Artificial turf soccer pitch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALoLYlag1Sp2BLYUZFsiW6YJALOuVFmOrkAe4FhUgleXetIvqaRE2JmSkpN_sqC9zjHivSo-ryvMIYz_xiYzWc7AxKcYy1Y5bAdyEsF49Hk9JGp4T2wb4XvqqkeblahA__klFcbuvH39WM2VPCbXHF-NytRVvn6Iw5lUKF5SU6w0fjMRg6ybBSHR7Y-SuOgu6uut0yJAXM7JlhwlgQD99BucZv-XFiD3nmrU1qmlL7Ahe1FR62LG58ccPSiINi_FrpnWGsjmlKK20"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $60/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Limited Spots
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Goal Zone Arena</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">4.8</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                Victory Heights
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">lightbulb</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Floodlights</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">medical_services</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">First Aid</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">stadium</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Seating</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-primary hover:text-white transition-all mt-auto">Book Court</button>
+</div>
+</div>
+<!-- Court Card 6 -->
+<div class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Multipurpose training court" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyRRuoBVP2O98dSsz7eNMhCLFqLiW69mQyBy7rut9Y5KugtfXQhC2iphyktE9QwyI10tLdHDzkZsXohFHrXvPZIEwMuI55rh1Lzsb-wwd2tbwCDtpyNJHratHITggsW2aU1XMwDEAIklF3qhdfkVzqQmMG3NMoG8ltzD_uQBaz8BNiTX-xTIick9ZQPajhKf5A7dneMOvoxT9EWKKtopp9oPHgfyCCItnitHvsrWGyLEZhn6NdZYtx2n_-YJVny4bJ8VA4Ru3wfeo"/>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm">
+                                $15/Hr
+                            </div>
+<div class="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                Available Now
+                            </div>
+<button class="absolute bottom-4 right-4 p-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-full text-slate-600 hover:text-red-500 shadow-md transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Community Multi-Court</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="text-xs">4.2</span>
+</div>
+</div>
+<p class="text-sm text-slate-500 flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-sm text-primary">location_on</span>
+                                Central Commons
+                            </p>
+<div class="flex items-center gap-4 py-4 border-y border-slate-100 dark:border-slate-800 mb-5">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">wc</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Restrooms</span>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-slate-400 text-lg">grass</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase">Park Side</span>
+</div>
+</div>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-lg hover:bg-primary hover:text-white transition-all mt-auto">Book Court</button>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center mt-12">
+<nav class="flex items-center gap-2">
+<button class="p-2 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="px-4 py-2 bg-primary text-white font-bold rounded">1</button>
+<button class="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800">2</button>
+<button class="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800">3</button>
+<span class="px-2 text-slate-400">...</span>
+<button class="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800">12</button>
+<button class="p-2 border border-slate-200 dark:border-slate-800 rounded hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</nav>
+</div>
+</section>
+<!-- Map Toggle Mobile/Bottom -->
+<button class="fixed bottom-6 left-1/2 -translate-x-1/2 lg:hidden bg-slate-900 text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-2xl font-bold z-50">
+<span class="material-symbols-outlined">map</span> Show Map
+            </button>
+</main>
+</div>
+</body></html>

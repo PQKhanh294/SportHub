@@ -1,0 +1,56 @@
+@page
+@model SportHub.Pages.Auth.RegisterModel
+@{
+    ViewData["Title"] = "??ng ký";
+    Layout = "_AuthLayout";
+}
+
+<section class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 min-h-[78vh]">
+    <img class="absolute inset-0 w-full h-full object-cover blur-[2px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUza5132mWsTyImpUy0vlW4X-kZpUEoGTZ59X6UajDHu2_MgcIEBoeBhwigWvDiPaBLayqOXLt9Ccfkea_SPlCUzectqbl8ZulRDOKYPVWat5SxT1CbCUuyAdkSyvzhLB2NBxI5yf980fgJoyaNl6wI3rO_jNsfVXXkJFM1xF7upN_S_YuU3901h3VniekW2-_SYdgBWJFq_pRnRg6lqBLRSfz8tF9UERk3jf8jPetGEpv9VrmQ9QnqrzOOzo9yEpwAwdwQclUGCA" alt="Court background" />
+    <div class="absolute inset-0 bg-slate-900/45"></div>
+
+    <div class="relative z-10 flex items-center justify-center p-6 min-h-[78vh]">
+        <div class="w-full max-w-[560px] bg-white dark:bg-slate-900 p-8 md:p-10 rounded-xl shadow-2xl border border-white/20 dark:border-slate-700">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">T?o tài kho?n m?i</h1>
+                <p class="mt-2 text-slate-500 dark:text-slate-400">Tham gia c?ng ??ng Sport Hub ngay hôm nay</p>
+            </div>
+
+            <form method="post" class="space-y-5">
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
+
+                <div>
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">H? và tên</label>
+                    <input asp-for="Input.FullName" class="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 focus:ring-2 focus:ring-primary/20" placeholder="Nh?p h? và tên" />
+                    <span asp-validation-for="Input.FullName" class="text-xs text-red-500"></span>
+                </div>
+
+                <div>
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">Email</label>
+                    <input asp-for="Input.Email" class="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 focus:ring-2 focus:ring-primary/20" placeholder="Nh?p email" />
+                    <span asp-validation-for="Input.Email" class="text-xs text-red-500"></span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">M?t kh?u</label>
+                        <input asp-for="Input.Password" type="password" class="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 focus:ring-2 focus:ring-primary/20" placeholder="Nh?p m?t kh?u" />
+                        <span asp-validation-for="Input.Password" class="text-xs text-red-500"></span>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">Nh?p l?i m?t kh?u</label>
+                        <input asp-for="Input.ConfirmPassword" type="password" class="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 focus:ring-2 focus:ring-primary/20" placeholder="Nh?p l?i m?t kh?u" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-xs text-red-500"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full h-14 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all">??ng ký ngay</button>
+            </form>
+
+            <div class="mt-6 text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-5">
+                ?ã có tài kho?n?
+                <a asp-page="/Auth/Login" class="text-primary font-bold hover:underline ml-1">??ng nh?p</a>
+            </div>
+        </div>
+    </div>
+</section>
