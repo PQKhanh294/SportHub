@@ -1,4 +1,4 @@
-using System.Security.Claims;
+ï»¿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -61,8 +61,8 @@ namespace SportHub.Pages.Bookings
             var cancelled = await _bookingService.CancelBookingAsync(bookingId, userId, "Cancelled by user");
 
             TempData[cancelled ? "SuccessMessage" : "ErrorMessage"] = cancelled
-                ? "H?y l?ch ??t thành công."
-                : "Không th? h?y l?ch ??t này.";
+                ? "Booking cancelled successfully."
+                : "Unable to cancel this booking.";
 
             return RedirectToPage(new { tab = string.IsNullOrWhiteSpace(tab) ? "all" : tab });
         }
@@ -82,7 +82,7 @@ namespace SportHub.Pages.Bookings
 
             if (ordered.Count == 0)
             {
-                return "Ch?a có khung gi?";
+                return "No time slots";
             }
 
             var start = ordered.First().TimeSlot.StartTime;
@@ -104,10 +104,10 @@ namespace SportHub.Pages.Bookings
 
             public string DisplayStatus => Status switch
             {
-                "Pending" => "Ch? xác nh?n",
-                "Confirmed" => "?ã xác nh?n",
-                "Cancelled" => "?ã h?y",
-                "Completed" => "Hoàn thành",
+                "Pending" => "Pending",
+                "Confirmed" => "Confirmed",
+                "Cancelled" => "Cancelled",
+                "Completed" => "Completed",
                 _ => Status
             };
 

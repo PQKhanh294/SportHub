@@ -1,14 +1,14 @@
-@page "{id:int?}"
+ï»¿@page "{id:int?}"
 @model SportHub.Pages.Courts.DetailsModel
 @{
-    ViewData["Title"] = "Chi ti?t sân";
+    ViewData["Title"] = "Court Details";
     var item = Model.Item;
 }
 
 @if (item == null)
 {
     <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <p class="text-slate-500 dark:text-slate-400">Không tìm th?y sân.</p>
+        <p class="text-slate-500 dark:text-slate-400">Court not found.</p>
     </section>
 }
 else
@@ -20,7 +20,7 @@ else
             <h1 class="text-4xl font-black tracking-tight">@item.CourtName</h1>
             <p class="text-slate-500 dark:text-slate-400 mt-2">@item.VenueName, @item.Address</p>
         </div>
-        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">Quay l?i tìm sân</a>
+        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">Back to search</a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-[420px]">
@@ -33,13 +33,13 @@ else
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">Gi?i thi?u sân</h2>
+            <h2 class="text-2xl font-bold mb-4">About this court</h2>
             <p class="text-slate-600 dark:text-slate-400">@item.Description</p>
         </div>
         <aside class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6">
-            <p class="text-slate-500 mb-1">Giá t?</p>
-            <p class="text-3xl font-black text-primary mb-4">@item.MinPriceDisplay<span class="text-sm text-slate-400">/gi?</span></p>
-            <a asp-page="/Bookings/MyBookings" class="w-full inline-flex justify-center py-3 bg-primary text-white rounded-xl font-bold">??t sân ngay</a>
+            <p class="text-slate-500 mb-1">Starting from</p>
+            <p class="text-3xl font-black text-primary mb-4">@item.MinPriceDisplay<span class="text-sm text-slate-400">/hour</span></p>
+            <a asp-page="/Bookings/MyBookings" class="w-full inline-flex justify-center py-3 bg-primary text-white rounded-xl font-bold">Book now</a>
         </aside>
     </div>
 </section>

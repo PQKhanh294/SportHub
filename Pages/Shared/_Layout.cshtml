@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="vi">
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -54,6 +54,22 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
+@using System.Security.Claims
+@inject SportHub.Services.Interfaces.IUserService UserService
+
+@{
+    string? currentUserAvatar = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdClaim, out var currentUserId) && currentUserId > 0)
+        {
+            var currentUser = await UserService.GetUserByIdAsync(currentUserId);
+            currentUserAvatar = currentUser?.AvatarUrl;
+        }
+    }
+}
+
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
 
 <!-- ================================================================
@@ -76,23 +92,23 @@
             <nav class="hidden md:flex items-center space-x-8">
                 <a asp-page="/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Home" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Trang chủ
+                    Home
                 </a>
                 <a asp-page="/Matchmaking/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Matchmaking" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Ghép trận
+                    Matchmaking
                 </a>
                 <a asp-page="/Courts/Search"
                    class="@(ViewData["ActivePage"]?.ToString() == "SearchCourts" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Tìm sân
+                    Search Courts
                 </a>
                 <a asp-page="/Bookings/MyBookings"
                    class="@(ViewData["ActivePage"]?.ToString() == "Bookings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Lịch đặt
+                    Bookings
                 </a>
                 <a asp-page="/Profile/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Profile" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Hồ sơ
+                    Profile
                 </a>
             </nav>
 
@@ -109,13 +125,13 @@
                     <div class="flex items-center gap-2">
                         <a asp-page="/Profile/Index" class="size-10 rounded-full bg-primary/10 border-2 border-primary/20 overflow-hidden block">
                             <img class="w-full h-full object-cover"
-                                 src="@(ViewData["UserAvatar"] ?? "https://ui-avatars.com/api/?name=Sport+Hub&background=E2E8F0&color=1E293B")"
+                                 src="@(string.IsNullOrWhiteSpace(currentUserAvatar) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(User.Identity?.Name ?? "Sport Hub")}&background=E2E8F0&color=1E293B" : currentUserAvatar)"
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Sport+Hub&background=E2E8F0&color=1E293B';"
                                  alt="@User.Identity.Name" />
                         </a>
                         <form method="post" asp-page="/Auth/Logout">
                             <button type="submit" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                                Đăng xuất
+                                Logout
                             </button>
                         </form>
                     </div>
@@ -125,11 +141,11 @@
                     <div class="flex items-center gap-2">
                         <a asp-page="/Auth/Login"
                            class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                            Đăng nhập
+                            Login
                         </a>
                         <a asp-page="/Auth/Register"
                            class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all">
-                            Đăng ký
+                            Register
                         </a>
                     </div>
                 }
@@ -145,11 +161,11 @@
         <!-- Mobile Nav Dropdown -->
         <div id="mobile-menu" class="hidden md:hidden pb-4">
             <nav class="flex flex-col space-y-1 pt-2">
-                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Trang chủ</a>
-                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Ghép trận</a>
-                <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tìm sân</a>
-                <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Lịch đặt</a>
-                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Hồ sơ</a>
+                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Home</a>
+                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Matchmaking</a>
+                <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Search Courts</a>
+                <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Bookings</a>
+                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Profile</a>
             </nav>
         </div>
 
@@ -197,11 +213,11 @@
 
             <!-- Footer Links -->
             <div class="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
-                <a class="hover:text-primary transition-colors" href="#">Về chúng tôi</a>
-                <a class="hover:text-primary transition-colors" href="#">Hướng dẫn cộng đồng</a>
-                <a class="hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
-                <a class="hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</a>
-                <a class="hover:text-primary transition-colors" href="#">Trung tâm trợ giúp</a>
+                <a class="hover:text-primary transition-colors" href="#">About Us</a>
+                <a class="hover:text-primary transition-colors" href="#">Community Guidelines</a>
+                <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+                <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+                <a class="hover:text-primary transition-colors" href="#">Help Center</a>
             </div>
 
             <!-- Social Icons -->
@@ -218,7 +234,7 @@
 
         <!-- Copyright -->
         <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
-            &copy; @DateTime.Now.Year Sport Hub. Đã đăng ký bản quyền.
+            &copy; @DateTime.Now.Year Sport Hub. All rights reserved.
         </div>
 
     </div>

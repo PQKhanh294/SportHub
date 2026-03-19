@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Models.ViewModels;
 using SportHub.Services.Interfaces;
@@ -52,7 +52,7 @@ namespace SportHub.Pages
                 MatchDate = m.MatchDate,
                 StartTime = m.StartTime,
                 EndTime = m.EndTime,
-                VenueName = m.Court?.Venue?.VenueName ?? "Chưa xác định",
+                VenueName = m.Court?.Venue?.VenueName ?? "TBD Venue",
                 CourtImageUrl = m.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
                                 ?? m.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.ImageUrl
                                 ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuDCZms0q2ESpaDHRdZkf9dE4qMQZVkgjJF0HnN65HWF8MiraPWap2EeqIu5B7lpZay82on8EwiajwpFEaLc1mBLtzup2a-2NvPWKA3XU36SNDcXt-gXNlhyrefVLm2peEdMau0QNC2KvvV6JmiocZGK85Vy0y1YJaMXMWTYDMndO9e6k4o50HhcXXRpw7Pmk8OkE_yboqgbxG0tyqV8PUsxVgj6n3ll8iXu_RU0HbcH2QNCTKjyz_4eA2XCg2RBtRGz0zIqIBFgcMk",
@@ -130,10 +130,10 @@ namespace SportHub.Pages
         {
             return matchType switch
             {
-                "Singles" => "Cạnh tranh",
-                "Doubles" => "Thân thiện",
-                "Mixed" => "Giải trí",
-                _ => "Thân thiện"
+                "Singles" => "Competitive",
+                "Doubles" => "Friendly",
+                "Mixed" => "Casual",
+                _ => "Friendly"
             };
         }
     }

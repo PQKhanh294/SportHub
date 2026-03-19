@@ -1,40 +1,103 @@
-@page
+ï»¿@page
 @model SportHub.Pages.Matchmaking.IndexModel
 @{
-    ViewData["Title"] = "Ghép tr?n";
+    ViewData["Title"] = "Matchmaking";
 }
 
 <section class="space-y-8">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-            <h1 class="text-4xl md:text-5xl font-black tracking-tight">Ghép tr?n thông minh</h1>
-            <p class="text-slate-500 dark:text-slate-400 text-lg mt-2">Tìm ??i th? phù h?p theo trình ??, th?i gian và ??a ?i?m.</p>
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight">Smart Matchmaking</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-lg mt-2">Find suitable opponents by skill level, time, and location.</p>
         </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold mb-3">Upcoming matches you've joined</h3>
+            @if (Model.UpcomingJoinedMatches.Count == 0)
+            {
+                <p class="text-sm text-slate-500">No upcoming joined matches.</p>
+            }
+            else
+            {
+                <div class="space-y-2">
+                    @foreach (var m in Model.UpcomingJoinedMatches)
+                    {
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <p class="font-semibold text-sm">@m.Title</p>
+                            <p class="text-xs text-slate-500">@m.StartText â€¢ @m.Venue</p>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 class="font-bold mb-3">Joined match history</h3>
+            @if (Model.JoinedMatchHistory.Count == 0)
+            {
+                <p class="text-sm text-slate-500">No joined match history yet.</p>
+            }
+            else
+            {
+                <div class="space-y-2">
+                    @foreach (var m in Model.JoinedMatchHistory)
+                    {
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <p class="font-semibold text-sm">@m.Title</p>
+                            <p class="text-xs text-slate-500">@m.StartText â€¢ @m.Venue</p>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
         <div class="flex gap-3">
-        <a asp-page="/Matchmaking/Create" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all inline-flex items-center gap-2">
-            <span class="material-symbols-outlined">bolt</span>
-            T?o tr?n m?i
-        </a>
+            <a asp-page="/Matchmaking/Create" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all inline-flex items-center gap-2">
+                <span class="material-symbols-outlined">bolt</span>
+                Create new match
+            </a>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside class="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 class="font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">filter_list</span>B? l?c tr?n ??u</h3>
-            <div class="space-y-4">
-                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
-                    <option>Tennis</option><option>Badminton</option><option>Pickleball</option>
+            <h3 class="font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">filter_list</span>Match filters</h3>
+            <form method="get" class="space-y-4">
+                <select asp-for="Sport" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium" onchange="this.form.submit()">
+                    <option value="">All sports</option>
+                    @foreach (var sport in Model.SportOptions)
+                    {
+                        <option value="@sport">@sport</option>
+                    }
                 </select>
-                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
-                    <option>Intermediate</option><option>Beginner</option><option>Advanced</option>
+                <select asp-for="Skill" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium" onchange="this.form.submit()">
+                    <option value="Any">Any level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Professional">Professional</option>
                 </select>
-                <select class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium">
-                    <option>Any time</option><option>Morning</option><option>Evening</option>
+                <select asp-for="Time" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium" onchange="this.form.submit()">
+                    <option value="Any">Any time</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Evening">Evening</option>
                 </select>
-            </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input asp-for="MinPrice" type="number" min="0" step="1000" placeholder="Min price" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium" />
+                    <input asp-for="MaxPrice" type="number" min="0" step="1000" placeholder="Max price" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-medium" />
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90">Apply filters</button>
+            </form>
         </aside>
 
         <div class="lg:col-span-3 space-y-4">
+            @if (Model.Matches.Count == 0)
+            {
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-slate-500">
+                    No matches found for current filters.
+                </div>
+            }
             @foreach (var match in Model.Matches)
             {
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
@@ -43,14 +106,27 @@
                         <div class="flex-1">
                             <div class="flex items-center justify-between gap-2 mb-2">
                                 <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-2 py-1 rounded">@match.MatchType</span>
-                                <span class="text-xs font-bold text-green-600">?? phù h?p: @match.MatchScore%</span>
+                                <div class="flex items-center gap-2">
+                                    @if (match.IsJoinedByCurrentUser)
+                                    {
+                                        <span class="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-700">Joined by you</span>
+                                    }
+                                    <span class="text-xs font-bold text-green-600">Match score: @match.MatchScore%</span>
+                                </div>
                             </div>
                             <h3 class="text-xl font-extrabold mb-3">@match.Title</h3>
                             <div class="text-sm text-slate-500 dark:text-slate-400 flex flex-wrap gap-4">
-                                <span>@match.StartText</span><span>@match.Venue</span><span>@match.Participants / @match.MaxParticipants ?ã tham gia</span>
+                                <span>@match.StartText</span><span>@match.Venue</span><span>Skill: @match.SkillRequired</span><span>@match.Participants / @match.MaxParticipants joined</span>
+                            </div>
+                            <div class="mt-2 text-sm font-semibold text-primary">
+                                @match.PriceDisplay
                             </div>
                             <div class="flex justify-end mt-4">
-                                <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20">Xem chi ti?t</a>
+                                @if (match.IsOwnedByCurrentUser)
+                                {
+                                    <a asp-page="/Matchmaking/Edit" asp-route-id="@match.MatchId" class="px-4 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 rounded-xl mr-2">Edit</a>
+                                }
+                                <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-md shadow-primary/20">View details</a>
                             </div>
                         </div>
                     </div>

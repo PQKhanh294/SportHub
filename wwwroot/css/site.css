@@ -1,8 +1,11 @@
-/* Sport Hub - Custom CSS overrides */
+﻿/* Sport Hub - Custom CSS overrides */
 /* Tailwind CDN handles most styling; this file for custom utilities */
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Arial, sans-serif;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .hide-scrollbar::-webkit-scrollbar {

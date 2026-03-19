@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
 
@@ -10,6 +10,7 @@ namespace SportHub.Services.Interfaces
         Task<Match?> GetMatchDetailsAsync(int matchId);
         Task<bool> JoinMatchAsync(int matchId, int userId);
         Task<int> CreateMatchAsync(Match match, int createdByUserId);
+        Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
     }
 }
 
@@ -29,6 +30,8 @@ namespace SportHub.Services.Implementations
             return await _context.Matches
                 .Include(m => m.Court).ThenInclude(c => c!.Venue)
                 .Include(m => m.Court).ThenInclude(c => c!.Images)
+                .Include(m => m.Court).ThenInclude(c => c!.PricingRules)
+                .Include(m => m.Booking)
                 .Include(m => m.Sport)
                 .Include(m => m.Participants).ThenInclude(p => p.User)
                 .Where(m => m.Status == "Open" && m.MatchDate >= DateTime.Today)
@@ -42,6 +45,8 @@ namespace SportHub.Services.Implementations
             return await _context.Matches
                 .Include(m => m.CreatedByUser)
                 .Include(m => m.Court).ThenInclude(c => c!.Venue)
+                .Include(m => m.Court).ThenInclude(c => c!.PricingRules)
+                .Include(m => m.Booking)
                 .Include(m => m.Participants).ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(m => m.MatchID == matchId);
         }
@@ -94,6 +99,31 @@ namespace SportHub.Services.Implementations
 
             await _context.SaveChangesAsync();
             return match.MatchID;
+        }
+
+        public async Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch)
+        {
+            var match = await _context.Matches
+                .FirstOrDefaultAsync(m => m.MatchID == matchId);
+
+            if (match == null || match.CreatedByUserID != userId)
+            {
+                return false;
+            }
+
+            match.CourtID = updatedMatch.CourtID;
+            match.SportID = updatedMatch.SportID;
+            match.MatchDate = updatedMatch.MatchDate;
+            match.StartTime = updatedMatch.StartTime;
+            match.EndTime = updatedMatch.EndTime;
+            match.MatchType = updatedMatch.MatchType;
+            match.SkillRequired = updatedMatch.SkillRequired;
+            match.MaxParticipants = updatedMatch.MaxParticipants;
+            match.Title = updatedMatch.Title;
+            match.Description = updatedMatch.Description;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

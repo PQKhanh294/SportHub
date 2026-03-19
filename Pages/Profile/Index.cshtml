@@ -1,7 +1,7 @@
-@page
+ï»¿@page
 @model SportHub.Pages.Profile.IndexModel
 @{
-    ViewData["Title"] = "H? s?";
+    ViewData["Title"] = "Profile";
     var p = Model.Profile;
 }
 
@@ -9,34 +9,37 @@
     <div class="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-5">
-                <img class="size-28 rounded-full border-4 border-white dark:border-slate-800 shadow-lg object-cover" src="@p.AvatarUrl" alt="User" />
+                <img class="size-28 rounded-full border-4 border-white dark:border-slate-800 shadow-lg object-cover"
+                     src="@p.AvatarUrl"
+                     onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(p.FullName)&background=E2E8F0&color=1E293B';"
+                     alt="User" />
                 <div>
                     <h1 class="text-3xl font-bold">@p.FullName</h1>
-                    <p class="text-slate-500 dark:text-slate-400">Tham gia t? @p.JoinedText</p>
+                    <p class="text-slate-500 dark:text-slate-400">Member since @p.JoinedText</p>
                     <div class="flex gap-2 mt-2">
-                        <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">Ng??i ch?i ?ã xác th?c</span>
-                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Gói Premium</span>
+                        <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">Verified player</span>
+                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Premium</span>
                     </div>
                 </div>
             </div>
-            <a asp-page="/Profile/Edit" class="px-5 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">Ch?nh s?a h? s?</a>
+            <a asp-page="/Profile/Edit" class="px-5 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">Edit profile</a>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-            <h3 class="font-bold mb-4">Thông tin cá nhân</h3>
+            <h3 class="font-bold mb-4">Personal information</h3>
             <div class="space-y-3 text-sm">
                 <p><span class="text-slate-400">Email</span><br /><b>@p.Email</b></p>
-                <p><span class="text-slate-400">S? ?i?n tho?i</span><br /><b>@p.PhoneNumber</b></p>
-                <p><span class="text-slate-400">Tham gia t?</span><br /><b>@p.JoinedText</b></p>
+                <p><span class="text-slate-400">Phone</span><br /><b>@p.PhoneNumber</b></p>
+                <p><span class="text-slate-400">Member since</span><br /><b>@p.JoinedText</b></p>
             </div>
         </div>
 
         <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">Tr?n ?ã ch?i</p><p class="text-4xl font-black mt-1">@p.MatchesPlayed</p></div>
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">Tr?n th?ng</p><p class="text-4xl font-black mt-1 text-emerald-600">@p.Wins</p></div>
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">L?ch ??t</p><p class="text-4xl font-black mt-1 text-primary">@p.TotalBookings</p></div>
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">Matches Played</p><p class="text-4xl font-black mt-1">@p.MatchesPlayed</p></div>
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">Wins</p><p class="text-4xl font-black mt-1 text-emerald-600">@p.Wins</p></div>
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center"><p class="text-slate-400 text-xs font-bold uppercase">Bookings</p><p class="text-4xl font-black mt-1 text-primary">@p.TotalBookings</p></div>
         </div>
     </div>
 </section>

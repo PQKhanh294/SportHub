@@ -13,33 +13,28 @@ using SportHub.Services.Interfaces;
 namespace SportHub.Pages.Matchmaking
 {
     [Authorize]
-    public class CreateModel : PageModel
+    public class EditModel : PageModel
     {
         private readonly IMatchService _matchService;
         private readonly ApplicationDbContext _context;
 
-        public CreateModel(IMatchService matchService, ApplicationDbContext context)
+        public EditModel(IMatchService matchService, ApplicationDbContext context)
         {
             _matchService = matchService;
             _context = context;
         }
 
         [BindProperty]
-        public InputModel Input { get; set; } = new()
-        {
-            MatchDate = DateTime.Today,
-            StartTime = new TimeSpan(18, 0, 0),
-            EndTime = new TimeSpan(19, 0, 0),
-            MatchType = "Doubles",
-            SkillRequired = "Any",
-            MaxParticipants = 4
-        };
+        public InputModel Input { get; set; } = new();
 
         public List<SelectListItem> SportOptions { get; set; } = new();
         public List<SelectListItem> SkillOptions { get; set; } = new();
 
         public class InputModel
         {
+            [Required]
+            public int MatchId { get; set; }
+
             [Required(ErrorMessage = "Please enter a match title.")]
             public string Title { get; set; } = string.Empty;
 
@@ -78,10 +73,40 @@ namespace SportHub.Pages.Matchmaking
             public string? Description { get; set; }
         }
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(int id)
         {
             ViewData["ActivePage"] = "Matchmaking";
             await LoadSelectionsAsync();
+
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+
+            var match = await _matchService.GetMatchDetailsAsync(id);
+            if (match == null || match.CreatedByUserID != userId)
+            {
+                TempData["ErrorMessage"] = "You can only edit matches created by you.";
+                return RedirectToPage("/Matchmaking/Index");
+            }
+
+            Input = new InputModel
+            {
+                MatchId = match.MatchID,
+                Title = match.Title ?? string.Empty,
+                CourtId = match.CourtID,
+                CourtName = ExtractMeta(match.Description, "Court name:"),
+                CourtAddress = ExtractMeta(match.Description, "Court address:"),
+                SportId = match.SportID,
+                MatchDate = match.MatchDate,
+                StartTime = match.StartTime,
+                EndTime = match.EndTime,
+                MatchType = string.IsNullOrWhiteSpace(match.MatchType) ? "Doubles" : match.MatchType,
+                SkillRequired = string.IsNullOrWhiteSpace(match.SkillRequired) ? "Any" : match.SkillRequired,
+                MaxParticipants = match.MaxParticipants,
+                PriceVnd = ExtractPrice(match.Description),
+                Description = ExtractFreeDescription(match.Description)
+            };
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -128,12 +153,9 @@ namespace SportHub.Pages.Matchmaking
                 {
                     ModelState.AddModelError("Input.CourtId", "Invalid court or inactive court.");
                 }
-                else
+                else if (Input.StartTime < court.Venue.OpenTime || Input.EndTime > court.Venue.CloseTime)
                 {
-                    if (Input.StartTime < court.Venue.OpenTime || Input.EndTime > court.Venue.CloseTime)
-                    {
-                        ModelState.AddModelError("Input.StartTime", $"Match time must be within venue hours ({court.Venue.OpenTime:hh\\:mm} - {court.Venue.CloseTime:hh\\:mm}).");
-                    }
+                    ModelState.AddModelError("Input.StartTime", $"Match time must be within venue hours ({court.Venue.OpenTime:hh\\:mm} - {court.Venue.CloseTime:hh\\:mm}).");
                 }
             }
 
@@ -148,7 +170,7 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage("/Auth/Login");
             }
 
-            var match = new Match
+            var updatedMatch = new Match
             {
                 CourtID = Input.CourtId,
                 SportID = Input.SportId,
@@ -159,12 +181,15 @@ namespace SportHub.Pages.Matchmaking
                 SkillRequired = Input.SkillRequired,
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
-                Description = BuildDescriptionWithCustomCourt(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd)
+                Description = BuildDescription(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd)
             };
 
-            var matchId = await _matchService.CreateMatchAsync(match, userId);
-            TempData["SuccessMessage"] = "Match created successfully.";
-            return RedirectToPage("/Matchmaking/Details", new { id = matchId });
+            var updated = await _matchService.UpdateMatchAsync(Input.MatchId, userId, updatedMatch);
+            TempData[updated ? "SuccessMessage" : "ErrorMessage"] = updated
+                ? "Match updated successfully."
+                : "Unable to update this match.";
+
+            return RedirectToPage("/Matchmaking/Details", new { id = Input.MatchId });
         }
 
         private async Task LoadSelectionsAsync()
@@ -174,7 +199,7 @@ namespace SportHub.Pages.Matchmaking
                 .Select(s => new SelectListItem
                 {
                     Value = s.SportID.ToString(),
-                    Text = NormalizeSportName(s.SportName)
+                    Text = s.SportName == "Cầu lông" ? "Badminton" : s.SportName
                 })
                 .ToListAsync();
 
@@ -194,40 +219,46 @@ namespace SportHub.Pages.Matchmaking
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        private static string? BuildDescriptionWithCustomCourt(string? description, string? courtName, string? courtAddress, decimal? priceVnd)
+        private static string? BuildDescription(string? description, string? courtName, string? courtAddress, decimal? priceVnd)
         {
             var parts = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(courtName))
-            {
-                parts.Add($"Court name: {courtName.Trim()}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(courtAddress))
-            {
-                parts.Add($"Court address: {courtAddress.Trim()}");
-            }
-
-            if (priceVnd.HasValue)
-            {
-                parts.Add($"Match price VND: {priceVnd.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(description))
-            {
-                parts.Add(description.Trim());
-            }
+            if (!string.IsNullOrWhiteSpace(courtName)) parts.Add($"Court name: {courtName.Trim()}");
+            if (!string.IsNullOrWhiteSpace(courtAddress)) parts.Add($"Court address: {courtAddress.Trim()}");
+            if (priceVnd.HasValue) parts.Add($"Match price VND: {priceVnd.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+            if (!string.IsNullOrWhiteSpace(description)) parts.Add(description.Trim());
 
             return parts.Count == 0 ? null : string.Join(Environment.NewLine, parts);
         }
 
-        private static string NormalizeSportName(string sportName)
+        private static string? ExtractMeta(string? description, string key)
         {
-            return sportName.Trim() switch
-            {
-                "Cầu lông" => "Badminton",
-                _ => sportName.Trim()
-            };
+            if (string.IsNullOrWhiteSpace(description)) return null;
+
+            var lines = description.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith(key, StringComparison.OrdinalIgnoreCase));
+            return line?.Replace(key, string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        }
+
+        private static decimal? ExtractPrice(string? description)
+        {
+            var raw = ExtractMeta(description, "Match price VND:");
+            return decimal.TryParse(raw, out var value) ? value : null;
+        }
+
+        private static string? ExtractFreeDescription(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+
+            var lines = description
+                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(l =>
+                    !l.StartsWith("Court name:", StringComparison.OrdinalIgnoreCase)
+                    && !l.StartsWith("Court address:", StringComparison.OrdinalIgnoreCase)
+                    && !l.StartsWith("Match price VND:", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            return lines.Count == 0 ? null : string.Join(Environment.NewLine, lines);
         }
     }
 }

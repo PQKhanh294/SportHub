@@ -1,4 +1,4 @@
-namespace SportHub.Models.Entities
+﻿namespace SportHub.Models.Entities
 {
     public class User
     {

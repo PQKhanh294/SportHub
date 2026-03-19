@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+ï»¿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -24,11 +24,11 @@ namespace SportHub.Pages.Auth
 
         public class InputModel
         {
-            [Required(ErrorMessage = "Vui lòng nh?p email.")]
-            [EmailAddress(ErrorMessage = "Email không h?p l?.")]
+            [Required(ErrorMessage = "Please enter your email.")]
+            [EmailAddress(ErrorMessage = "Invalid email format.")]
             public string Email { get; set; } = string.Empty;
 
-            [Required(ErrorMessage = "Vui lòng nh?p m?t kh?u.")]
+            [Required(ErrorMessage = "Please enter your password.")]
             public string Password { get; set; } = string.Empty;
         }
 
@@ -50,14 +50,14 @@ namespace SportHub.Pages.Auth
             var isValid = await _userService.ValidateCredentialsAsync(email, Input.Password);
             if (!isValid)
             {
-                ModelState.AddModelError(string.Empty, "Email ho?c m?t kh?u không ?úng.");
+                ModelState.AddModelError(string.Empty, "Invalid email or password.");
                 return Page();
             }
 
             var user = await _userService.GetUserByEmailAsync(email);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Tài kho?n không t?n t?i.");
+                ModelState.AddModelError(string.Empty, "Account does not exist.");
                 return Page();
             }
 
@@ -73,7 +73,7 @@ namespace SportHub.Pages.Auth
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            TempData["SuccessMessage"] = "??ng nh?p thành công.";
+            TempData["SuccessMessage"] = "Logged in successfully.";
 
             if (!string.IsNullOrWhiteSpace(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
             {

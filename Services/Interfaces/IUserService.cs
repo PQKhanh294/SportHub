@@ -1,4 +1,4 @@
-using SportHub.Models.Entities;
+﻿using SportHub.Models.Entities;
 
 namespace SportHub.Services.Interfaces
 {

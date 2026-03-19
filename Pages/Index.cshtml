@@ -1,7 +1,7 @@
-@page
+﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Tìm đối thủ phù hợp";
+    ViewData["Title"] = "Find Your Perfect Match";
 }
 
 <!-- HERO BANNER -->
@@ -15,19 +15,19 @@
     <!-- Hero Content -->
     <div class="relative z-20 px-8 py-20 md:py-32 lg:px-16 max-w-2xl">
         <h1 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-            Tìm đối thủ phù hợp
+            Find Your Perfect Match
         </h1>
         <p class="text-lg text-slate-200 mb-8 max-w-lg">
-            Tham gia cộng đồng thể thao vợt lớn nhất. Kết nối người chơi cùng trình độ và đặt sân chất lượng ngay lập tức.
+            Join the largest racket sports community. Connect with players of your level and book quality courts instantly.
         </p>
         <div class="flex flex-wrap gap-4">
             <a asp-page="/Matchmaking/Index" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
                 <span class="material-symbols-outlined">person_search</span>
-                Tìm người chơi
+                Find Players
             </a>
             <a asp-page="/Courts/Search" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined">calendar_today</span>
-                Đặt sân
+                Book Court
             </a>
         </div>
     </div>
@@ -36,8 +36,8 @@
 <!-- RECOMMENDED MATCHES -->
 <section class="mb-12">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Trận đấu gợi ý</h2>
-        <a asp-page="/Matchmaking/Index" class="text-primary font-semibold text-sm hover:underline">Xem tất cả</a>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Recommended Matches</h2>
+        <a asp-page="/Matchmaking/Index" class="text-primary font-semibold text-sm hover:underline">View all</a>
     </div>
 
     <div class="flex gap-6 overflow-x-auto pb-4 hide-scrollbar">
@@ -73,7 +73,7 @@
                             }
                         </div>
                         <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchID" class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-4 py-2 rounded-lg text-sm transition-colors">
-                            Tham gia
+                            Join
                         </a>
                     </div>
                 </div>
@@ -86,8 +86,8 @@
     <!-- SUGGESTED PLAYERS -->
     <div class="lg:col-span-2">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Người chơi gợi ý</h2>
-            <a asp-page="/Players/Index" class="text-primary font-semibold text-sm hover:underline">Xem thêm</a>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Suggested Players</h2>
+            <a asp-page="/Players/Index" class="text-primary font-semibold text-sm hover:underline">See more</a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach (var player in Model.SuggestedPlayers)
@@ -100,10 +100,10 @@
                         <div class="flex items-center mt-1">
                             <span class="material-symbols-outlined text-amber-400 text-xs">star</span>
                             <span class="text-xs font-bold ml-1">@player.AverageRating.ToString("F1")</span>
-                            <span class="text-slate-400 text-xs ml-1">(@player.TotalMatches trận)</span>
+                            <span class="text-slate-400 text-xs ml-1">(@player.TotalMatches matches)</span>
                         </div>
                     </div>
-                    <a asp-page="/Players/Index" class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-colors" title="Xem danh sách người chơi">
+                    <a asp-page="/Players/Index" class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-colors" title="View players list">
                         <span class="material-symbols-outlined">person_add</span>
                     </a>
                 </div>
@@ -114,8 +114,8 @@
     <!-- NEARBY COURTS -->
     <div>
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Sân gần bạn</h2>
-            <a asp-page="/Courts/Map" class="text-primary font-semibold text-sm hover:underline">Bản đồ</a>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Nearby Courts</h2>
+            <a asp-page="/Courts/Map" class="text-primary font-semibold text-sm hover:underline">Map</a>
         </div>
         <div class="space-y-4">
             @foreach (var court in Model.NearbyCourts)
@@ -126,28 +126,28 @@
                     </div>
                     <div class="flex-1">
                         <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">@court.VenueName</h4>
-                        <p class="text-slate-500 text-xs mb-1">@court.DistanceKm.ToString() km • @court.TotalCourts sân</p>
+                        <p class="text-slate-500 text-xs mb-1">@court.DistanceKm.ToString() km • @court.TotalCourts courts</p>
                         
                         @if (court.Availability == CourtCardViewModel.AvailabilityStatus.Available)
                         {
                             <span class="text-emerald-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>Còn trống
+                                <span class="size-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>Available
                             </span>
                         }
                         else if (court.Availability == CourtCardViewModel.AvailabilityStatus.Limited)
                         {
                             <span class="text-amber-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>Sắp hết chỗ
+                                <span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>Limited slots
                             </span>
                         }
                         else
                         {
                             <span class="text-red-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-red-500 rounded-full mr-1.5"></span>Đã đầy
+                                <span class="size-2 bg-red-500 rounded-full mr-1.5"></span>Full
                             </span>
                         }
                         
-                        <p class="text-primary font-bold text-sm mt-1">@court.MinPricePerHour.ToString("N0")đ/giờ</p>
+                        <p class="text-primary font-bold text-sm mt-1">@court.MinPricePerHour.ToString("N0") VND/hour</p>
                     </div>
                 </a>
             }
@@ -161,7 +161,7 @@
             <div class="absolute inset-0 flex items-center justify-center">
                 <div class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold py-2 px-4 rounded-lg shadow-lg text-sm flex items-center gap-2 group-hover:bg-primary group-hover:text-white transition-colors">
                     <span class="material-symbols-outlined">map</span>
-                    Khám phá bản đồ
+                    Explore map
                 </div>
             </div>
         </a>

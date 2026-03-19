@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -38,9 +38,9 @@ namespace SportHub.Pages.Profile
             {
                 FullName = user.FullName,
                 Email = user.Email,
-                PhoneNumber = string.IsNullOrWhiteSpace(user.PhoneNumber) ? "Ch?a c?p nh?t" : user.PhoneNumber,
+                PhoneNumber = string.IsNullOrWhiteSpace(user.PhoneNumber) ? "Not updated" : user.PhoneNumber,
                 AvatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
-                    ? "https://lh3.googleusercontent.com/aida-public/AB6AXuBrQ1D_hZ1VuQlkRROfTOHkc9hceEK3EfoWqmk4eiEz22D_DD3lCtPUdc3L21Lribw0r6zMsEenoDs-sGtkHqw9vnsr50rzmE2CN9NyHwL10CYrzAc8nBVTb7edW4ngMGhtnCcf0Y2ai0H56_EW36OyywtcCBiir2wik_0srGdgIVd6vhiR-dUslF4dx5uVwNgjidfWVfzJxZSAAoYyEREvOCh6fm9jrTPtnCcMpUMFr0LDWI79fOpa-8FFDlU2G6BL075uL4Rbg5A"
+                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(user.FullName)}&background=E2E8F0&color=1E293B"
                     : user.AvatarUrl,
                 JoinedText = user.CreatedAt.ToString("MM/yyyy"),
                 MatchesPlayed = await _userService.GetTotalMatchesPlayedAsync(userId),

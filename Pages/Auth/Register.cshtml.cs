@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+ï»¿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Models.Entities;
@@ -21,20 +21,20 @@ namespace SportHub.Pages.Auth
 
         public class InputModel
         {
-            [Required(ErrorMessage = "Vui lòng nh?p h? tên.")]
+            [Required(ErrorMessage = "Please enter your full name.")]
             [StringLength(100)]
             public string FullName { get; set; } = string.Empty;
 
-            [Required(ErrorMessage = "Vui lòng nh?p email.")]
-            [EmailAddress(ErrorMessage = "Email không h?p l?.")]
+            [Required(ErrorMessage = "Please enter your email.")]
+            [EmailAddress(ErrorMessage = "Invalid email format.")]
             public string Email { get; set; } = string.Empty;
 
-            [Required(ErrorMessage = "Vui lòng nh?p m?t kh?u.")]
-            [MinLength(6, ErrorMessage = "M?t kh?u t?i thi?u 6 ký t?.")]
+            [Required(ErrorMessage = "Please enter your password.")]
+            [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
             public string Password { get; set; } = string.Empty;
 
-            [Required(ErrorMessage = "Vui lòng nh?p l?i m?t kh?u.")]
-            [Compare(nameof(Password), ErrorMessage = "M?t kh?u nh?p l?i không kh?p.")]
+            [Required(ErrorMessage = "Please confirm your password.")]
+            [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
             public string ConfirmPassword { get; set; } = string.Empty;
         }
 
@@ -49,7 +49,7 @@ namespace SportHub.Pages.Auth
             var existed = await _userService.GetUserByEmailAsync(normalizedEmail);
             if (existed != null)
             {
-                ModelState.AddModelError("Input.Email", "Email ?ã ???c s? d?ng.");
+                ModelState.AddModelError("Input.Email", "Email is already in use.");
                 return Page();
             }
 
@@ -70,11 +70,11 @@ namespace SportHub.Pages.Auth
             }
             catch
             {
-                ModelState.AddModelError("Input.Email", "Email ?ã ???c s? d?ng.");
+                ModelState.AddModelError("Input.Email", "Email is already in use.");
                 return Page();
             }
 
-            TempData["SuccessMessage"] = "??ng ký thành công. B?n có th? ??ng nh?p ngay.";
+            TempData["SuccessMessage"] = "Registration successful. You can now log in.";
             return RedirectToPage("/Auth/Login");
         }
     }

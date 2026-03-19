@@ -1,14 +1,14 @@
-@page "{id:int?}"
+ï»¿@page "{id:int?}"
 @model SportHub.Pages.Matchmaking.DetailsModel
 @{
-    ViewData["Title"] = "Chi ti?t tr?n";
+    ViewData["Title"] = "Match Details";
     var item = Model.Item;
 }
 
 @if (item == null)
 {
     <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <p class="text-slate-500 dark:text-slate-400">Không tìm th?y tr?n ??u.</p>
+        <p class="text-slate-500 dark:text-slate-400">Match not found.</p>
     </section>
 }
 else
@@ -27,25 +27,30 @@ else
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-3 text-sm">
-                    <p><b>Ngày:</b> @item.DateText</p>
-                    <p><b>Th?i gian:</b> @item.TimeText</p>
-                    <p><b>??a ?i?m:</b> @item.Venue</p>
-                    <p><b>Ng??i ch?i:</b> @item.Participants.Count / @item.MaxParticipants ?ã tham gia</p>
+                    <p><b>Date:</b> @item.DateText</p>
+                    <p><b>Time:</b> @item.TimeText</p>
+                    <p><b>Location:</b> @item.Venue</p>
+                    <p><b>Court name:</b> @item.CourtName</p>
+                    <p><b>Court address:</b> @item.CourtAddress</p>
+                    <p><b>Skill level:</b> @item.SkillRequired</p>
+                    <p><b>Players:</b> @item.Participants.Count / @item.MaxParticipants joined</p>
                 </div>
                 <div class="bg-background-light dark:bg-slate-800 rounded-lg p-4">
-                    <p class="text-sm text-slate-500">S? ch? còn l?i</p>
-                    <p class="text-xl font-bold text-primary">@item.SpotsLeft ch?</p>
+                    <p class="text-sm text-slate-500">Participation price</p>
+                    <p class="text-xl font-bold text-primary mb-3">@item.PriceDisplay</p>
+                    <p class="text-sm text-slate-500">Remaining spots</p>
+                    <p class="text-xl font-bold text-primary">@item.SpotsLeft spots</p>
                 </div>
             </div>
         </article>
     </div>
     <aside class="lg:col-span-4 space-y-6">
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-            <h2 class="font-bold mb-4">Danh sách tham gia</h2>
+            <h2 class="font-bold mb-4">Participants</h2>
             <div class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                 @if (item.Participants.Count == 0)
                 {
-                    <p>Ch?a có ng??i tham gia.</p>
+                    <p>No participants yet.</p>
                 }
                 else
                 {
@@ -55,7 +60,28 @@ else
                     }
                 }
             </div>
-            <a asp-page="/Matchmaking/Index" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-primary text-white font-bold">Quay l?i ghép tr?n</a>
+            @if (item.IsJoined)
+            {
+                <button type="button" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold cursor-default">Joined</button>
+            }
+            else if (item.CanJoin)
+            {
+                <form method="post" asp-page-handler="Join" class="mt-5">
+                    <input type="hidden" name="id" value="@item.MatchId" />
+                    <button type="submit" class="inline-flex w-full justify-center px-4 py-2 rounded-lg bg-primary text-white font-bold hover:bg-primary/90">Join match</button>
+                </form>
+            }
+            else
+            {
+                <button type="button" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-slate-200 text-slate-500 font-bold cursor-not-allowed">Unavailable to join</button>
+            }
+
+            @if (item.IsOwner)
+            {
+                <a asp-page="/Matchmaking/Edit" asp-route-id="@item.MatchId" class="mt-3 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">Edit your match</a>
+            }
+
+            <a asp-page="/Matchmaking/Index" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-primary text-white font-bold">Back to matchmaking</a>
         </div>
     </aside>
 </section>

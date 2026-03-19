@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -51,6 +51,7 @@ using (var scope = app.Services.CreateScope())
             databaseCreator.CreateTables();
         }
     }
+
 }
 
 // Cấu hình Middleware Pipeline
@@ -92,3 +93,4 @@ static bool TableExists(ApplicationDbContext dbContext, string tableName)
     var result = command.ExecuteScalar();
     return Convert.ToInt32(result) == 1;
 }
+
