@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- SPORT HUB - SQL SERVER DATABASE SCHEMA
 -- Chuẩn: 3NF (Third Normal Form)
 -- Phiên bản: 1.0
@@ -20,6 +20,8 @@ GO
 -- ============================================================
 -- BƯỚC 1: XÓA CÁC BẢNG CŨ (NẾU CÓ) - Theo thứ tự phụ thuộc
 -- ============================================================
+IF OBJECT_ID('dbo.Notifications',     'U') IS NOT NULL DROP TABLE dbo.Notifications;
+IF OBJECT_ID('dbo.UserSportProfiles', 'U') IS NOT NULL DROP TABLE dbo.UserSportProfiles;
 IF OBJECT_ID('dbo.MatchParticipants', 'U') IS NOT NULL DROP TABLE dbo.MatchParticipants;
 IF OBJECT_ID('dbo.Matches',           'U') IS NOT NULL DROP TABLE dbo.Matches;
 IF OBJECT_ID('dbo.Reviews',           'U') IS NOT NULL DROP TABLE dbo.Reviews;
@@ -280,6 +282,7 @@ CREATE TABLE dbo.Matches (
     Description     NVARCHAR(500)   NULL,
     Status          NVARCHAR(20)    NOT NULL DEFAULT 'Open'
                         CHECK (Status IN ('Open','Full','InProgress','Completed','Cancelled')),
+    RequiresApproval BIT             NOT NULL DEFAULT 0,    -- 1 = host phải duyệt từng người tham gia
     CreatedAt       DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT PK_Matches PRIMARY KEY (MatchID),
     CONSTRAINT FK_Matches_Users    FOREIGN KEY (CreatedByUserID) REFERENCES dbo.Users(UserID),
@@ -322,6 +325,58 @@ CREATE TABLE dbo.Reviews (
     CONSTRAINT FK_Reviews_Users    FOREIGN KEY (UserID)    REFERENCES dbo.Users(UserID),
     CONSTRAINT FK_Reviews_Bookings FOREIGN KEY (BookingID) REFERENCES dbo.Bookings(BookingID),
     CONSTRAINT UQ_Reviews UNIQUE (BookingID, UserID)  -- Mỗi user chỉ review một lần / booking
+);
+GO
+
+-- ============================================================
+-- NHÓM 7: HỒ SƠ KỸ NĂNG THEO MÔN THỂ THAO
+-- ============================================================
+
+-- Bảng: UserSportProfiles (Khai báo kỹ năng chuyên môn)
+-- Lý do tách riêng: Mỗi user có thể có profile khác nhau cho từng môn thể thao
+-- Hiện tại hỗ trợ Cầu lông (Badminton) với các câu hỏi cụ thể
+CREATE TABLE dbo.UserSportProfiles (
+    ProfileID       INT             NOT NULL IDENTITY(1,1),
+    UserID          INT             NOT NULL,
+    SportID         INT             NOT NULL,
+    -- Cầu lông: vị trí sân sở trường
+    CourtPosition   NVARCHAR(20)    NULL
+                        CHECK (CourtPosition IS NULL OR CourtPosition IN ('BackCourt','FrontCourt','AllRound')),
+    -- Phong cách chơi
+    PlayStyle       NVARCHAR(20)    NULL
+                        CHECK (PlayStyle IS NULL OR PlayStyle IN ('Aggressive','Defensive','Balanced')),
+    -- Kỹ thuật mạnh nhất
+    StrokeStrength  NVARCHAR(20)    NULL
+                        CHECK (StrokeStrength IS NULL OR StrokeStrength IN ('Smash','Drop','Drive','AllRound')),
+    -- Tự đánh giá trình độ: 1 (mới) đến 5 (chuyên nghiệp)
+    SelfRatedLevel  TINYINT         NULL CHECK (SelfRatedLevel IS NULL OR SelfRatedLevel BETWEEN 1 AND 5),
+    ExperienceYears TINYINT         NULL,
+    Notes           NVARCHAR(500)   NULL,
+    UpdatedAt       DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_UserSportProfiles PRIMARY KEY (ProfileID),
+    CONSTRAINT FK_USP_Users  FOREIGN KEY (UserID)  REFERENCES dbo.Users(UserID),
+    CONSTRAINT FK_USP_Sports FOREIGN KEY (SportID) REFERENCES dbo.Sports(SportID),
+    CONSTRAINT UQ_UserSportProfiles UNIQUE (UserID, SportID)  -- Mỗi user chỉ có 1 profile / môn
+);
+
+-- ============================================================
+-- NHÓM 8: THÔNG BÁO
+-- ============================================================
+
+-- Bảng: Notifications (Thông báo trong ứng dụng)
+-- Lý do tách riêng: Tránh lưu thông báo vào User (vi phạm 1NF nếu dùng cột JSON/list)
+CREATE TABLE dbo.Notifications (
+    NotificationID  INT             NOT NULL IDENTITY(1,1),
+    UserID          INT             NOT NULL,
+    Type            NVARCHAR(50)    NOT NULL
+                        CHECK (Type IN ('MatchJoin','MatchApprove','MatchReject','BookingConfirmed','BookingCancelled','System')),
+    Title           NVARCHAR(200)   NOT NULL,
+    Message         NVARCHAR(500)   NOT NULL,
+    LinkUrl         NVARCHAR(300)   NULL,       -- URL dẫn đến trang liên quan khi click
+    IsRead          BIT             NOT NULL DEFAULT 0,
+    CreatedAt       DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_Notifications PRIMARY KEY (NotificationID),
+    CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserID) REFERENCES dbo.Users(UserID)
 );
 GO
 
@@ -375,8 +430,12 @@ CREATE NONCLUSTERED INDEX IX_Bookings_UserID      ON dbo.Bookings (UserID, Booki
 CREATE NONCLUSTERED INDEX IX_Bookings_CourtDate   ON dbo.Bookings (CourtID, BookingDate, Status);
 -- Tìm trận đấu mở
 CREATE NONCLUSTERED INDEX IX_Matches_Status       ON dbo.Matches (Status, MatchDate, SportID);
+-- Tìm hồ sơ kỹ năng của user
+CREATE NONCLUSTERED INDEX IX_UserSportProfiles_User ON dbo.UserSportProfiles (UserID);
+-- Thông báo chưa đọc của user
+CREATE NONCLUSTERED INDEX IX_Notifications_Unread  ON dbo.Notifications (UserID, IsRead);
 GO
 
-PRINT N'✅ SportHubDB - Tạo CSDL thành công! Tổng: 16 bảng, chuẩn 3NF.';
+PRINT N'✅ SportHubDB - Tạo CSDL thành công! Tổng: 18 bảng (16 core + UserSportProfiles + Notifications), chuẩn 3NF.';
 GO
 

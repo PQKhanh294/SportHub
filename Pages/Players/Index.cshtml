@@ -1,7 +1,7 @@
-﻿@page
+@page
+@model SportHub.Pages.Players.IndexModel
 @{
     ViewData["Title"] = "Players";
-    ViewData["ActivePage"] = "Matchmaking";
 }
 
 <section class="space-y-6">
@@ -13,22 +13,38 @@
         <a asp-page="/Matchmaking/Index" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">Back to matchmaking</a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        @for (var i = 1; i <= 6; i++)
-        {
-            <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center gap-4 mb-4">
-                    <img class="size-16 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANCPA1RsIoRkhzqqh-JRBEY5jifMop0t_XlHA99NH2WTa1vOcXXGJyT4ojWhc5eqon5c3CBeB_BXEEs1GmCOwGkza4AOTFOrUCnFdoRz0cr5O3qZYj_T-XkUOJ9_2ktWjlgVPkfGvmo242d93BG4-fYYnqTki_EQzyDWIxHw90-I5KPodkgOFcr2OuJ2zvJOTEjJHmL77YOUq7VFAtHrdgDUmNLJgjYhyAI9QbZaj_urfOXxuGCEk28JCU4Ft1f6VYEm4E1BFSOHI" alt="Player" />
-                    <div>
-                        <h3 class="font-bold">Alex Player @(i)</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Tennis • Intermediate</p>
+    @if (!Model.Players.Any())
+    {
+        <div class="text-center py-20 text-slate-500">
+            <span class="material-symbols-outlined text-5xl mb-4 block">group</span>
+            <p class="text-lg font-semibold">No players found</p>
+            <p class="text-sm mt-1">Be the first to complete your profile!</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            @foreach (var player in Model.Players)
+            {
+                <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4 mb-4">
+                        <img class="size-16 rounded-full object-cover" src="@player.AvatarUrl" alt="@player.FullName" />
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white">@player.FullName</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">@player.SkillLevel</p>
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-primary">Match score: @(90 - i)%</span>
-                    <button class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-bold">Invite</button>
-                </div>
-            </article>
-        }
-    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-xs align-middle">sports_tennis</span>
+                            @player.TotalMatches matches played
+                        </span>
+                        <a asp-page="/Matchmaking/Create" class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-bold transition-colors">
+                            Invite
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
 </section>

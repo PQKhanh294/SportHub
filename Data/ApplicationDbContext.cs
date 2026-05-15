@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SportHub.Models.Entities;
 
 namespace SportHub.Data
@@ -36,6 +36,10 @@ namespace SportHub.Data
         public DbSet<PricingRule> PricingRules { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
 
+        // Nhóm 6: New Features
+        public DbSet<UserSportProfile> UserSportProfiles { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -57,6 +61,8 @@ namespace SportHub.Data
             modelBuilder.Entity<Match>().ToTable("Matches");
             modelBuilder.Entity<MatchParticipant>().ToTable("MatchParticipants");
             modelBuilder.Entity<Review>().ToTable("Reviews");
+            modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
+            modelBuilder.Entity<Notification>().ToTable("Notifications");
 
             // Primary keys (khai báo tường minh để tránh lỗi nhận diện key theo convention)
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
@@ -74,6 +80,8 @@ namespace SportHub.Data
             modelBuilder.Entity<TimeSlot>().HasKey(ts => ts.SlotID);
             modelBuilder.Entity<PricingRule>().HasKey(pr => pr.PricingID);
             modelBuilder.Entity<Review>().HasKey(r => r.ReviewID);
+            modelBuilder.Entity<UserSportProfile>().HasKey(usp => usp.ProfileID);
+            modelBuilder.Entity<Notification>().HasKey(n => n.NotificationID);
 
             // Composite Key (N:N) - UserRole
             modelBuilder.Entity<UserRole>()
@@ -332,6 +340,47 @@ namespace SportHub.Data
                 .WithMany()
                 .HasForeignKey(m => m.CreatedByUserID)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // UserSportProfile relations
+            modelBuilder.Entity<UserSportProfile>()
+                .HasIndex(usp => new { usp.UserID, usp.SportID })
+                .IsUnique();
+
+            modelBuilder.Entity<UserSportProfile>()
+                .HasOne(usp => usp.User)
+                .WithMany()
+                .HasForeignKey(usp => usp.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<UserSportProfile>()
+                .HasOne(usp => usp.Sport)
+                .WithMany()
+                .HasForeignKey(usp => usp.SportID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<UserSportProfile>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_USP_CourtPosition",  "CourtPosition  IS NULL OR CourtPosition  IN ('BackCourt','FrontCourt','AllRound')");
+                t.HasCheckConstraint("CK_USP_PlayStyle",      "PlayStyle      IS NULL OR PlayStyle      IN ('Aggressive','Defensive','Balanced')");
+                t.HasCheckConstraint("CK_USP_StrokeStrength", "StrokeStrength IS NULL OR StrokeStrength IN ('Smash','Drop','Drive','AllRound')");
+                t.HasCheckConstraint("CK_USP_SelfRated",      "SelfRatedLevel IS NULL OR SelfRatedLevel BETWEEN 1 AND 5");
+            });
+
+            // Notification relations
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Notification>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Notifications_Type",
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','BookingConfirmed','BookingCancelled','System')");
+            });
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => new { n.UserID, n.IsRead });
         }
     }
 }

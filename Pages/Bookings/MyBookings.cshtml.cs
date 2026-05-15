@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -35,13 +35,13 @@ namespace SportHub.Pages.Bookings
                     VenueName = b.Court.Venue.VenueName,
                     BookingDate = b.BookingDate,
                     TimeDisplay = BuildTimeDisplay(b.BookingSlots),
-                    TotalPriceDisplay = $"${b.FinalAmount:N2}",
+                    TotalPriceDisplay = $"{b.FinalAmount:N0} VND",
                     Status = b.Status,
                     ImageUrl = b.Court.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
                                ?? b.Court.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.ImageUrl
                                ?? "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?q=80&w=1200&auto=format&fit=crop",
                     RefundDisplay = b.Payments.Any(p => p.Status == "Refunded")
-                        ? $"Refund Processed: ${b.Payments.Where(p => p.Status == "Refunded").Sum(p => p.Amount):N2}"
+                        ? $"Hoàn tiền: {b.Payments.Where(p => p.Status == "Refunded").Sum(p => p.Amount):N0} VND"
                         : null
                 })
                 .ToList();

@@ -1,0 +1,171 @@
+@page
+@model SportHub.Pages.Profile.BadmintonSkillModel
+@{
+    ViewData["Title"] = "Badminton Skill Profile";
+}
+
+<section class="max-w-2xl mx-auto space-y-8">
+    <div>
+        <a asp-page="/Profile/Index" class="inline-flex items-center gap-1 text-sm text-primary font-semibold hover:underline mb-3">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Back to Profile
+        </a>
+        <h1 class="text-3xl font-black tracking-tight">🏸 Badminton Skill Profile</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">
+            Khai báo kỹ năng để host trận có thể đánh giá phù hợp.
+            @if (Model.HasExistingProfile)
+            {
+                <span class="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">(Đã có hồ sơ — đang cập nhật)</span>
+            }
+        </p>
+    </div>
+
+    <form method="post" class="space-y-8">
+        @Html.AntiForgeryToken()
+
+        <!-- Vị trí sân -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+            <h2 class="text-lg font-bold mb-1">📍 Vị trí sở trường trên sân</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Bạn thường đứng ở đâu khi thi đấu?</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                @{
+                    var positions = new[] {
+                        ("BackCourt",  "Phông cao",  "Chuyên phông sau, đánh cầu xa", "📏"),
+                        ("FrontCourt", "Nữa sân",    "Chuyên lưới, phản công nhanh",  "⚡"),
+                        ("AllRound",   "Đa năng",    "Linh hoạt, chơi cả hai vị trí", "🌀")
+                    };
+                    foreach (var (val, label, desc, icon) in positions)
+                    {
+                        var isChecked = Model.Input.CourtPosition == val;
+                        <label class="flex flex-col gap-1 p-4 border-2 rounded-xl cursor-pointer transition-all @(isChecked ? "border-primary bg-primary/5" : "border-slate-200 dark:border-slate-700 hover:border-primary/50")">
+                            <input type="radio" name="Input.CourtPosition" value="@val" class="sr-only" @(isChecked ? "checked" : "") />
+                            <span class="text-2xl">@icon</span>
+                            <span class="font-bold text-slate-900 dark:text-white">@label</span>
+                            <span class="text-xs text-slate-500">@desc</span>
+                        </label>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Phong cách -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+            <h2 class="text-lg font-bold mb-1">⚔️ Phong cách chơi</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Bạn thiên về lối chơi nào?</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                @{
+                    var styles = new[] {
+                        ("Aggressive", "Tấn công",  "Thích tạo áp lực, đánh smash mạnh", "🔥"),
+                        ("Defensive",  "Phòng thủ", "Kiên nhẫn, đợi đối thủ mắc lỗi",   "🛡️"),
+                        ("Balanced",   "Cân bằng",  "Linh hoạt giữa tấn công và phòng thủ", "⚖️")
+                    };
+                    foreach (var (val, label, desc, icon) in styles)
+                    {
+                        var isChecked = Model.Input.PlayStyle == val;
+                        <label class="flex flex-col gap-1 p-4 border-2 rounded-xl cursor-pointer transition-all @(isChecked ? "border-primary bg-primary/5" : "border-slate-200 dark:border-slate-700 hover:border-primary/50")">
+                            <input type="radio" name="Input.PlayStyle" value="@val" class="sr-only" @(isChecked ? "checked" : "") />
+                            <span class="text-2xl">@icon</span>
+                            <span class="font-bold text-slate-900 dark:text-white">@label</span>
+                            <span class="text-xs text-slate-500">@desc</span>
+                        </label>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Kỹ thuật mạnh -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+            <h2 class="text-lg font-bold mb-1">🏸 Kỹ thuật mạnh nhất</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Đánh tốt nhất kiểu cầu nào?</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                @{
+                    var strokes = new[] {
+                        ("Smash",    "Smash",    "Cú đánh mạnh xuống", "💥"),
+                        ("Drop",     "Drop shot","Cầu ngắn, chạm lưới","🍃"),
+                        ("Drive",    "Drive",    "Cầu nhanh, thẳng",   "➡️"),
+                        ("AllRound", "Đa năng",  "Tốt ở mọi kỹ thuật", "🌟")
+                    };
+                    foreach (var (val, label, desc, icon) in strokes)
+                    {
+                        var isChecked = Model.Input.StrokeStrength == val;
+                        <label class="flex flex-col gap-1 p-4 border-2 rounded-xl cursor-pointer transition-all @(isChecked ? "border-primary bg-primary/5" : "border-slate-200 dark:border-slate-700 hover:border-primary/50")">
+                            <input type="radio" name="Input.StrokeStrength" value="@val" class="sr-only" @(isChecked ? "checked" : "") />
+                            <span class="text-2xl">@icon</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-sm">@label</span>
+                            <span class="text-xs text-slate-500">@desc</span>
+                        </label>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Tự đánh giá -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+            <h2 class="text-lg font-bold mb-1">⭐ Tự đánh giá trình độ</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">1 sao = mới bắt đầu, 5 sao = chuyên nghiệp</p>
+            <div class="flex gap-3 flex-wrap">
+                @for (var star = 1; star <= 5; star++)
+                {
+                    var isChecked = Model.Input.SelfRatedLevel == star;
+                    var labels = new[] { "Mới bắt đầu", "Cơ bản", "Trung bình", "Khá tốt", "Chuyên nghiệp" };
+                    <label class="flex flex-col items-center gap-1 p-4 border-2 rounded-xl cursor-pointer transition-all min-w-[80px] @(isChecked ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20" : "border-slate-200 dark:border-slate-700 hover:border-amber-300")">
+                        <input type="radio" name="Input.SelfRatedLevel" value="@star" class="sr-only" @(isChecked ? "checked" : "") />
+                        <span class="text-2xl">@(string.Concat(Enumerable.Repeat("⭐", star)))</span>
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">@labels[star - 1]</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <!-- Kinh nghiệm + Notes -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-5">
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">📅 Số năm kinh nghiệm</label>
+                <input type="number" asp-for="Input.ExperienceYears" min="0" max="50"
+                       class="w-full sm:w-48 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                       placeholder="0" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">📝 Ghi chú thêm (tuỳ chọn)</label>
+                <textarea asp-for="Input.Notes" rows="3"
+                          class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                          placeholder="VD: Quen chơi sân trong nhà, thích doubles hơn singles..."></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit"
+                    class="flex-1 sm:flex-none px-8 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md">
+                <span class="material-symbols-outlined align-middle mr-1">save</span>
+                Lưu hồ sơ kỹ năng
+            </button>
+            <a asp-page="/Profile/Index"
+               class="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all">
+                Huỷ
+            </a>
+        </div>
+    </form>
+</section>
+
+<script>
+    // Radio card selection — highlight khi chọn
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const name = this.getAttribute('name');
+            document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+                const label = r.closest('label');
+                if (!label) return;
+                if (r.checked) {
+                    label.classList.add('border-primary', 'bg-primary/5');
+                    label.classList.remove('border-slate-200', 'dark:border-slate-700', 'border-amber-400', 'bg-amber-50', 'dark:bg-amber-900/20');
+                    if (name === 'Input.SelfRatedLevel') {
+                        label.classList.add('border-amber-400', 'bg-amber-50', 'dark:bg-amber-900/20');
+                        label.classList.remove('border-primary', 'bg-primary/5');
+                    }
+                } else {
+                    label.classList.remove('border-primary', 'bg-primary/5', 'border-amber-400', 'bg-amber-50', 'dark:bg-amber-900/20');
+                    label.classList.add('border-slate-200', 'dark:border-slate-700');
+                }
+            });
+        });
+    });
+</script>

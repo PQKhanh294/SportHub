@@ -27,6 +27,7 @@ namespace SportHub.Models.Entities
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string Status { get; set; } = "Open"; // Open, Full, InProgress, Completed, Cancelled
+        public bool RequiresApproval { get; set; } = false; // Nếu true: người join phải chờ host duyệt
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

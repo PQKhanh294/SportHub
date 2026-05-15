@@ -1,37 +1,59 @@
-﻿@page
+@page
+@model SportHub.Pages.Notifications.IndexModel
 @{
     ViewData["Title"] = "Notifications";
 }
 
 <section class="space-y-6">
-    <div>
-        <h1 class="text-4xl font-black tracking-tight">Notifications</h1>
-        <p class="text-slate-500 dark:text-slate-400">Latest updates on bookings, payments, and matchmaking.</p>
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-4xl font-black tracking-tight">Thông báo</h1>
+            <p class="text-slate-500 dark:text-slate-400">Cập nhật về đặt sân, thanh toán và trận đấu.</p>
+        </div>
+        @if (Model.UnreadCount > 0)
+        {
+            <span class="px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm">
+                @Model.UnreadCount chưa đọc
+            </span>
+        }
     </div>
 
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div class="divide-y divide-slate-100 dark:divide-slate-800">
-            <article class="p-5 flex items-start gap-4">
-                <span class="material-symbols-outlined text-primary">calendar_today</span>
-                <div>
-                    <p class="font-semibold">Your booking at Riverside Tennis Club has been confirmed.</p>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">2 minutes ago</p>
-                </div>
-            </article>
-            <article class="p-5 flex items-start gap-4">
-                <span class="material-symbols-outlined text-emerald-500">payments</span>
-                <div>
-                    <p class="font-semibold">Payment successful: $45.00 for Elite Padel Court Center.</p>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">12 minutes ago</p>
-                </div>
-            </article>
-            <article class="p-5 flex items-start gap-4">
-                <span class="material-symbols-outlined text-amber-500">person_add</span>
-                <div>
-                    <p class="font-semibold">You have a new match invite: Intermediate doubles match.</p>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">1 hour ago</p>
-                </div>
-            </article>
-        </div>
+        @if (!Model.Notifications.Any())
+        {
+            <div class="py-20 text-center text-slate-400">
+                <span class="material-symbols-outlined text-5xl mb-3 block">notifications_none</span>
+                <p class="font-semibold">Chưa có thông báo nào</p>
+                <p class="text-sm mt-1">Các hoạt động sẽ hiện lên tại đây.</p>
+            </div>
+        }
+        else
+        {
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach (var n in Model.Notifications)
+                {
+                    var icon = n.Type switch {
+                        "MatchJoin"         => ("person_add",    "text-amber-500"),
+                        "MatchApprove"      => ("check_circle",  "text-emerald-500"),
+                        "MatchReject"       => ("cancel",        "text-rose-500"),
+                        "BookingConfirmed"  => ("calendar_today","text-primary"),
+                        "BookingCancelled"  => ("event_busy",    "text-rose-400"),
+                        _                   => ("notifications", "text-slate-400")
+                    };
+                    <article class="p-5 flex items-start gap-4 @(!n.IsRead ? "bg-primary/5 dark:bg-primary/10" : "")">
+                        <span class="material-symbols-outlined @icon.Item2 mt-0.5 flex-shrink-0">@icon.Item1</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-slate-900 dark:text-white">@n.Title</p>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5">@n.Message</p>
+                            <p class="text-xs text-slate-400 mt-1">@n.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(n.LinkUrl))
+                        {
+                            <a href="@n.LinkUrl" class="shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>
+                        }
+                    </article>
+                }
+            </div>
+        }
     </div>
 </section>

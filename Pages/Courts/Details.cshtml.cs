@@ -40,7 +40,7 @@ namespace SportHub.Pages.Courts
                 images.Add(images[0]);
             }
 
-            var minPrice = court.PricingRules.Any() ? court.PricingRules.Min(p => p.UnitPrice) : 45;
+            var minPrice = court.PricingRules.Any() ? court.PricingRules.Min(p => p.UnitPrice) : 150_000m;
 
             Item = new CourtDetailItem
             {
@@ -49,7 +49,7 @@ namespace SportHub.Pages.Courts
                 VenueName = court.Venue.VenueName,
                 Address = court.Venue.Address,
                 Description = court.Description ?? "Premium indoor courts with modern lighting and stable playing conditions.",
-                MinPriceDisplay = $"${minPrice:N0}",
+                MinPriceDisplay = $"{minPrice:N0} VND/giờ",
                 Images = images
             };
 

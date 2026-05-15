@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -76,6 +76,8 @@ namespace SportHub.Pages.Matchmaking
             public decimal? PriceVnd { get; set; }
 
             public string? Description { get; set; }
+
+            public bool RequiresApproval { get; set; } = false;
         }
 
         public async Task OnGetAsync()
@@ -159,6 +161,7 @@ namespace SportHub.Pages.Matchmaking
                 SkillRequired = Input.SkillRequired,
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
+                RequiresApproval = Input.RequiresApproval,
                 Description = BuildDescriptionWithCustomCourt(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd)
             };
 

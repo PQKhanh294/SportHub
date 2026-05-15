@@ -1,4 +1,4 @@
-﻿@page "{id:int?}"
+@page "{id:int?}"
 @model SportHub.Pages.Matchmaking.DetailsModel
 @{
     ViewData["Title"] = "Match Details";
@@ -7,83 +7,233 @@
 
 @if (item == null)
 {
-    <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <p class="text-slate-500 dark:text-slate-400">Match not found.</p>
+    <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">search_off</span>
+        <p class="text-slate-500 dark:text-slate-400 font-semibold">Không tìm thấy trận đấu.</p>
+        <a asp-page="/Matchmaking/Index" class="mt-4 inline-block text-primary font-bold hover:underline">← Quay lại danh sách</a>
     </section>
 }
 else
 {
-
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left column -->
     <div class="lg:col-span-8 space-y-6">
+
+        <!-- Match header card -->
         <article class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="relative h-64">
-                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE" alt="Match" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <img class="w-full h-full object-cover"
+                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE"
+                     alt="Match" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                 <div class="absolute bottom-5 left-5 text-white">
-                    <span class="inline-block px-3 py-1 bg-primary text-xs font-bold rounded-full mb-2">@item.MatchType</span>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-3 py-1 bg-primary text-xs font-bold rounded-full">@item.MatchType</span>
+                        @if (item.RequiresApproval)
+                        {
+                            <span class="px-3 py-1 bg-amber-500 text-xs font-bold rounded-full flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">verified_user</span>
+                                Cần duyệt
+                            </span>
+                        }
+                    </div>
                     <h1 class="text-3xl font-black">@item.Title</h1>
                 </div>
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-3 text-sm">
-                    <p><b>Date:</b> @item.DateText</p>
-                    <p><b>Time:</b> @item.TimeText</p>
-                    <p><b>Location:</b> @item.Venue</p>
-                    <p><b>Court name:</b> @item.CourtName</p>
-                    <p><b>Court address:</b> @item.CourtAddress</p>
-                    <p><b>Skill level:</b> @item.SkillRequired</p>
-                    <p><b>Players:</b> @item.Participants.Count / @item.MaxParticipants joined</p>
+                    <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-base text-primary">calendar_today</span>
+                        <span><b>Ngày:</b> @item.DateText</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-base text-primary">schedule</span>
+                        <span><b>Giờ:</b> @item.TimeText</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-base text-primary">location_on</span>
+                        <span><b>Địa điểm:</b> @item.CourtName — @item.CourtAddress</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-base text-primary">military_tech</span>
+                        <span><b>Trình độ:</b> @item.SkillRequired</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                        <span class="material-symbols-outlined text-base text-primary">group</span>
+                        <span><b>Người tham gia:</b> @item.AcceptedParticipants.Count / @item.MaxParticipants</span>
+                    </div>
                 </div>
-                <div class="bg-background-light dark:bg-slate-800 rounded-lg p-4">
-                    <p class="text-sm text-slate-500">Participation price</p>
-                    <p class="text-xl font-bold text-primary mb-3">@item.PriceDisplay</p>
-                    <p class="text-sm text-slate-500">Remaining spots</p>
-                    <p class="text-xl font-bold text-primary">@item.SpotsLeft spots</p>
+                <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-5 space-y-3">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Chi phí tham gia</p>
+                        <p class="text-2xl font-black text-primary">@item.PriceDisplay</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Còn trống</p>
+                        <p class="text-xl font-bold @(item.SpotsLeft == 0 ? "text-rose-500" : "text-emerald-600")">
+                            @(item.SpotsLeft == 0 ? "Đã đầy" : $"{item.SpotsLeft} chỗ")
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <img class="size-7 rounded-full" src="@item.HostAvatar" alt="@item.HostName" />
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Host: <span class="font-semibold">@item.HostName</span></p>
+                    </div>
                 </div>
             </div>
         </article>
-    </div>
-    <aside class="lg:col-span-4 space-y-6">
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-            <h2 class="font-bold mb-4">Participants</h2>
-            <div class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                @if (item.Participants.Count == 0)
-                {
-                    <p>No participants yet.</p>
-                }
-                else
-                {
-                    @foreach (var participant in item.Participants)
-                    {
-                        <p>@participant</p>
-                    }
-                }
-            </div>
-            @if (item.IsJoined)
+
+        <!-- Confirmed participants -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">group</span>
+                Người đã tham gia (@item.AcceptedParticipants.Count/@item.MaxParticipants)
+            </h2>
+            @if (!item.AcceptedParticipants.Any())
             {
-                <button type="button" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold cursor-default">Joined</button>
-            }
-            else if (item.CanJoin)
-            {
-                <form method="post" asp-page-handler="Join" class="mt-5">
-                    <input type="hidden" name="id" value="@item.MatchId" />
-                    <button type="submit" class="inline-flex w-full justify-center px-4 py-2 rounded-lg bg-primary text-white font-bold hover:bg-primary/90">Join match</button>
-                </form>
+                <p class="text-slate-400 text-sm">Chưa có người tham gia.</p>
             }
             else
             {
-                <button type="button" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-slate-200 text-slate-500 font-bold cursor-not-allowed">Unavailable to join</button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach (var p in item.AcceptedParticipants)
+                    {
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
+                            <img class="size-10 rounded-full object-cover flex-shrink-0" src="@p.AvatarUrl" alt="@p.FullName" />
+                            <div>
+                                <p class="font-semibold text-sm text-slate-900 dark:text-white">@p.FullName</p>
+                                <p class="text-xs text-slate-500">@p.SkillLevel</p>
+                            </div>
+                            <span class="material-symbols-outlined text-emerald-500 ml-auto text-sm">check_circle</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- HOST ONLY: Pending requests -->
+        @if (item.IsOwner && item.RequiresApproval && item.PendingParticipants.Any())
+        {
+            <div class="bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-400 shadow-sm p-6">
+                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">pending_actions</span>
+                    Yêu cầu chờ duyệt (@item.PendingParticipants.Count)
+                </h2>
+                <div class="space-y-4">
+                    @foreach (var pending in item.PendingParticipants)
+                    {
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                            <img class="size-12 rounded-full object-cover flex-shrink-0" src="@pending.AvatarUrl" alt="@pending.FullName" />
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-slate-900 dark:text-white">@pending.FullName</p>
+                                <p class="text-xs text-slate-500">Trình độ: @pending.SkillLevel</p>
+                                <p class="text-xs text-slate-400">Đăng ký lúc: @pending.JoinedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
+                            </div>
+                            <div class="flex gap-2 flex-shrink-0">
+                                <form method="post" asp-page-handler="Approve">
+                                    <input type="hidden" name="id" value="@item.MatchId" />
+                                    <input type="hidden" name="participantId" value="@pending.ParticipantId" />
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">check</span>
+                                        Duyệt
+                                    </button>
+                                </form>
+                                <form method="post" asp-page-handler="Reject">
+                                    <input type="hidden" name="id" value="@item.MatchId" />
+                                    <input type="hidden" name="participantId" value="@pending.ParticipantId" />
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">close</span>
+                                        Từ chối
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <!-- Right sidebar -->
+    <aside class="lg:col-span-4 space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm sticky top-24">
+
+            <!-- Status badge for current user -->
+            @if (item.IsJoined)
+            {
+                <div class="mb-5 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+                    <span class="material-symbols-outlined text-emerald-500">check_circle</span>
+                    <div>
+                        <p class="font-bold text-emerald-700 dark:text-emerald-400">Bạn đã tham gia!</p>
+                        <p class="text-xs text-emerald-600 dark:text-emerald-500">Đã xác nhận</p>
+                    </div>
+                </div>
+            }
+            else if (item.IsPending)
+            {
+                <div class="mb-5 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-3">
+                    <span class="material-symbols-outlined text-amber-500">hourglass_top</span>
+                    <div>
+                        <p class="font-bold text-amber-700 dark:text-amber-400">Đang chờ duyệt</p>
+                        <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ xem xét yêu cầu của bạn</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Action buttons -->
+            @if (item.CanJoin)
+            {
+                <form method="post" asp-page-handler="Join">
+                    <input type="hidden" name="id" value="@item.MatchId" />
+                    <button type="submit"
+                            class="w-full py-3 px-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">sports</span>
+                        @(item.RequiresApproval ? "Gửi yêu cầu tham gia" : "Tham gia ngay")
+                    </button>
+                    @if (item.RequiresApproval)
+                    {
+                        <p class="text-xs text-slate-500 text-center mt-2">
+                            <span class="material-symbols-outlined text-xs align-middle">info</span>
+                            Trận này cần host duyệt trước khi vào
+                        </p>
+                    }
+                </form>
+            }
+            else if (item.IsJoined)
+            {
+                <form method="post" asp-page-handler="Leave" class="mt-2">
+                    <input type="hidden" name="id" value="@item.MatchId" />
+                    <button type="submit"
+                            class="w-full py-2 px-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-600 dark:text-slate-400 hover:text-rose-500 font-semibold rounded-xl transition-all text-sm">
+                        Rời khỏi trận
+                    </button>
+                </form>
+            }
+            else if (!item.IsPending)
+            {
+                <button type="button"
+                        class="w-full py-3 px-6 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold rounded-xl cursor-not-allowed">
+                    @(item.SpotsLeft == 0 ? "Đã đầy chỗ" : "Không thể tham gia")
+                </button>
             }
 
             @if (item.IsOwner)
             {
-                <a asp-page="/Matchmaking/Edit" asp-route-id="@item.MatchId" class="mt-3 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">Edit your match</a>
+                <a asp-page="/Matchmaking/Edit" asp-route-id="@item.MatchId"
+                   class="mt-3 w-full py-2 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Chỉnh sửa trận
+                </a>
             }
 
-            <a asp-page="/Matchmaking/Index" class="mt-5 inline-flex w-full justify-center px-4 py-2 rounded-lg bg-primary text-white font-bold">Back to matchmaking</a>
+            <a asp-page="/Matchmaking/Index"
+               class="mt-3 w-full py-2 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Về danh sách
+            </a>
         </div>
     </aside>
 </section>
-
 }

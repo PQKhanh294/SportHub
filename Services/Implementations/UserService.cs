@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -57,7 +57,7 @@ namespace SportHub.Services.Implementations
             if (user == null || !user.IsActive) return false;
 
             var inputHash = PasswordHasher.Hash(password);
-            return user.PasswordHash == inputHash || user.PasswordHash == password;
+            return user.PasswordHash == inputHash;
         }
 
         public async Task<List<User>> GetSuggestedPlayersAsync(int currentUserId, int limit = 4)
