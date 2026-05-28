@@ -1,33 +1,39 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Find Your Perfect Match";
+    ViewData["Title"] = "Tìm bạn chơi lý tưởng";
 }
 
 <!-- HERO BANNER -->
 <section class="relative rounded-xl lg:rounded-xl overflow-hidden mb-12">
     <!-- Overlay -->
     <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent z-10"></div>
-    <img class="absolute inset-0 w-full h-full object-cover"
-         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmGtp-E7wKffkiMg5OFbwJkMPjcwBCct6fIes50GOGGnfwebfE1luz7m4DXWxhLl48Ui5k5kei8zBuVNgYWt5JBfj0JlT-GO6YLXgTRS0JhKlsDMQIRdbDl5rE42BONc9CPK88iiHoz3Gb1XgqJ4OnQKldIKVRgW_5WDW1AQl8SK3s5PlyJWUFWizXl-rnBSVlp-7M8J3RqB16jP43p5UwfdTL-a-Am9pVT372KkNwIF9CFttBJy-Kqe_WHRK92o1BD04EVLvdmsk"
-         alt="Hero background" />
+    <video class="absolute inset-0 w-full h-full object-cover"
+           autoplay
+           muted
+           loop
+           playsinline
+           preload="metadata"
+           poster="https://lh3.googleusercontent.com/aida-public/AB6AXuBmGtp-E7wKffkiMg5OFbwJkMPjcwBCct6fIes50GOGGnfwebfE1luz7m4DXWxhLl48Ui5k5kei8zBuVNgYWt5JBfj0JlT-GO6YLXgTRS0JhKlsDMQIRdbDl5rE42BONc9CPK88iiHoz3Gb1XgqJ4OnQKldIKVRgW_5WDW1AQl8SK3s5PlyJWUFWizXl-rnBSVlp-7M8J3RqB16jP43p5UwfdTL-a-Am9pVT372KkNwIF9CFttBJy-Kqe_WHRK92o1BD04EVLvdmsk">
+        <source src="~/videos/SPORTHUB_EXE201.mp4" type="video/mp4" />
+    </video>
     
     <!-- Hero Content -->
     <div class="relative z-20 px-8 py-20 md:py-32 lg:px-16 max-w-2xl">
         <h1 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-            Find Your Perfect Match
+            Tìm bạn chơi lý tưởng
         </h1>
         <p class="text-lg text-slate-200 mb-8 max-w-lg">
-            Join the largest racket sports community. Connect with players of your level and book quality courts instantly.
+            Tham gia cộng đồng thể thao lớn nhất. Kết nối với người chơi cùng trình độ và đặt sân chất lượng ngay lập tức.
         </p>
         <div class="flex flex-wrap gap-4">
             <a asp-page="/Matchmaking/Index" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
                 <span class="material-symbols-outlined">person_search</span>
-                Find Players
+                Tìm người chơi
             </a>
             <a asp-page="/Courts/Search" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined">calendar_today</span>
-                Book Court
+                Đặt sân ngay
             </a>
         </div>
     </div>
@@ -36,8 +42,8 @@
 <!-- RECOMMENDED MATCHES -->
 <section class="mb-12">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Recommended Matches</h2>
-        <a asp-page="/Matchmaking/Index" class="text-primary font-semibold text-sm hover:underline">View all</a>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Trận đấu gợi ý</h2>
+        <a asp-page="/Matchmaking/Index" class="text-primary font-semibold text-sm hover:underline">Xem tất cả</a>
     </div>
 
     <div class="flex gap-6 overflow-x-auto pb-4 hide-scrollbar">
@@ -49,6 +55,12 @@
                     <div class="absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full @match.BadgeCssClass">
                         @match.MatchCategory
                     </div>
+                    @if (match.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <div class="absolute top-3 left-3 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-500 shadow-sm flex items-center gap-1">
+                            <span>🏸 Cầu lông</span>
+                        </div>
+                    }
                 </div>
                 <div class="p-5">
                     <h3 class="font-bold text-lg mb-1 truncate">@match.Title</h3>
@@ -73,7 +85,7 @@
                             }
                         </div>
                         <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchID" class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-4 py-2 rounded-lg text-sm transition-colors">
-                            Join
+                            Tham gia
                         </a>
                     </div>
                 </div>
@@ -86,8 +98,8 @@
     <!-- SUGGESTED PLAYERS -->
     <div class="lg:col-span-2">
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Suggested Players</h2>
-            <a asp-page="/Players/Index" class="text-primary font-semibold text-sm hover:underline">See more</a>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Người chơi gợi ý</h2>
+            <a asp-page="/Players/Index" class="text-primary font-semibold text-sm hover:underline">Xem thêm</a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach (var player in Model.SuggestedPlayers)
@@ -100,10 +112,10 @@
                         <div class="flex items-center mt-1">
                             <span class="material-symbols-outlined text-amber-400 text-xs">star</span>
                             <span class="text-xs font-bold ml-1">@player.AverageRating.ToString("F1")</span>
-                            <span class="text-slate-400 text-xs ml-1">(@player.TotalMatches matches)</span>
+                            <span class="text-slate-400 text-xs ml-1">(@player.TotalMatches trận)</span>
                         </div>
                     </div>
-                    <a asp-page="/Players/Index" class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-colors" title="View players list">
+                    <a asp-page="/Players/Index" class="p-2 text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-colors" title="Kết nối">
                         <span class="material-symbols-outlined">person_add</span>
                     </a>
                 </div>
@@ -114,8 +126,8 @@
     <!-- NEARBY COURTS -->
     <div>
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Nearby Courts</h2>
-            <a asp-page="/Courts/Map" class="text-primary font-semibold text-sm hover:underline">Map</a>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Sân gần đây</h2>
+            <a asp-page="/Courts/Map" class="text-primary font-semibold text-sm hover:underline">Bản đồ</a>
         </div>
         <div class="space-y-4">
             @foreach (var court in Model.NearbyCourts)
@@ -126,44 +138,78 @@
                     </div>
                     <div class="flex-1">
                         <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">@court.VenueName</h4>
-                        <p class="text-slate-500 text-xs mb-1">@court.DistanceKm.ToString() km • @court.TotalCourts courts</p>
+                        <p class="text-slate-500 text-xs mb-1">@court.DistanceKm.ToString() km • @court.TotalCourts sân</p>
                         
                         @if (court.Availability == CourtCardViewModel.AvailabilityStatus.Available)
                         {
                             <span class="text-emerald-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>Available
+                                <span class="size-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>Còn sân
                             </span>
                         }
                         else if (court.Availability == CourtCardViewModel.AvailabilityStatus.Limited)
                         {
                             <span class="text-amber-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>Limited slots
+                                <span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>Sắp hết chỗ
                             </span>
                         }
                         else
                         {
                             <span class="text-red-500 text-xs font-bold flex items-center">
-                                <span class="size-2 bg-red-500 rounded-full mr-1.5"></span>Full
+                                <span class="size-2 bg-red-500 rounded-full mr-1.5"></span>Hết sân
                             </span>
                         }
                         
-                        <p class="text-primary font-bold text-sm mt-1">@court.MinPricePerHour.ToString("N0") VND/hour</p>
+                        <p class="text-primary font-bold text-sm mt-1">@court.MinPricePerHour.ToString("N0") VNĐ/h</p>
                     </div>
                 </a>
             }
         </div>
 
-        <!-- Map Thumbnail -->
-        <a asp-page="/Courts/Map" class="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-40 relative group block">
-            <img class="w-full h-full object-cover grayscale opacity-50 dark:invert group-hover:scale-105 transition-transform duration-500"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuADgOSzYyJd8j5uc75VgmP67HRNrgeWnvBL4yajbnb-aPZr6yMk28wDKQho0ZwWQBRQ7p3W_AC_GaKCyerzl2t6vH66rh_utJjsk7cm2LGCus1cYe4gNk74NzmD9VzzpHz60fqRltVaYj5L_D_wPAMMdQ2KmQEgIC_tEAHUMTZrEuSFPMWdriZfD9XiuCpBNaaiJOZSYLO_Rn3TvO6qhrJSPd5A7EzDquBmNFn4se3uc_2D2QZTqIiTrnNhs2PJAgCIDihpPNihNTM"
-                 alt="Map view" />
-            <div class="absolute inset-0 flex items-center justify-center">
-                <div class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold py-2 px-4 rounded-lg shadow-lg text-sm flex items-center gap-2 group-hover:bg-primary group-hover:text-white transition-colors">
-                    <span class="material-symbols-outlined">map</span>
-                    Explore map
-                </div>
-            </div>
-        </a>
+        <!-- Map Container -->
+        <div class="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-56 relative">
+            <div id="homeNearbyMap" class="w-full h-full" style="z-index: 10;"></div>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var centerLat = 16.0471;
+            var centerLon = 108.2068;
+            var map = L.map('homeNearbyMap').setView([centerLat, centerLon], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            var courtsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NearbyCourts.Where(c => c.Latitude.HasValue && c.Longitude.HasValue).Select(c => new {
+                name = c.VenueName,
+                sport = c.SportName,
+                lat = (double)c.Latitude!.Value,
+                lon = (double)c.Longitude!.Value,
+                url = $"/Courts/Details?id={c.CourtID}"
+            })));
+
+            var bounds = [];
+            courtsData.forEach(function(court) {
+                var marker = L.marker([court.lat, court.lon]).addTo(map);
+                marker.bindPopup(`
+                    <div class="p-1">
+                        <h4 class="font-bold text-sm mb-1 text-slate-800">${court.name}</h4>
+                        <p class="text-xs text-slate-500 mb-2">${court.sport}</p>
+                        <a href="${court.url}" class="text-xs text-primary font-bold hover:underline">Chi tiết</a>
+                    </div>
+                `);
+                bounds.push([court.lat, court.lon]);
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [30, 30] });
+            }
+        });
+    </script>
+}
+

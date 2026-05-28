@@ -51,6 +51,9 @@ namespace SportHub.Pages.Matchmaking
             [StringLength(300)]
             public string? CourtAddress { get; set; }
 
+            public decimal? Latitude { get; set; }
+            public decimal? Longitude { get; set; }
+
             [Required(ErrorMessage = "Please select a sport.")]
             public int SportId { get; set; }
 
@@ -77,7 +80,7 @@ namespace SportHub.Pages.Matchmaking
 
             public string? Description { get; set; }
 
-            public bool RequiresApproval { get; set; } = false;
+            public bool RequiresApproval { get; set; } = true;
         }
 
         public async Task OnGetAsync()
@@ -161,8 +164,8 @@ namespace SportHub.Pages.Matchmaking
                 SkillRequired = Input.SkillRequired,
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
-                RequiresApproval = Input.RequiresApproval,
-                Description = BuildDescriptionWithCustomCourt(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd)
+                RequiresApproval = true,
+                Description = BuildDescriptionWithCustomCourt(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd, Input.Latitude, Input.Longitude)
             };
 
             var matchId = await _matchService.CreateMatchAsync(match, userId);
@@ -172,22 +175,38 @@ namespace SportHub.Pages.Matchmaking
 
         private async Task LoadSelectionsAsync()
         {
-            SportOptions = await _context.Sports
-                .OrderBy(s => s.SportName)
-                .Select(s => new SelectListItem
+            var sports = await _context.Sports.OrderBy(s => s.SportName).ToListAsync();
+            
+            // Ensure core sports exist (Seed if needed)
+            var coreSports = new[] { "Cầu lông", "Bóng đá", "Pickleball", "Bóng bàn", "Tennis" };
+            bool changed = false;
+            foreach (var coreSport in coreSports)
+            {
+                if (!sports.Any(s => s.SportName.Equals(coreSport, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Value = s.SportID.ToString(),
-                    Text = NormalizeSportName(s.SportName)
-                })
-                .ToListAsync();
+                    _context.Sports.Add(new Sport { SportName = coreSport });
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                await _context.SaveChangesAsync();
+                sports = await _context.Sports.OrderBy(s => s.SportName).ToListAsync();
+            }
+
+            SportOptions = sports.Select(s => new SelectListItem
+            {
+                Value = s.SportID.ToString(),
+                Text = s.SportName
+            }).ToList();
 
             SkillOptions = new List<SelectListItem>
             {
-                new() { Value = "Any", Text = "Any level" },
-                new() { Value = "Beginner", Text = "Beginner" },
-                new() { Value = "Intermediate", Text = "Intermediate" },
-                new() { Value = "Advanced", Text = "Advanced" },
-                new() { Value = "Professional", Text = "Professional" }
+                new() { Value = "Any", Text = "Mọi trình độ" },
+                new() { Value = "Beginner", Text = "Người mới (Beginner)" },
+                new() { Value = "Intermediate", Text = "Trung bình (Intermediate)" },
+                new() { Value = "Advanced", Text = "Nâng cao (Advanced)" },
+                new() { Value = "Professional", Text = "Chuyên nghiệp (Professional)" }
             };
         }
 
@@ -197,7 +216,7 @@ namespace SportHub.Pages.Matchmaking
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        private static string? BuildDescriptionWithCustomCourt(string? description, string? courtName, string? courtAddress, decimal? priceVnd)
+        private static string? BuildDescriptionWithCustomCourt(string? description, string? courtName, string? courtAddress, decimal? priceVnd, decimal? lat, decimal? lon)
         {
             var parts = new List<string>();
 
@@ -209,6 +228,16 @@ namespace SportHub.Pages.Matchmaking
             if (!string.IsNullOrWhiteSpace(courtAddress))
             {
                 parts.Add($"Court address: {courtAddress.Trim()}");
+            }
+
+            if (lat.HasValue)
+            {
+                parts.Add($"Court latitude: {lat.Value.ToString(CultureInfo.InvariantCulture)}");
+            }
+
+            if (lon.HasValue)
+            {
+                parts.Add($"Court longitude: {lon.Value.ToString(CultureInfo.InvariantCulture)}");
             }
 
             if (priceVnd.HasValue)
@@ -226,11 +255,7 @@ namespace SportHub.Pages.Matchmaking
 
         private static string NormalizeSportName(string sportName)
         {
-            return sportName.Trim() switch
-            {
-                "Cầu lông" => "Badminton",
-                _ => sportName.Trim()
-            };
+            return sportName.Trim();
         }
     }
 }

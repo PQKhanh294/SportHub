@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using SportHub.Services;
 using SportHub.Services.Interfaces;
 using SportHub.Data;
 
@@ -12,13 +13,27 @@ namespace SportHub.Pages.Matchmaking
     public class IndexModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
+        private readonly IGeocodingService _geocoding;
 
-        public IndexModel(IMatchService matchService, ApplicationDbContext context)
+        public IndexModel(
+            IMatchService matchService,
+            INotificationService notificationService,
+            ApplicationDbContext context,
+            IGeocodingService geocoding)
         {
             _matchService = matchService;
+            _notificationService = notificationService;
             _context = context;
+            _geocoding = geocoding;
         }
+
+        [TempData]
+        public string? SuccessMessage { get; set; }
+
+        [TempData]
+        public string? ErrorMessage { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string? Sport { get; set; }
@@ -35,16 +50,61 @@ namespace SportHub.Pages.Matchmaking
         [BindProperty(SupportsGet = true)]
         public decimal? MaxPrice { get; set; }
 
+        // New time range filters
+        [BindProperty(SupportsGet = true)]
+        public string? TimeFrom { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? TimeTo { get; set; }
+
+        // Date filter
+        [BindProperty(SupportsGet = true)]
+        public DateTime? MatchDate { get; set; }
+
+        // New location filters
+        [BindProperty(SupportsGet = true)]
+        public string? Location { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public decimal? Radius { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? District { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? City { get; set; }
+
         public List<string> SportOptions { get; set; } = new();
 
         public List<MatchCardItem> Matches { get; set; } = new();
         public List<JoinedMatchItem> UpcomingJoinedMatches { get; set; } = new();
         public List<JoinedMatchItem> JoinedMatchHistory { get; set; } = new();
 
+        public string? UserDefaultAddress { get; set; }
+        public decimal? UserDefaultLatitude { get; set; }
+        public decimal? UserDefaultLongitude { get; set; }
+
         public async Task OnGetAsync()
         {
             ViewData["ActivePage"] = "Matchmaking";
             var currentUserId = GetCurrentUserId();
+
+            if (currentUserId > 0)
+            {
+                var profileUser = await _context.Users
+                    .AsNoTracking()
+                    .Where(u => u.UserID == currentUserId)
+                    .Select(u => new { u.DefaultAddress, u.DefaultLatitude, u.DefaultLongitude })
+                    .FirstOrDefaultAsync();
+                if (profileUser != null)
+                {
+                    UserDefaultAddress = string.IsNullOrWhiteSpace(profileUser.DefaultAddress)
+                        ? null
+                        : profileUser.DefaultAddress.Trim();
+                    UserDefaultLatitude = profileUser.DefaultLatitude;
+                    UserDefaultLongitude = profileUser.DefaultLongitude;
+                }
+            }
 
             var matches = await _matchService.GetRecommendedMatchesAsync(50);
 
@@ -68,6 +128,40 @@ namespace SportHub.Pages.Matchmaking
                     .Where(m => string.Equals(m.SkillRequired ?? "Any", Skill, StringComparison.OrdinalIgnoreCase)
                              || string.Equals(m.SkillRequired ?? string.Empty, "Any", StringComparison.OrdinalIgnoreCase))
                     .ToList();
+            }
+
+            // Apply time range filter
+            if (!string.IsNullOrWhiteSpace(TimeFrom) && TimeSpan.TryParse(TimeFrom, out var fromTime))
+            {
+                matches = matches.Where(m => m.StartTime >= fromTime).ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(TimeTo) && TimeSpan.TryParse(TimeTo, out var toTime))
+            {
+                matches = matches.Where(m => m.StartTime <= toTime).ToList();
+            }
+
+            // Apply specific date filter
+            if (MatchDate.HasValue)
+            {
+                matches = matches.Where(m => m.MatchDate.Date == MatchDate.Value.Date).ToList();
+            }
+
+            // Apply location filter (basic string matching for now)
+            if (!string.IsNullOrWhiteSpace(Location) || !string.IsNullOrWhiteSpace(District) || !string.IsNullOrWhiteSpace(City))
+            {
+                matches = matches.Where(m => 
+                {
+                    var venue = m.Court?.Venue?.VenueName ?? "";
+                    var matchesLocation = string.IsNullOrWhiteSpace(Location) || 
+                                        venue.Contains(Location, StringComparison.OrdinalIgnoreCase);
+                    var matchesDistrict = string.IsNullOrWhiteSpace(District) || 
+                                        venue.Contains(District, StringComparison.OrdinalIgnoreCase);
+                    var matchesCity = string.IsNullOrWhiteSpace(City) || 
+                                    venue.Contains(City, StringComparison.OrdinalIgnoreCase);
+                    
+                    return matchesLocation && matchesDistrict && matchesCity;
+                }).ToList();
             }
 
             if (!string.IsNullOrWhiteSpace(Time) && !string.Equals(Time, "Any", StringComparison.OrdinalIgnoreCase))
@@ -97,25 +191,87 @@ namespace SportHub.Pages.Matchmaking
                     .ToList();
             }
 
-            Matches = matches.Select(m => new MatchCardItem
-            {
-                MatchId = m.MatchID,
-                Title = string.IsNullOrWhiteSpace(m.Title) ? $"{m.MatchType} Match" : m.Title,
-                MatchType = string.IsNullOrWhiteSpace(m.MatchType) ? "Open Match" : m.MatchType,
-                SkillRequired = string.IsNullOrWhiteSpace(m.SkillRequired) ? "Any" : m.SkillRequired,
-                MatchScore = 80 + (m.MatchID % 20),
-                StartText = $"{m.MatchDate:ddd, dd MMM} {m.StartTime:hh\\:mm}",
-                Venue = m.Court?.Venue?.VenueName ?? "TBD Venue",
-                PriceDisplay = BuildPriceDisplay(m),
-                PriceAmount = BuildMatchPriceAmount(m),
-                Participants = m.Participants.Count,
-                MaxParticipants = m.MaxParticipants,
-                IsJoinedByCurrentUser = currentUserId > 0 && m.Participants.Any(p => p.UserID == currentUserId),
-                IsOwnedByCurrentUser = currentUserId > 0 && m.CreatedByUserID == currentUserId,
-                HostImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuALTzsl3HIXmUVzYbJp9BGERq98PtuYn7CL1IBPSHx3OrkFpRQTd6zNEwo2EOB2GAHS2n3LC0cu5aySM-IHeJtj0RLOAh-XJIVbRYXNwJnzO_vg_zLdZ1I2DUp8Oau0htb6fbzwIpuzo-z_0f6jhNLsN2kI6hKxv61AU141cH6oO2MWjiEcxo4vPxnS-smCZF-xDE6loPZWlYgw4BRwbJGXrc9jUVUA8j-cmjl61KwL1qwdpecYKC7Bo9cEFPXU1nHtK_XjUeQWQlM"
+            Matches = matches.Select(m => {
+                var acceptedCount = m.Participants.Count(p => p.JoinStatus == "Accepted");
+                var myParticipation = currentUserId > 0
+                    ? m.Participants.FirstOrDefault(p => p.UserID == currentUserId)
+                    : null;
+                var isJoined = myParticipation?.JoinStatus == "Accepted";
+                var isPending = myParticipation?.JoinStatus == "Pending";
+                var venue = ExtractCustomVenue(m.Description) ?? m.Court?.Venue?.VenueName ?? "TBD Venue";
+                var venueAddress = ExtractCustomCourtAddress(m.Description)
+                    ?? m.Court?.Venue?.Address
+                    ?? venue;
+
+                return new MatchCardItem
+                {
+                    MatchId = m.MatchID,
+                    Title = string.IsNullOrWhiteSpace(m.Title) ? $"{m.MatchType} Match" : m.Title,
+                    MatchType = string.IsNullOrWhiteSpace(m.MatchType) ? "Open Match" : m.MatchType,
+                    SportName = m.Sport?.SportName ?? "Sport",
+                    SkillRequired = GetSkillDisplay(m.SkillRequired),
+                    MatchScore = 80 + (m.MatchID % 20),
+                    StartText = $"{m.MatchDate.ToString("ddd, dd/MM", new System.Globalization.CultureInfo("vi-VN"))}",
+                    StartTime = m.StartTime.ToString(@"hh\:mm"),
+                    Venue = venue,
+                    VenueAddress = venueAddress,
+                    PriceDisplay = BuildPriceDisplay(m),
+                    PriceAmount = BuildMatchPriceAmount(m),
+                    Participants = acceptedCount,
+                    MaxParticipants = m.MaxParticipants,
+                    IsJoinedByCurrentUser = isJoined,
+                    IsPendingByCurrentUser = isPending,
+                    IsOwnedByCurrentUser = currentUserId > 0 && m.CreatedByUserID == currentUserId,
+                    CanJoin = currentUserId > 0 && myParticipation == null && m.Status == "Open" && acceptedCount < m.MaxParticipants,
+                    HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl) 
+                                ? m.CreatedByUser.AvatarUrl 
+                                : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(m.CreatedByUser?.FullName ?? "Host")}&background=random&size=128",
+                    Latitude = ExtractCustomLatitude(m.Description) ?? m.Court?.Venue?.Latitude,
+                    Longitude = ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude
+                };
             }).ToList();
 
+            await ApplyProfileBasedDistancesAsync(currentUserId);
+
             await LoadJoinedMatchesAsync(currentUserId);
+        }
+
+        public async Task<IActionResult> OnGetGeocodeAsync(string q)
+        {
+            var result = await _geocoding.ResolveAsync(q);
+            if (result == null)
+                return new JsonResult(new { });
+
+            return new JsonResult(new { lat = result.Lat, lon = result.Lon });
+        }
+
+        public async Task<IActionResult> OnPostJoinAsync(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0)
+                return RedirectToPage("/Auth/Login", new { returnUrl = "/Matchmaking" });
+
+            var match = await _matchService.GetMatchDetailsAsync(id);
+            if (match == null) return RedirectToPage("/Matchmaking/Index");
+
+            var joined = await _matchService.JoinMatchAsync(id, userId);
+            if (joined)
+            {
+                SuccessMessage = "Yêu cầu đã gửi. Bạn đang trong hàng chờ — host sẽ duyệt trong vòng 2 giờ.";
+                var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
+                await _notificationService.CreateAsync(
+                    match.CreatedByUserID,
+                    "MatchJoin",
+                    "Có người muốn tham gia trận",
+                    $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 2 giờ.",
+                    $"/Matchmaking/Details?id={id}");
+            }
+            else
+            {
+                ErrorMessage = "Không thể tham gia trận đấu. Kiểm tra lại trình độ hoặc trận đấu đã đầy/đóng.";
+            }
+
+            return RedirectToPage();
         }
 
         private async Task LoadJoinedMatchesAsync(int userId)
@@ -141,7 +297,7 @@ namespace SportHub.Pages.Matchmaking
                 MatchId = mp.MatchID,
                 Title = string.IsNullOrWhiteSpace(mp.Match.Title) ? $"{mp.Match.MatchType} Match" : mp.Match.Title,
                 StartText = $"{mp.Match.MatchDate:ddd, dd MMM} {mp.Match.StartTime:hh\\:mm}",
-                Venue = mp.Match.Court?.Venue?.VenueName ?? "TBD Venue",
+                Venue = ExtractCustomVenue(mp.Match.Description) ?? mp.Match.Court?.Venue?.VenueName ?? "TBD Venue",
                 MatchDate = mp.Match.MatchDate
             }).ToList();
 
@@ -160,6 +316,67 @@ namespace SportHub.Pages.Matchmaking
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
+        private async Task ApplyProfileBasedDistancesAsync(int userId)
+        {
+            var origin = await ResolveUserOriginAsync(userId);
+            if (origin == null)
+                return;
+
+            foreach (var match in Matches)
+            {
+                var venueLat = match.Latitude.HasValue ? (double?)match.Latitude.Value : null;
+                var venueLon = match.Longitude.HasValue ? (double?)match.Longitude.Value : null;
+
+                if (!venueLat.HasValue || !venueLon.HasValue)
+                {
+                    var venueResult = await _geocoding.ResolveAsync(match.VenueAddress);
+                    if (venueResult == null)
+                        continue;
+
+                    venueLat = venueResult.Lat;
+                    venueLon = venueResult.Lon;
+                    match.Latitude = (decimal)venueLat.Value;
+                    match.Longitude = (decimal)venueLon.Value;
+                }
+
+                var km = HaversineKm(origin.Value.Lat, origin.Value.Lon, venueLat.Value, venueLon.Value);
+                match.DistanceDisplay = FormatDistanceKm(km);
+            }
+        }
+
+        private async Task<(double Lat, double Lon)?> ResolveUserOriginAsync(int userId)
+        {
+            if (UserDefaultLatitude.HasValue && UserDefaultLongitude.HasValue)
+            {
+                return ((double)UserDefaultLatitude.Value, (double)UserDefaultLongitude.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(UserDefaultAddress))
+            {
+                var geocoded = await _geocoding.ResolveAsync(UserDefaultAddress);
+                if (geocoded != null)
+                    return (geocoded.Lat, geocoded.Lon);
+            }
+
+            return null;
+        }
+
+        private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a =
+                Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        private static string FormatDistanceKm(double km) =>
+            km < 1 ? $"~{(km * 1000):F0}m" : $"~{km:F1} km";
+
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
             var amount = BuildMatchPriceAmount(match);
@@ -167,10 +384,10 @@ namespace SportHub.Pages.Matchmaking
             {
                 if (match.Booking?.FinalAmount > 0)
                 {
-                    return $"{amount.Value:N0} VND total";
+                    return $"Tổng: {amount.Value:N0} VNĐ";
                 }
 
-                return $"From {amount.Value:N0} VND/hour";
+                return $"Từ {amount.Value:N0} VNĐ/giờ";
             }
 
             return "Price not set";
@@ -228,12 +445,60 @@ namespace SportHub.Pages.Matchmaking
         private static string NormalizeSportName(string? sportName)
         {
             if (string.IsNullOrWhiteSpace(sportName)) return "Sport";
+            return sportName.Trim();
+        }
 
-            return sportName.Trim() switch
+        public static string GetSkillDisplay(string? skillRequired)
+        {
+            if (string.IsNullOrWhiteSpace(skillRequired)) return "Mọi trình độ";
+            return skillRequired.Trim().ToLower() switch
             {
-                "Cầu lông" => "Badminton",
-                _ => sportName.Trim()
+                "any" => "Mọi trình độ",
+                "beginner" => "Người mới (Beginner)",
+                "intermediate" => "Trung bình (Intermediate)",
+                "advanced" => "Nâng cao (Advanced)",
+                "professional" => "Chuyên nghiệp (Professional)",
+                _ => skillRequired
             };
+        }
+
+        private static string? ExtractCustomVenue(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var name = lines.FirstOrDefault(l => l.StartsWith("Court name:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court name:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            var addr = lines.FirstOrDefault(l => l.StartsWith("Court address:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court address:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(addr))
+                return $"{name} - {addr}";
+            return !string.IsNullOrWhiteSpace(name) ? name : addr;
+        }
+
+        private static string? ExtractCustomCourtAddress(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return lines.FirstOrDefault(l => l.StartsWith("Court address:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court address:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        }
+
+        private static decimal? ExtractCustomLatitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court latitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court latitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
+        }
+
+        private static decimal? ExtractCustomLongitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court longitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court longitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
         }
 
         public class MatchCardItem
@@ -241,17 +506,25 @@ namespace SportHub.Pages.Matchmaking
             public int MatchId { get; set; }
             public string Title { get; set; } = string.Empty;
             public string MatchType { get; set; } = string.Empty;
+            public string SportName { get; set; } = string.Empty;
             public string SkillRequired { get; set; } = "Any";
             public int MatchScore { get; set; }
             public string StartText { get; set; } = string.Empty;
+            public string StartTime { get; set; } = string.Empty;
             public string Venue { get; set; } = string.Empty;
+            public string VenueAddress { get; set; } = string.Empty;
             public string PriceDisplay { get; set; } = string.Empty;
             public decimal? PriceAmount { get; set; }
             public int Participants { get; set; }
             public int MaxParticipants { get; set; }
             public bool IsJoinedByCurrentUser { get; set; }
+            public bool IsPendingByCurrentUser { get; set; }
             public bool IsOwnedByCurrentUser { get; set; }
+            public bool CanJoin { get; set; }
             public string HostImage { get; set; } = string.Empty;
+            public decimal? Latitude { get; set; }
+            public decimal? Longitude { get; set; }
+            public string? DistanceDisplay { get; set; }
         }
 
         public class JoinedMatchItem

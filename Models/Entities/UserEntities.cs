@@ -1,4 +1,4 @@
-﻿namespace SportHub.Models.Entities
+namespace SportHub.Models.Entities
 {
     public class User
     {
@@ -11,6 +11,10 @@
         public DateTime? DateOfBirth { get; set; }
         public string? Gender { get; set; } // 'M', 'F', 'O'
         public string? SkillLevel { get; set; }
+        public string? FavoriteSport { get; set; }
+        public string? DefaultAddress { get; set; }
+        public decimal? DefaultLatitude { get; set; }
+        public decimal? DefaultLongitude { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsVerified { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

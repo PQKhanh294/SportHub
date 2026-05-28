@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Hosting;
 using SportHub.Services.Interfaces;
+using SportHub.Models.Entities;
+using SportHub.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace SportHub.Pages.Profile
 {
@@ -14,11 +18,13 @@ namespace SportHub.Pages.Profile
     {
         private readonly IUserService _userService;
         private readonly IWebHostEnvironment _environment;
+        private readonly ApplicationDbContext _context;
 
-        public EditModel(IUserService userService, IWebHostEnvironment environment)
+        public EditModel(IUserService userService, IWebHostEnvironment environment, ApplicationDbContext context)
         {
             _userService = userService;
             _environment = environment;
+            _context = context;
         }
 
         [BindProperty]
@@ -38,8 +44,27 @@ namespace SportHub.Pages.Profile
 
             public string? AvatarUrl { get; set; }
 
-            public string? SkillLevel { get; set; }
+            [StringLength(300)]
+            public string? DefaultAddress { get; set; }
+
+            public decimal? DefaultLatitude { get; set; }
+            public decimal? DefaultLongitude { get; set; }
+
+            public List<SportSkillInput> SportSkills { get; set; } = new();
         }
+
+        public class SportSkillInput
+        {
+            public int SportId { get; set; }
+            public string SkillLevel { get; set; } = "Any";
+        }
+
+        public List<Sport> DbSports { get; set; } = new();
+        public List<string> SkillOptions { get; set; } = new() 
+        { 
+            "Newbie", "Yếu", "Yếu+", "TBY/TB-", "Trung Bình", "TB+/Khá",
+            "Beginner", "Intermediate", "Advanced", "Professional"
+        };
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -55,17 +80,40 @@ namespace SportHub.Pages.Profile
                 FullName = user.FullName,
                 PhoneNumber = user.PhoneNumber,
                 AvatarUrl = user.AvatarUrl,
-                SkillLevel = user.SkillLevel
+                DefaultAddress = user.DefaultAddress,
+                DefaultLatitude = user.DefaultLatitude,
+                DefaultLongitude = user.DefaultLongitude,
+                SportSkills = await _context.UserSportProfiles
+                    .Where(usp => usp.UserID == userId)
+                    .Select(usp => new SportSkillInput
+                    {
+                        SportId = usp.SportID,
+                        SkillLevel = usp.SkillLevel ?? "Any"
+                    })
+                    .ToListAsync()
             };
 
+            await LoadOptionsAsync();
             return Page();
+        }
+
+        private async Task LoadOptionsAsync()
+        {
+            DbSports = await _context.Sports
+                .OrderBy(s => s.SportName)
+                .ToListAsync();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             ViewData["ActivePage"] = "Profile";
+            NormalizeLocationCoordinatesFromForm();
             ValidateAvatarInput();
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+            {
+                await LoadOptionsAsync();
+                return Page();
+            }
 
             var userId = GetCurrentUserId();
             if (userId <= 0) return RedirectToPage("/Auth/Login");
@@ -85,15 +133,76 @@ namespace SportHub.Pages.Profile
                 Input.AvatarUrl = $"/uploads/avatars/{fileName}";
             }
 
-            var updated = await _userService.UpdateUserProfileAsync(
-                userId,
-                Input.FullName,
-                Input.PhoneNumber,
-                Input.AvatarUrl,
-                Input.SkillLevel);
-            TempData[updated ? "SuccessMessage" : "ErrorMessage"] = updated
-                ? "Profile updated successfully."
-                : "Failed to update profile.";
+            // Load user
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return RedirectToPage("/Auth/Login");
+
+            // Update user properties
+            user.FullName = Input.FullName.Trim();
+            user.PhoneNumber = string.IsNullOrWhiteSpace(Input.PhoneNumber) ? null : Input.PhoneNumber.Trim();
+            if (!string.IsNullOrWhiteSpace(Input.AvatarUrl))
+            {
+                user.AvatarUrl = Input.AvatarUrl.Trim();
+            }
+            user.DefaultAddress = string.IsNullOrWhiteSpace(Input.DefaultAddress) ? null : Input.DefaultAddress.Trim();
+            user.DefaultLatitude = Input.DefaultLatitude;
+            user.DefaultLongitude = Input.DefaultLongitude;
+
+            // Filter out empty or duplicate sport selections
+            var submittedSkills = Input.SportSkills
+                .Where(ss => ss.SportId > 0)
+                .GroupBy(ss => ss.SportId)
+                .Select(g => g.First())
+                .ToList();
+
+            // Sync with primary fields for backward compatibility
+            if (submittedSkills.Any())
+            {
+                var first = submittedSkills.First();
+                var sport = await _context.Sports.FirstOrDefaultAsync(s => s.SportID == first.SportId);
+                user.FavoriteSport = sport?.SportName;
+                user.SkillLevel = first.SkillLevel;
+            }
+            else
+            {
+                user.FavoriteSport = null;
+                user.SkillLevel = null;
+            }
+            user.UpdatedAt = DateTime.UtcNow;
+
+            // Load existing UserSportProfiles
+            var existingProfiles = await _context.UserSportProfiles
+                .Where(usp => usp.UserID == userId)
+                .ToListAsync();
+
+            // Profiles to delete
+            var submittedSportIds = submittedSkills.Select(s => s.SportId).ToList();
+            var profilesToDelete = existingProfiles.Where(ep => !submittedSportIds.Contains(ep.SportID)).ToList();
+            _context.UserSportProfiles.RemoveRange(profilesToDelete);
+
+            // Profiles to add/update
+            foreach (var sub in submittedSkills)
+            {
+                var existing = existingProfiles.FirstOrDefault(ep => ep.SportID == sub.SportId);
+                if (existing != null)
+                {
+                    existing.SkillLevel = sub.SkillLevel;
+                    existing.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _context.UserSportProfiles.Add(new UserSportProfile
+                    {
+                        UserID = userId,
+                        SportID = sub.SportId,
+                        SkillLevel = sub.SkillLevel,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Thành công! Hồ sơ của bạn đã được cập nhật.";
 
             return RedirectToPage("/Profile/Index");
         }
@@ -133,6 +242,39 @@ namespace SportHub.Pages.Profile
                     ModelState.AddModelError("Input.AvatarUrl", "Avatar URL must be a valid http/https link.");
                 }
             }
+        }
+
+        private void NormalizeLocationCoordinatesFromForm()
+        {
+            // Hidden inputs từ map luôn gửi dạng "12.345678"; với vi-VN binder decimal có thể coi là invalid.
+            // Ở đây parse thủ công để chấp nhận cả dấu "." và ",".
+            var latRaw = Request.Form["Input.DefaultLatitude"].ToString();
+            var lonRaw = Request.Form["Input.DefaultLongitude"].ToString();
+
+            ModelState.Remove("Input.DefaultLatitude");
+            ModelState.Remove("Input.DefaultLongitude");
+
+            Input.DefaultLatitude = ParseFlexibleDecimal(latRaw);
+            Input.DefaultLongitude = ParseFlexibleDecimal(lonRaw);
+        }
+
+        private static decimal? ParseFlexibleDecimal(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return null;
+
+            var normalized = raw.Trim();
+            if (decimal.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var inv))
+                return inv;
+
+            if (decimal.TryParse(normalized, NumberStyles.Any, new CultureInfo("vi-VN"), out var vi))
+                return vi;
+
+            normalized = normalized.Replace(',', '.');
+            if (decimal.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var fallback))
+                return fallback;
+
+            return null;
         }
     }
 }

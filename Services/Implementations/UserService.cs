@@ -36,7 +36,7 @@ namespace SportHub.Services.Implementations
             return user;
         }
 
-        public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string? phoneNumber, string? avatarUrl, string? skillLevel)
+        public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string? phoneNumber, string? avatarUrl, string? skillLevel, string? favoriteSport = null)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
             if (user == null) return false;
@@ -45,6 +45,7 @@ namespace SportHub.Services.Implementations
             user.PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
             user.AvatarUrl = string.IsNullOrWhiteSpace(avatarUrl) ? null : avatarUrl.Trim();
             user.SkillLevel = string.IsNullOrWhiteSpace(skillLevel) ? user.SkillLevel : skillLevel;
+            user.FavoriteSport = string.IsNullOrWhiteSpace(favoriteSport) ? user.FavoriteSport : favoriteSport;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

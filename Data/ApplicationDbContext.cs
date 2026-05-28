@@ -153,6 +153,8 @@ namespace SportHub.Data
 
             modelBuilder.Entity<CourtVenue>().Property(v => v.Latitude).HasPrecision(10, 8);
             modelBuilder.Entity<CourtVenue>().Property(v => v.Longitude).HasPrecision(11, 8);
+            modelBuilder.Entity<User>().Property(u => u.DefaultLatitude).HasPrecision(10, 8);
+            modelBuilder.Entity<User>().Property(u => u.DefaultLongitude).HasPrecision(11, 8);
             modelBuilder.Entity<PricingRule>().Property(p => p.UnitPrice).HasPrecision(12, 2);
             modelBuilder.Entity<Booking>().Property(b => b.TotalAmount).HasPrecision(12, 2);
             modelBuilder.Entity<Booking>().Property(b => b.DiscountAmount).HasPrecision(12, 2);
@@ -164,7 +166,7 @@ namespace SportHub.Data
             modelBuilder.Entity<User>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Users_Gender", "Gender IN ('M','F','O')");
-                t.HasCheckConstraint("CK_Users_SkillLevel", "SkillLevel IN ('Beginner','Intermediate','Advanced','Professional')");
+                // Relaxed skill level constraint to support new levels
             });
 
             modelBuilder.Entity<PricingRule>().ToTable(t =>
@@ -187,7 +189,6 @@ namespace SportHub.Data
             modelBuilder.Entity<Match>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Matches_MatchType", "MatchType IN ('Singles','Doubles','Mixed')");
-                t.HasCheckConstraint("CK_Matches_SkillRequired", "SkillRequired IS NULL OR SkillRequired IN ('Beginner','Intermediate','Advanced','Professional','Any')");
                 t.HasCheckConstraint("CK_Matches_Status", "Status IN ('Open','Full','InProgress','Completed','Cancelled')");
             });
 
@@ -376,7 +377,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','BookingConfirmed','BookingCancelled','System')");
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System')");
             });
 
             modelBuilder.Entity<Notification>()

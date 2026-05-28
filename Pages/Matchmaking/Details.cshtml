@@ -23,12 +23,18 @@ else
         <article class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="relative h-64">
                 <img class="w-full h-full object-cover"
-                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE"
+                     src="@item.CourtImageUrl"
                      alt="Match" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                 <div class="absolute bottom-5 left-5 text-white">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="px-3 py-1 bg-primary text-xs font-bold rounded-full">@item.MatchType</span>
+                        @if (item.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || item.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="px-3 py-1 bg-amber-500 text-xs font-bold rounded-full flex items-center gap-1">
+                                <span>🏸 Cầu lông</span>
+                            </span>
+                        }
                         @if (item.RequiresApproval)
                         {
                             <span class="px-3 py-1 bg-amber-500 text-xs font-bold rounded-full flex items-center gap-1">
@@ -110,8 +116,20 @@ else
             }
         </div>
 
+        <!-- Location Map -->
+        @if (item.Latitude.HasValue && item.Longitude.HasValue)
+        {
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">map</span>
+                    Bản đồ địa điểm
+                </h2>
+                <div id="matchDetailMap" class="h-64 w-full rounded-xl border border-slate-200 dark:border-slate-700" style="z-index: 10;"></div>
+            </div>
+        }
+
         <!-- HOST ONLY: Pending requests -->
-        @if (item.IsOwner && item.RequiresApproval && item.PendingParticipants.Any())
+        @if (item.IsOwner && item.PendingParticipants.Any())
         {
             <div class="bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-400 shadow-sm p-6">
                 <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
@@ -177,7 +195,7 @@ else
                     <span class="material-symbols-outlined text-amber-500">hourglass_top</span>
                     <div>
                         <p class="font-bold text-amber-700 dark:text-amber-400">Đang chờ duyệt</p>
-                        <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ xem xét yêu cầu của bạn</p>
+                        <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ duyệt trong 2 giờ. Quá hạn yêu cầu tự hủy.</p>
                     </div>
                 </div>
             }
@@ -190,15 +208,12 @@ else
                     <button type="submit"
                             class="w-full py-3 px-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined">sports</span>
-                        @(item.RequiresApproval ? "Gửi yêu cầu tham gia" : "Tham gia ngay")
+                        Gửi yêu cầu tham gia
                     </button>
-                    @if (item.RequiresApproval)
-                    {
-                        <p class="text-xs text-slate-500 text-center mt-2">
-                            <span class="material-symbols-outlined text-xs align-middle">info</span>
-                            Trận này cần host duyệt trước khi vào
-                        </p>
-                    }
+                    <p class="text-xs text-slate-500 text-center mt-2">
+                        <span class="material-symbols-outlined text-xs align-middle">info</span>
+                        Host duyệt xong bạn mới vào trận. Yêu cầu hết hạn sau 2 giờ nếu chưa duyệt.
+                    </p>
                 </form>
             }
             else if (item.IsJoined)
@@ -226,6 +241,15 @@ else
                     <span class="material-symbols-outlined text-sm">edit</span>
                     Chỉnh sửa trận
                 </a>
+                <form id="detailDeleteMatchForm" method="post" asp-page-handler="Delete" class="mt-2">
+                    <input type="hidden" name="id" value="@item.MatchId" />
+                    <button type="button"
+                            onclick="openDeleteMatchModal('detailDeleteMatchForm')"
+                            class="w-full py-2 px-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Xóa trận
+                    </button>
+                </form>
             }
 
             <a asp-page="/Matchmaking/Index"
@@ -236,4 +260,74 @@ else
         </div>
     </aside>
 </section>
+}
+
+@if (item != null && item.IsOwner)
+{
+    <div id="deleteMatchModal" class="hidden fixed inset-0 z-[1200]">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeDeleteMatchModal()"></div>
+        <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
+            <div class="flex items-start gap-3">
+                <div class="size-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined">warning</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 dark:text-white">Xóa trận đấu?</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Thao tác này không thể hoàn tác. Người chơi đã tham gia sẽ nhận thông báo trận bị hủy.
+                    </p>
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" onclick="closeDeleteMatchModal()"
+                        class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">
+                    Hủy
+                </button>
+                <button type="button" onclick="confirmDeleteMatch()"
+                        class="px-4 py-2 rounded-lg bg-rose-500 text-white font-bold hover:bg-rose-600">
+                    Xóa ngay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteMatchFormId = '';
+        function openDeleteMatchModal(formId) {
+            deleteMatchFormId = formId;
+            document.getElementById('deleteMatchModal')?.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDeleteMatchModal() {
+            document.getElementById('deleteMatchModal')?.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        function confirmDeleteMatch() {
+            if (!deleteMatchFormId) return;
+            const form = document.getElementById(deleteMatchFormId);
+            if (form) form.submit();
+        }
+    </script>
+}
+
+@if (item != null && item.Latitude.HasValue && item.Longitude.HasValue)
+{
+    @section Scripts {
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var lat = @item.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var lon = @item.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var map = L.map('matchDetailMap').setView([lat, lon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                L.marker([lat, lon])
+                    .addTo(map)
+                    .bindPopup('<b>@Html.Raw(item.Venue)</b>')
+                    .openPopup();
+            });
+        </script>
+    }
 }

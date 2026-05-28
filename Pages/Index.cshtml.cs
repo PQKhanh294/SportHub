@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Models.ViewModels;
 using SportHub.Services.Interfaces;
@@ -52,10 +52,12 @@ namespace SportHub.Pages
                 MatchDate = m.MatchDate,
                 StartTime = m.StartTime,
                 EndTime = m.EndTime,
-                VenueName = m.Court?.Venue?.VenueName ?? "TBD Venue",
-                CourtImageUrl = m.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
+                VenueName = ExtractCustomVenue(m.Description) ?? m.Court?.Venue?.VenueName ?? "TBD Venue",
+                CourtImageUrl = m.Sport?.SportName != null && (m.Sport.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || m.Sport.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
+                                ? "/images/badminton_bg.png"
+                                : (m.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
                                 ?? m.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.ImageUrl
-                                ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuDCZms0q2ESpaDHRdZkf9dE4qMQZVkgjJF0HnN65HWF8MiraPWap2EeqIu5B7lpZay82on8EwiajwpFEaLc1mBLtzup2a-2NvPWKA3XU36SNDcXt-gXNlhyrefVLm2peEdMau0QNC2KvvV6JmiocZGK85Vy0y1YJaMXMWTYDMndO9e6k4o50HhcXXRpw7Pmk8OkE_yboqgbxG0tyqV8PUsxVgj6n3ll8iXu_RU0HbcH2QNCTKjyz_4eA2XCg2RBtRGz0zIqIBFgcMk",
+                                ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuDCZms0q2ESpaDHRdZkf9dE4qMQZVkgjJF0HnN65HWF8MiraPWap2EeqIu5B7lpZay82on8EwiajwpFEaLc1mBLtzup2a-2NvPWKA3XU36SNDcXt-gXNlhyrefVLm2peEdMau0QNC2KvvV6JmiocZGK85Vy0y1YJaMXMWTYDMndO9e6k4o50HhcXXRpw7Pmk8OkE_yboqgbxG0tyqV8PUsxVgj6n3ll8iXu_RU0HbcH2QNCTKjyz_4eA2XCg2RBtRGz0zIqIBFgcMk"),
                 MaxParticipants = m.MaxParticipants,
                 CurrentParticipants = m.Participants.Count,
                 ParticipantAvatars = m.Participants
@@ -104,6 +106,8 @@ namespace SportHub.Pages
                     District = x.Venue.District,
                     City = x.Venue.City,
                     DistanceKm = Math.Round(1.2 + (idx * 1.1), 1),
+                    Latitude = x.Venue.Latitude,
+                    Longitude = x.Venue.Longitude,
                     TotalCourts = x.Venue.Courts.Count,
                     CourtType = x.Court.CourtType ?? "Indoor",
                     MinPricePerHour = x.Court.PricingRules.Any() ? x.Court.PricingRules.Min(p => p.UnitPrice) : 150000,
@@ -124,6 +128,19 @@ namespace SportHub.Pages
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(claim, out var id) ? id : 0;
+        }
+
+        private static string? ExtractCustomVenue(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var name = lines.FirstOrDefault(l => l.StartsWith("Court name:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court name:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            var addr = lines.FirstOrDefault(l => l.StartsWith("Court address:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court address:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(addr))
+                return $"{name} - {addr}";
+            return !string.IsNullOrWhiteSpace(name) ? name : addr;
         }
 
         private static string GetCategoryFromType(string? matchType)

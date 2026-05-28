@@ -65,7 +65,8 @@ CREATE TABLE dbo.Users (
     AvatarUrl       NVARCHAR(500)   NULL,
     DateOfBirth     DATE            NULL,
     Gender          NCHAR(1)        NULL CHECK (Gender IN ('M','F','O')),  -- Male/Female/Other
-    SkillLevel      NVARCHAR(20)    NULL CHECK (SkillLevel IN ('Beginner','Intermediate','Advanced','Professional')),
+    SkillLevel      NVARCHAR(50)    NULL,
+    FavoriteSport   NVARCHAR(100)   NULL,
     IsActive        BIT             NOT NULL DEFAULT 1,
     IsVerified      BIT             NOT NULL DEFAULT 0,     -- Xác thực email/OTP
     CreatedAt       DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
@@ -276,7 +277,7 @@ CREATE TABLE dbo.Matches (
     StartTime       TIME            NOT NULL,
     EndTime         TIME            NOT NULL,
     MatchType       NVARCHAR(20)    NOT NULL CHECK (MatchType IN ('Singles','Doubles','Mixed')),
-    SkillRequired   NVARCHAR(20)    NULL CHECK (SkillRequired IN ('Beginner','Intermediate','Advanced','Professional','Any')),
+    SkillRequired   NVARCHAR(20)    NULL,
     MaxParticipants TINYINT         NOT NULL DEFAULT 4,
     Title           NVARCHAR(200)   NULL,
     Description     NVARCHAR(500)   NULL,
@@ -369,7 +370,7 @@ CREATE TABLE dbo.Notifications (
     NotificationID  INT             NOT NULL IDENTITY(1,1),
     UserID          INT             NOT NULL,
     Type            NVARCHAR(50)    NOT NULL
-                        CHECK (Type IN ('MatchJoin','MatchApprove','MatchReject','BookingConfirmed','BookingCancelled','System')),
+                        CHECK (Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System')),
     Title           NVARCHAR(200)   NOT NULL,
     Message         NVARCHAR(500)   NOT NULL,
     LinkUrl         NVARCHAR(300)   NULL,       -- URL dẫn đến trang liên quan khi click
@@ -437,5 +438,14 @@ CREATE NONCLUSTERED INDEX IX_Notifications_Unread  ON dbo.Notifications (UserID,
 GO
 
 PRINT N'✅ SportHubDB - Tạo CSDL thành công! Tổng: 18 bảng (16 core + UserSportProfiles + Notifications), chuẩn 3NF.';
+GO
+
+-- Migration: địa chỉ / tọa độ mặc định người dùng (tính khoảng cách chính xác)
+IF COL_LENGTH('dbo.Users', 'DefaultAddress') IS NULL
+    ALTER TABLE dbo.Users ADD DefaultAddress NVARCHAR(300) NULL;
+IF COL_LENGTH('dbo.Users', 'DefaultLatitude') IS NULL
+    ALTER TABLE dbo.Users ADD DefaultLatitude DECIMAL(10,8) NULL;
+IF COL_LENGTH('dbo.Users', 'DefaultLongitude') IS NULL
+    ALTER TABLE dbo.Users ADD DefaultLongitude DECIMAL(11,8) NULL;
 GO
 

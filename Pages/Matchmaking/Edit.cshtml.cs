@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +16,13 @@ namespace SportHub.Pages.Matchmaking
     public class EditModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
 
-        public EditModel(IMatchService matchService, ApplicationDbContext context)
+        public EditModel(IMatchService matchService, INotificationService notificationService, ApplicationDbContext context)
         {
             _matchService = matchService;
+            _notificationService = notificationService;
             _context = context;
         }
 
@@ -45,6 +47,9 @@ namespace SportHub.Pages.Matchmaking
 
             [StringLength(300)]
             public string? CourtAddress { get; set; }
+
+            public decimal? Latitude { get; set; }
+            public decimal? Longitude { get; set; }
 
             [Required(ErrorMessage = "Please select a sport.")]
             public int SportId { get; set; }
@@ -95,6 +100,8 @@ namespace SportHub.Pages.Matchmaking
                 CourtId = match.CourtID,
                 CourtName = ExtractMeta(match.Description, "Court name:"),
                 CourtAddress = ExtractMeta(match.Description, "Court address:"),
+                Latitude = ExtractCustomLatitude(match.Description),
+                Longitude = ExtractCustomLongitude(match.Description),
                 SportId = match.SportID,
                 MatchDate = match.MatchDate,
                 StartTime = match.StartTime,
@@ -181,7 +188,7 @@ namespace SportHub.Pages.Matchmaking
                 SkillRequired = Input.SkillRequired,
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
-                Description = BuildDescription(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd)
+                Description = BuildDescription(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd, Input.Latitude, Input.Longitude)
             };
 
             var updated = await _matchService.UpdateMatchAsync(Input.MatchId, userId, updatedMatch);
@@ -192,6 +199,46 @@ namespace SportHub.Pages.Matchmaking
             return RedirectToPage("/Matchmaking/Details", new { id = Input.MatchId });
         }
 
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+
+            var match = await _matchService.GetMatchDetailsAsync(id);
+            if (match == null || match.CreatedByUserID != userId)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xóa trận này.";
+                return RedirectToPage("/Matchmaking/Index");
+            }
+
+            var targetUsers = match.Participants
+                .Where(p => p.UserID != userId && (p.JoinStatus == "Accepted" || p.JoinStatus == "Pending"))
+                .Select(p => p.UserID)
+                .Distinct()
+                .ToList();
+
+            var deleted = await _matchService.DeleteMatchAsync(id, userId);
+            if (!deleted)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa trận đấu.";
+                return RedirectToPage("/Matchmaking/Details", new { id });
+            }
+
+            var matchTitle = match.Title ?? match.MatchType;
+            foreach (var uid in targetUsers)
+            {
+                await _notificationService.CreateAsync(
+                    uid,
+                    "System",
+                    "Trận đấu đã bị hủy",
+                    $"Host đã xóa trận \"{matchTitle}\". Yêu cầu/tham gia của bạn đã được hủy.",
+                    "/Matchmaking/Index");
+            }
+
+            TempData["SuccessMessage"] = "Đã xóa trận đấu thành công.";
+            return RedirectToPage("/Matchmaking/Index");
+        }
+
         private async Task LoadSelectionsAsync()
         {
             SportOptions = await _context.Sports
@@ -199,17 +246,17 @@ namespace SportHub.Pages.Matchmaking
                 .Select(s => new SelectListItem
                 {
                     Value = s.SportID.ToString(),
-                    Text = s.SportName == "Cầu lông" ? "Badminton" : s.SportName
+                    Text = s.SportName
                 })
                 .ToListAsync();
 
             SkillOptions = new List<SelectListItem>
             {
-                new() { Value = "Any", Text = "Any level" },
-                new() { Value = "Beginner", Text = "Beginner" },
-                new() { Value = "Intermediate", Text = "Intermediate" },
-                new() { Value = "Advanced", Text = "Advanced" },
-                new() { Value = "Professional", Text = "Professional" }
+                new() { Value = "Any", Text = "Mọi trình độ" },
+                new() { Value = "Beginner", Text = "Người mới (Beginner)" },
+                new() { Value = "Intermediate", Text = "Trung bình (Intermediate)" },
+                new() { Value = "Advanced", Text = "Nâng cao (Advanced)" },
+                new() { Value = "Professional", Text = "Chuyên nghiệp (Professional)" }
             };
         }
 
@@ -219,12 +266,14 @@ namespace SportHub.Pages.Matchmaking
             return int.TryParse(claim, out var id) ? id : 0;
         }
 
-        private static string? BuildDescription(string? description, string? courtName, string? courtAddress, decimal? priceVnd)
+        private static string? BuildDescription(string? description, string? courtName, string? courtAddress, decimal? priceVnd, decimal? lat, decimal? lon)
         {
             var parts = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(courtName)) parts.Add($"Court name: {courtName.Trim()}");
             if (!string.IsNullOrWhiteSpace(courtAddress)) parts.Add($"Court address: {courtAddress.Trim()}");
+            if (lat.HasValue) parts.Add($"Court latitude: {lat.Value.ToString(CultureInfo.InvariantCulture)}");
+            if (lon.HasValue) parts.Add($"Court longitude: {lon.Value.ToString(CultureInfo.InvariantCulture)}");
             if (priceVnd.HasValue) parts.Add($"Match price VND: {priceVnd.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
             if (!string.IsNullOrWhiteSpace(description)) parts.Add(description.Trim());
 
@@ -235,9 +284,27 @@ namespace SportHub.Pages.Matchmaking
         {
             if (string.IsNullOrWhiteSpace(description)) return null;
 
-            var lines = description.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var line = lines.FirstOrDefault(l => l.StartsWith(key, StringComparison.OrdinalIgnoreCase));
             return line?.Replace(key, string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        }
+
+        private static decimal? ExtractCustomLatitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court latitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court latitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
+        }
+
+        private static decimal? ExtractCustomLongitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court longitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court longitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
         }
 
         private static decimal? ExtractPrice(string? description)
@@ -251,10 +318,12 @@ namespace SportHub.Pages.Matchmaking
             if (string.IsNullOrWhiteSpace(description)) return null;
 
             var lines = description
-                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(l =>
                     !l.StartsWith("Court name:", StringComparison.OrdinalIgnoreCase)
                     && !l.StartsWith("Court address:", StringComparison.OrdinalIgnoreCase)
+                    && !l.StartsWith("Court latitude:", StringComparison.OrdinalIgnoreCase)
+                    && !l.StartsWith("Court longitude:", StringComparison.OrdinalIgnoreCase)
                     && !l.StartsWith("Match price VND:", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 

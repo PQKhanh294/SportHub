@@ -1,6 +1,8 @@
 using SportHub.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
+using Microsoft.AspNetCore.SignalR;
+using SportHub.Hubs;
 
 namespace SportHub.Services.Interfaces
 {
@@ -19,10 +21,12 @@ namespace SportHub.Services.Implementations
     public class NotificationService : Interfaces.INotificationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public NotificationService(ApplicationDbContext context)
+        public NotificationService(ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         public async Task CreateAsync(int userId, string type, string title, string message, string? linkUrl = null)
@@ -38,6 +42,20 @@ namespace SportHub.Services.Implementations
                 CreatedAt = DateTime.UtcNow
             });
             await _context.SaveChangesAsync();
+
+            var unreadCount = await _context.Notifications
+                .CountAsync(n => n.UserID == userId && !n.IsRead);
+
+            await _hubContext.Clients.Group($"user:{userId}")
+                .SendAsync("notification_received", new
+                {
+                    type,
+                    title,
+                    message,
+                    linkUrl,
+                    createdAt = DateTime.UtcNow,
+                    unreadCount
+                });
         }
 
         public async Task<List<Notification>> GetUserNotificationsAsync(int userId, int limit = 30)
@@ -62,6 +80,9 @@ namespace SportHub.Services.Implementations
                 .ToListAsync();
             foreach (var n in unread) n.IsRead = true;
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group($"user:{userId}")
+                .SendAsync("notifications_read", new { unreadCount = 0 });
         }
 
         public async Task MarkReadAsync(int notificationId, int userId)
@@ -72,6 +93,11 @@ namespace SportHub.Services.Implementations
             {
                 notification.IsRead = true;
                 await _context.SaveChangesAsync();
+
+                var unreadCount = await _context.Notifications
+                    .CountAsync(n => n.UserID == userId && !n.IsRead);
+                await _hubContext.Clients.Group($"user:{userId}")
+                    .SendAsync("notifications_read", new { unreadCount });
             }
         }
     }

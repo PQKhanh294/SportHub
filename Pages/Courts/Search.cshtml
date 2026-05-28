@@ -1,53 +1,85 @@
-﻿@page
+@page
 @model SportHub.Pages.Courts.SearchModel
 @{
-    ViewData["Title"] = "Search Courts";
+    ViewData["Title"] = "Tìm kiếm sân";
 }
 
 <section class="space-y-8">
     <div class="flex items-end justify-between gap-4 flex-wrap">
         <div>
-            <h1 class="text-4xl font-black tracking-tight">Search Courts</h1>
-            <p class="text-slate-500 dark:text-slate-400 mt-2">Discover nearby sport venues.</p>
+            <h1 class="text-4xl font-black tracking-tight">Tìm kiếm sân</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">Khám phá các địa điểm chơi thể thao gần bạn.</p>
         </div>
-        <a asp-page="/Courts/Map" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">View map</a>
+        <a asp-page="/Courts/Map" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2 shadow-sm">
+            <span class="material-symbols-outlined">map</span>
+            Xem trên bản đồ
+        </a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside class="lg:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 class="font-bold mb-4">Filters</h3>
-            <form method="get" class="space-y-3">
-                <input asp-for="Query" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none" placeholder="Search by court name" />
-                <select asp-for="SportId" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none">
-                    <option value="">All sports</option>
-                    <option value="1">Pickleball</option>
-                    <option value="2">Tennis</option>
-                    <option value="3">Badminton</option>
-                </select>
-                <input type="date" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 border-none" />
-                <button type="submit" class="w-full py-2.5 bg-primary text-white rounded-lg font-bold">Apply</button>
-            </form>
+        <aside class="lg:col-span-1">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm sticky top-24">
+                <h3 class="font-bold mb-6 text-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">tune</span>
+                    Bộ lọc
+                </h3>
+                <form method="get" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Tìm kiếm</label>
+                        <input asp-for="Query" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Nhập tên sân..." />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Môn thể thao</label>
+                        <select asp-for="SportId" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <option value="">Tất cả</option>
+                            <option value="1">Pickleball</option>
+                            <option value="2">Tennis</option>
+                            <option value="3">Cầu lông</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Ngày đặt</label>
+                        <input type="date" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Áp dụng</button>
+                    <a asp-page="/Courts/Search" class="block text-center text-sm text-slate-500 hover:text-primary transition-colors py-2">Xóa bộ lọc</a>
+                </form>
+            </div>
         </aside>
 
         <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @if (Model.Courts.Count == 0)
             {
-                <div class="col-span-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-slate-500 dark:text-slate-400">
-                    No courts found for the current filters.
+                <div class="col-span-full rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
+                    <span class="material-symbols-outlined text-5xl text-slate-300 mb-4">search_off</span>
+                    <p class="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy sân nào phù hợp với yêu cầu của bạn.</p>
                 </div>
             }
             @foreach (var court in Model.Courts)
             {
-                <article class="group bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all">
-                    <div class="relative h-48">
-                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="@court.ImageUrl" alt="Court" />
-                        <span class="absolute top-3 right-3 bg-white/90 text-primary text-xs font-bold px-3 py-1 rounded-full">@court.PriceDisplay</span>
+                <article class="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="relative h-48 overflow-hidden">
+                        <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="@court.ImageUrl" alt="Court" />
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/80 to-transparent p-4">
+                            <span class="text-white font-bold">@court.PriceDisplay</span>
+                        </div>
                     </div>
-                    <div class="p-4">
-                        <h3 class="font-bold text-lg">@court.CourtName</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">@court.VenueName</p>
-                        <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">@court.SportName</p>
-                        <a asp-page="/Courts/Details" asp-route-id="@court.CourtId" class="inline-flex w-full justify-center py-2.5 bg-slate-100 dark:bg-slate-800 font-bold rounded-lg hover:bg-primary hover:text-white transition-all">View details</a>
+                    <div class="p-5">
+                        <h3 class="font-bold text-lg mb-1 group-hover:text-primary transition-colors">@court.CourtName</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-3">
+                            <span class="material-symbols-outlined text-base">location_on</span>
+                            @court.VenueName
+                        </p>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">@court.SportName</span>
+                            <a asp-page="/Courts/Details" asp-route-id="@court.CourtId" class="text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
+                                Xem chi tiết
+                                <span class="material-symbols-outlined text-base">arrow_forward</span>
+                            </a>
+                        </div>
                     </div>
                 </article>
             }

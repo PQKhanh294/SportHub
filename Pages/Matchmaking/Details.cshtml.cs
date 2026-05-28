@@ -71,13 +71,21 @@ namespace SportHub.Pages.Matchmaking
                 MatchId            = match.MatchID,
                 Title              = string.IsNullOrWhiteSpace(match.Title) ? $"{match.MatchType} Match" : match.Title,
                 MatchType          = string.IsNullOrWhiteSpace(match.MatchType) ? "Open Match" : match.MatchType,
-                SkillRequired      = string.IsNullOrWhiteSpace(match.SkillRequired) ? "Any" : match.SkillRequired,
+                SportName          = match.Sport?.SportName ?? "Sport",
+                SkillRequired      = GetSkillDisplay(match.SkillRequired),
                 DateText           = $"{match.MatchDate:dddd, dd MMM yyyy}",
                 TimeText           = $"{match.StartTime:hh\\:mm} - {match.EndTime:hh\\:mm}",
                 Venue              = fallbackLocation ?? match.Court?.Venue?.VenueName ?? "TBD Venue",
                 CourtName          = customCourtName ?? match.Court?.CourtName ?? "Not specified",
                 CourtAddress       = customCourtAddress ?? match.Court?.Venue?.Address ?? "Not specified",
                 PriceDisplay       = BuildPriceDisplay(match),
+                CourtImageUrl      = match.Sport?.SportName != null && (match.Sport.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.Sport.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
+                                    ? "/images/badminton_bg.png"
+                                    : (match.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
+                                    ?? match.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.ImageUrl
+                                    ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE"),
+                Latitude           = ExtractCustomLatitude(match.Description) ?? match.Court?.Venue?.Latitude,
+                Longitude          = ExtractCustomLongitude(match.Description) ?? match.Court?.Venue?.Longitude,
                 AcceptedParticipants = match.Participants
                     .Where(p => p.JoinStatus == "Accepted")
                     .Select(p => new ParticipantItem
@@ -117,22 +125,14 @@ namespace SportHub.Pages.Matchmaking
             var joined = await _matchService.JoinMatchAsync(id, userId);
             if (joined)
             {
-                if (match.RequiresApproval)
-                {
-                    TempData["SuccessMessage"] = "Yêu cầu đã được gửi. Vui lòng chờ host duyệt.";
-                    // Notify host
-                    var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Someone";
-                    await _notificationService.CreateAsync(
-                        match.CreatedByUserID,
-                        "MatchJoin",
-                        "Yêu cầu tham gia trận đấu",
-                        $"{currentUser} muốn tham gia trận \"{match.Title ?? match.MatchType}\".",
-                        $"/Matchmaking/Details?id={id}");
-                }
-                else
-                {
-                    TempData["SuccessMessage"] = "Bạn đã tham gia trận đấu thành công!";
-                }
+                TempData["SuccessMessage"] = "Yêu cầu đã gửi. Bạn đang chờ host duyệt (tối đa 2 giờ).";
+                var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
+                await _notificationService.CreateAsync(
+                    match.CreatedByUserID,
+                    "MatchJoin",
+                    "Có người muốn tham gia trận",
+                    $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 2 giờ.",
+                    $"/Matchmaking/Details?id={id}");
             }
             else
             {
@@ -217,6 +217,46 @@ namespace SportHub.Pages.Matchmaking
             return RedirectToPage(new { id });
         }
 
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+
+            var match = await _matchService.GetMatchDetailsAsync(id);
+            if (match == null || match.CreatedByUserID != userId)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xóa trận này.";
+                return RedirectToPage(new { id });
+            }
+
+            var targetUsers = match.Participants
+                .Where(p => p.UserID != userId && (p.JoinStatus == "Accepted" || p.JoinStatus == "Pending"))
+                .Select(p => p.UserID)
+                .Distinct()
+                .ToList();
+
+            var deleted = await _matchService.DeleteMatchAsync(id, userId);
+            if (!deleted)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa trận đấu.";
+                return RedirectToPage(new { id });
+            }
+
+            var matchTitle = match.Title ?? match.MatchType;
+            foreach (var uid in targetUsers)
+            {
+                await _notificationService.CreateAsync(
+                    uid,
+                    "System",
+                    "Trận đấu đã bị hủy",
+                    $"Host đã xóa trận \"{matchTitle}\". Yêu cầu/tham gia của bạn đã được hủy.",
+                    "/Matchmaking/Index");
+            }
+
+            TempData["SuccessMessage"] = "Đã xóa trận đấu thành công.";
+            return RedirectToPage("/Matchmaking/Index");
+        }
+
         private int GetCurrentUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -229,6 +269,20 @@ namespace SportHub.Pages.Matchmaking
             var lines = description.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             return lines.FirstOrDefault(l => l.StartsWith("Court name:", StringComparison.OrdinalIgnoreCase))
                 ?.Replace("Court name:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+        }
+
+        public static string GetSkillDisplay(string? skillRequired)
+        {
+            if (string.IsNullOrWhiteSpace(skillRequired)) return "Mọi trình độ";
+            return skillRequired.Trim().ToLower() switch
+            {
+                "any" => "Mọi trình độ",
+                "beginner" => "Người mới (Beginner)",
+                "intermediate" => "Trung bình (Intermediate)",
+                "advanced" => "Nâng cao (Advanced)",
+                "professional" => "Chuyên nghiệp (Professional)",
+                _ => skillRequired
+            };
         }
 
         private static string? ExtractCustomCourtAddress(string? description)
@@ -244,6 +298,24 @@ namespace SportHub.Pages.Matchmaking
             if (!string.IsNullOrWhiteSpace(courtName) && !string.IsNullOrWhiteSpace(courtAddress))
                 return $"{courtName} - {courtAddress}";
             return !string.IsNullOrWhiteSpace(courtName) ? courtName : courtAddress;
+        }
+
+        private static decimal? ExtractCustomLatitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court latitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court latitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
+        }
+
+        private static decimal? ExtractCustomLongitude(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return null;
+            var lines = description.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var line = lines.FirstOrDefault(l => l.StartsWith("Court longitude:", StringComparison.OrdinalIgnoreCase))
+                ?.Replace("Court longitude:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            return decimal.TryParse(line, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
         }
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
@@ -275,6 +347,10 @@ namespace SportHub.Pages.Matchmaking
             public int MatchId { get; set; }
             public string Title { get; set; } = string.Empty;
             public string MatchType { get; set; } = string.Empty;
+            public string SportName { get; set; } = string.Empty;
+            public string? CourtImageUrl { get; set; }
+            public decimal? Latitude { get; set; }
+            public decimal? Longitude { get; set; }
             public string SkillRequired { get; set; } = "Any";
             public string DateText { get; set; } = string.Empty;
             public string TimeText { get; set; } = string.Empty;

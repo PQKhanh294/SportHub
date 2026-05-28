@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -50,22 +50,38 @@
     <!-- Site CSS (scrollbar & badge utilities) -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
+    <!-- Theme Check Script (trước khi render body để tránh flash) -->
+    <script>
+        (function() {
+            const theme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1] || 'light';
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
     @* Cho phép từng trang thêm CSS riêng *@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
 @using System.Security.Claims
 @inject SportHub.Services.Interfaces.IUserService UserService
+@inject SportHub.Services.Interfaces.INotificationService NotificationService
 
 @{
     string? currentUserAvatar = null;
-    if (User.Identity?.IsAuthenticated == true)
+    var unreadNotificationCount = 0;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    if (isAuthenticated)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (int.TryParse(userIdClaim, out var currentUserId) && currentUserId > 0)
         {
             var currentUser = await UserService.GetUserByIdAsync(currentUserId);
             currentUserAvatar = currentUser?.AvatarUrl;
+            unreadNotificationCount = await NotificationService.GetUnreadCountAsync(currentUserId);
         }
     }
 }
@@ -74,7 +90,6 @@
 
 <!-- ================================================================
      NAVBAR — Thanh điều hướng cố định trên đầu
-     (Trích xuất 1:1 từ Stitch MCP Home Page)
      ================================================================ -->
 <header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,31 +107,39 @@
             <nav class="hidden md:flex items-center space-x-8">
                 <a asp-page="/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Home" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Home
+                    Trang chủ
                 </a>
                 <a asp-page="/Matchmaking/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Matchmaking" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Matchmaking
+                    Ghép cặp
                 </a>
                 <a asp-page="/Courts/Search"
                    class="@(ViewData["ActivePage"]?.ToString() == "SearchCourts" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Search Courts
+                    Tìm sân
                 </a>
                 <a asp-page="/Bookings/MyBookings"
                    class="@(ViewData["ActivePage"]?.ToString() == "Bookings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Bookings
+                    Lịch đặt
                 </a>
                 <a asp-page="/Profile/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Profile" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Profile
+                    Cá nhân
+                </a>
+                <a asp-page="/Settings/Index"
+                   class="@(ViewData["ActivePage"]?.ToString() == "Settings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
+                    Cài đặt
                 </a>
             </nav>
 
             <!-- User Actions -->
             <div class="flex items-center gap-4">
                 <!-- Notification Bell -->
-                <a asp-page="/Notifications/Index" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" title="Thông báo">
                     <span class="material-symbols-outlined">notifications</span>
+                    <span id="notification-badge"
+                          class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none @(unreadNotificationCount > 0 ? "" : "hidden")">
+                        @(unreadNotificationCount > 9 ? "9+" : unreadNotificationCount.ToString())
+                    </span>
                 </a>
 
                 <!-- Avatar người dùng hiện tại -->
@@ -131,7 +154,7 @@
                         </a>
                         <form method="post" asp-page="/Auth/Logout">
                             <button type="submit" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                                Logout
+                                Đăng xuất
                             </button>
                         </form>
                     </div>
@@ -141,11 +164,11 @@
                     <div class="flex items-center gap-2">
                         <a asp-page="/Auth/Login"
                            class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                            Login
+                            Đăng nhập
                         </a>
                         <a asp-page="/Auth/Register"
                            class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all">
-                            Register
+                            Đăng ký
                         </a>
                     </div>
                 }
@@ -161,11 +184,12 @@
         <!-- Mobile Nav Dropdown -->
         <div id="mobile-menu" class="hidden md:hidden pb-4">
             <nav class="flex flex-col space-y-1 pt-2">
-                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Home</a>
-                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Matchmaking</a>
-                <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Search Courts</a>
-                <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Bookings</a>
-                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Profile</a>
+                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Trang chủ</a>
+                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Ghép cặp</a>
+                <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tìm sân</a>
+                <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Lịch đặt</a>
+                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cá nhân</a>
+                <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cài đặt</a>
             </nav>
         </div>
 
@@ -213,11 +237,11 @@
 
             <!-- Footer Links -->
             <div class="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
-                <a class="hover:text-primary transition-colors" href="#">About Us</a>
-                <a class="hover:text-primary transition-colors" href="#">Community Guidelines</a>
-                <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-                <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
-                <a class="hover:text-primary transition-colors" href="#">Help Center</a>
+                <a class="hover:text-primary transition-colors" href="#">Về chúng tôi</a>
+                <a class="hover:text-primary transition-colors" href="#">Quy tắc cộng đồng</a>
+                <a class="hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
+                <a class="hover:text-primary transition-colors" href="#">Điều khoản sử dụng</a>
+                <a class="hover:text-primary transition-colors" href="#">Hỗ trợ</a>
             </div>
 
             <!-- Social Icons -->
@@ -234,7 +258,7 @@
 
         <!-- Copyright -->
         <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
-            &copy; @DateTime.Now.Year Sport Hub. All rights reserved.
+            &copy; @DateTime.Now.Year Sport Hub. Bản quyền thuộc về đội ngũ phát triển.
         </div>
 
     </div>
@@ -257,6 +281,54 @@
         if (el) setTimeout(() => el.remove(), 3000);
     });
 </script>
+
+@if (isAuthenticated)
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        (function () {
+            const badgeEl = document.getElementById('notification-badge');
+
+            function setUnreadCount(count) {
+                const n = Number(count) || 0;
+                if (!badgeEl) return;
+                if (n <= 0) {
+                    badgeEl.classList.add('hidden');
+                    badgeEl.textContent = '';
+                    return;
+                }
+                badgeEl.classList.remove('hidden');
+                badgeEl.textContent = n > 9 ? '9+' : String(n);
+            }
+
+            if (!window.signalR) return;
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/notifications')
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('notification_received', function (payload) {
+                if (payload && payload.unreadCount != null) {
+                    setUnreadCount(payload.unreadCount);
+                }
+                window.dispatchEvent(new CustomEvent('sporthub:notification', { detail: payload }));
+            });
+
+            connection.on('notifications_read', function (payload) {
+                if (payload && payload.unreadCount != null) {
+                    setUnreadCount(payload.unreadCount);
+                } else {
+                    setUnreadCount(0);
+                }
+            });
+
+            connection.start().catch(function (err) {
+                console.warn('Notification realtime disabled:', err);
+            });
+        })();
+    </script>
+}
 
 @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,20 +1,80 @@
-﻿@page
+@page
+@using Microsoft.EntityFrameworkCore
+@inject SportHub.Data.ApplicationDbContext DbContext
 @{
-    ViewData["Title"] = "Court Map";
+    ViewData["Title"] = "Bản đồ sân đấu";
     ViewData["ActivePage"] = "SearchCourts";
+
+    // Load active venues with coordinates
+    var venues = await DbContext.CourtVenues
+        .Include(v => v.Courts).ThenInclude(c => c.Sport)
+        .Where(v => v.IsActive && v.Latitude.HasValue && v.Longitude.HasValue)
+        .ToListAsync();
+
+    // Map to simple items for client-side serialization
+    var venuesData = venues.Select(v => new
+    {
+        name = v.VenueName,
+        address = $"{v.Address}, {v.District}, {v.City}",
+        phone = v.PhoneContact ?? "Chưa có",
+        lat = (double)v.Latitude!.Value,
+        lon = (double)v.Longitude!.Value,
+        sports = v.Courts.Where(c => c.IsActive).Select(c => c.Sport.SportName).Distinct().ToList(),
+        courtId = v.Courts.FirstOrDefault(c => c.IsActive)?.CourtID
+    }).ToList();
 }
 
 <section class="space-y-6">
     <div class="flex items-center justify-between gap-4 flex-wrap">
-        <h1 class="text-4xl font-black tracking-tight">Court Map</h1>
-        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-primary text-white font-bold">Back to search</a>
-    </div>
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
-        <div class="h-[520px] relative">
-            <img class="w-full h-full object-cover grayscale opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtxQUkkEiLHDOKhV0kqlhXdgBtOY4BQtycjiolcz1teKxIu7OfLDRnEd3_ggO8n8rCBrHTglrWa3GYROacVVzMDBOpC-G6okAT2mK73DOfXnHyykNzEtuZDK5EUneYKXptE0EXN19liIr-hM1vEpyfFRItA_lpYw5ZzLl9WYS-caVohVU_OtND6pg5tuj2ArPLIJOMv4CSVlnKpSSG05KfLP3cdZ7r92jGUtq3ep9MKrcwJEdat8TLIrCP4V6T_IEUSCaO4hvhxpM" alt="Map" />
-            <div class="absolute inset-0 flex items-center justify-center">
-                <div class="bg-primary text-white p-3 rounded-full shadow-2xl animate-bounce"><span class="material-symbols-outlined">location_on</span></div>
-            </div>
+        <div>
+            <h1 class="text-4xl font-black tracking-tight text-slate-950 dark:text-white">Bản đồ sân đấu</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">Xem vị trí tất cả các sân đấu trên bản đồ trực quan.</p>
         </div>
+        <a asp-page="/Courts/Search" class="px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold hover:bg-primary/95 transition-colors shadow-md shadow-primary/20">Quay lại tìm kiếm</a>
+    </div>
+    
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+        <div id="courtsMap" class="h-[600px] w-full" style="z-index: 10;"></div>
     </div>
 </section>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var defaultLat = 16.0471;
+            var defaultLon = 108.2068;
+            var map = L.map('courtsMap').setView([defaultLat, defaultLon], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            var venues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(venuesData));
+            var bounds = [];
+
+            venues.forEach(function(venue) {
+                var sportsList = venue.sports.join(', ') || 'Chưa rõ';
+                var detailsLink = venue.courtId ? `<a href="/Courts/Details?id=${venue.courtId}" class="mt-2 inline-block px-3 py-1.5 text-xs font-bold bg-primary text-white rounded-lg hover:bg-primary/90 text-center transition-colors">Xem chi tiết sân</a>` : '';
+                
+                var popupContent = `
+                    <div class="p-1 min-w-[200px]">
+                        <h4 class="font-extrabold text-sm text-slate-900 mb-1">${venue.name}</h4>
+                        <p class="text-xs text-slate-600 mb-1"><b>📍 Địa chỉ:</b> ${venue.address}</p>
+                        <p class="text-xs text-slate-600 mb-1"><b>🏸 Bộ môn:</b> ${sportsList}</p>
+                        <p class="text-xs text-slate-600 mb-2"><b>📞 Liên hệ:</b> ${venue.phone}</p>
+                        ${detailsLink}
+                    </div>
+                `;
+
+                var marker = L.marker([venue.lat, venue.lon]).addTo(map).bindPopup(popupContent);
+                bounds.push([venue.lat, venue.lon]);
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        });
+    </script>
+}

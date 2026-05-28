@@ -1,35 +1,35 @@
-﻿@page
+@page
 @model SportHub.Pages.Matchmaking.CreateModel
 @{
-    ViewData["Title"] = "Create Match";
+    ViewData["Title"] = "Tạo trận đấu";
 }
 
 <section class="max-w-3xl mx-auto space-y-6">
     <div>
-        <h1 class="text-3xl font-black tracking-tight">Create Match</h1>
-        <p class="text-slate-500 dark:text-slate-400">Post a match to find suitable players.</p>
+        <h1 class="text-3xl font-black tracking-tight">Tạo trận đấu mới</h1>
+        <p class="text-slate-500 dark:text-slate-400">Đăng bài tuyên giao lưu để tìm người chơi phù hợp.</p>
     </div>
 
     <form method="post" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-sm">
         <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
 
         <div>
-            <label class="block text-sm font-semibold mb-2">Match title</label>
+            <label class="block text-sm font-semibold mb-2">Tên trận đấu</label>
             <input asp-for="Input.Title" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
             <span asp-validation-for="Input.Title" class="text-xs text-red-500"></span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-semibold mb-2">Court (optional ID)</label>
-                <input asp-for="Input.CourtId" type="number" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Enter Court ID (leave empty if not selected)" />
-                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Tip: go to <a asp-page="/Courts/Search" class="text-primary font-semibold hover:underline">Search Courts</a> to find a court ID.</p>
+                <label class="block text-sm font-semibold mb-2">Sân cầu lông (ID, tùy chọn)</label>
+                <input asp-for="Input.CourtId" type="number" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập ID sân (để trống nếu không chọn)" />
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Mẹo: vào <a asp-page="/Courts/Search" class="text-primary font-semibold hover:underline">Tìm sân</a> để tìm ID sân.</p>
                 <span asp-validation-for="Input.CourtId" class="text-xs text-red-500"></span>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">Sport</label>
+                <label class="block text-sm font-semibold mb-2">Môn thể thao</label>
                 <select asp-for="Input.SportId" asp-items="Model.SportOptions" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800">
-                    <option value="">Select sport</option>
+                    <option value="">Chọn môn</option>
                 </select>
                 <span asp-validation-for="Input.SportId" class="text-xs text-red-500"></span>
             </div>
@@ -37,30 +37,40 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-semibold mb-2">Court name (optional)</label>
-                <input asp-for="Input.CourtName" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Enter court/venue name" />
+                <label class="block text-sm font-semibold mb-2">Tên sân (tùy chọn)</label>
+                <input asp-for="Input.CourtName" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập tên sân/địa điểm" />
                 <span asp-validation-for="Input.CourtName" class="text-xs text-red-500"></span>
             </div>
-            <div>
-                <label class="block text-sm font-semibold mb-2">Court address (optional)</label>
-                <input asp-for="Input.CourtAddress" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Enter court address" />
+            <div class="relative">
+                <label class="block text-sm font-semibold mb-2">Địa chỉ sân (tùy chọn)</label>
+                <input asp-for="Input.CourtAddress" id="courtAddressInput" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập địa chỉ sân" autocomplete="off" />
                 <span asp-validation-for="Input.CourtAddress" class="text-xs text-red-500"></span>
+                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg"></div>
+                <input type="hidden" asp-for="Input.Latitude" id="courtLatitude" />
+                <input type="hidden" asp-for="Input.Longitude" id="courtLongitude" />
+                <p class="mt-1 text-[11px] text-amber-700 dark:text-amber-400">Gợi ý tự động có thể chỉ tới mức đường. Sau khi chọn, <strong>kéo ghim đỏ</strong> đúng cổng sân để khoảng cách chính xác.</p>
             </div>
+        </div>
+
+        <div id="createMapContainer" class="hidden">
+            <label class="block text-sm font-semibold mb-2">Ghim vị trí chính xác trên bản đồ</label>
+            <p class="text-xs text-slate-500 mb-2">Kéo thả ghim đến đúng sân — tọa độ này được dùng để tính khoảng cách.</p>
+            <div id="createMap" class="h-56 w-full rounded-lg border border-slate-200 dark:border-slate-800 mb-4"></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label class="block text-sm font-semibold mb-2">Match date</label>
+                <label class="block text-sm font-semibold mb-2">Ngày thi đấu</label>
                 <input asp-for="Input.MatchDate" type="date" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.MatchDate" class="text-xs text-red-500"></span>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">Start time</label>
+                <label class="block text-sm font-semibold mb-2">Giờ bắt đầu</label>
                 <input asp-for="Input.StartTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.StartTime" class="text-xs text-red-500"></span>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">End time</label>
+                <label class="block text-sm font-semibold mb-2">Giờ kết thúc</label>
                 <input asp-for="Input.EndTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.EndTime" class="text-xs text-red-500"></span>
             </div>
@@ -68,39 +78,106 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label class="block text-sm font-semibold mb-2">Match type</label>
+                <label class="block text-sm font-semibold mb-2">Loại trận</label>
                 <select asp-for="Input.MatchType" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800">
-                    <option value="Singles">Singles</option>
-                    <option value="Doubles">Doubles</option>
-                    <option value="Mixed">Mixed</option>
+                    <option value="Singles">Một kèo một</option>
+                    <option value="Doubles">Đôi</option>
+                    <option value="Mixed">Hỗn hợp</option>
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">Required skill level</label>
+                <label class="block text-sm font-semibold mb-2">Trình độ yêu cầu</label>
                 <select asp-for="Input.SkillRequired" asp-items="Model.SkillOptions" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800"></select>
                 <span asp-validation-for="Input.SkillRequired" class="text-xs text-red-500"></span>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">Max participants</label>
+                <label class="block text-sm font-semibold mb-2">Số người tối đa</label>
                 <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.MaxParticipants" class="text-xs text-red-500"></span>
             </div>
         </div>
 
         <div>
-            <label class="block text-sm font-semibold mb-2">Match price (VND, optional)</label>
-            <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Example: 100000" />
+            <label class="block text-sm font-semibold mb-2">Giá trị trận đấu (VND, tùy chọn)</label>
+            <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 100000" />
             <span asp-validation-for="Input.PriceVnd" class="text-xs text-red-500"></span>
         </div>
 
         <div>
-            <label class="block text-sm font-semibold mb-2">Description</label>
-            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800"></textarea>
+            <label class="block text-sm font-semibold mb-2">Mô tả trận</label>
+            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Mô tả thêm về trận đấu..."></textarea>
         </div>
 
         <div class="flex gap-3">
-            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90">Create match</button>
-            <a asp-page="/Matchmaking/Index" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold">Back</a>
+            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90">Tạo trận</button>
+            <a asp-page="/Matchmaking/Index" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Quay lại</a>
         </div>
     </form>
 </section>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/location-picker.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sportSelect = document.querySelector('select[name="Input.SportId"]');
+            const skillSelect = document.querySelector('select[name="Input.SkillRequired"]');
+            
+            const badmintonSkills = [
+                { value: "Any", text: "Mọi trình độ" },
+                { value: "Newbie", text: "Newbie" },
+                { value: "Yếu", text: "Yếu" },
+                { value: "Yếu+", text: "Yếu+" },
+                { value: "TBY/TB-", text: "TBY/TB-" },
+                { value: "Trung Bình", text: "Trung bình" },
+                { value: "TB+/Khá", text: "TB+/Khá" }
+            ];
+            
+            const defaultSkills = [
+                { value: "Any", text: "Mọi trình độ" },
+                { value: "Beginner", text: "Người mới (Beginner)" },
+                { value: "Intermediate", text: "Trung bình (Intermediate)" },
+                { value: "Advanced", text: "Nâng cao (Advanced)" },
+                { value: "Professional", text: "Chuyên nghiệp (Professional)" }
+            ];
+
+            function updateSkillOptions() {
+                const selectedSportText = sportSelect.options[sportSelect.selectedIndex]?.text || "";
+                let options = defaultSkills;
+                
+                if (selectedSportText.includes("Cầu lông") || selectedSportText.includes("Badminton")) {
+                    options = badmintonSkills;
+                }
+                
+                const currentValue = skillSelect.value;
+                skillSelect.innerHTML = '';
+                
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.text = opt.text;
+                    if (opt.value === currentValue) {
+                        option.selected = true;
+                    }
+                    skillSelect.appendChild(option);
+                });
+            }
+
+            sportSelect.addEventListener('change', updateSkillOptions);
+            
+            // Initial update
+            updateSkillOptions();
+
+            SportHubLocationPicker.init({
+                addressInputId: 'courtAddressInput',
+                latInputId: 'courtLatitude',
+                lonInputId: 'courtLongitude',
+                suggestionsId: 'createLocationSuggestions',
+                mapContainerId: 'createMapContainer',
+                mapId: 'createMap',
+                searchUrl: '/geo/search'
+            });
+        });
+    </script>
+}

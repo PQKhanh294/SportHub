@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
+using ExpiredPendingJoin = SportHub.Services.Interfaces.ExpiredPendingJoin;
 
 namespace SportHub.Services.Interfaces
 {
@@ -11,10 +12,14 @@ namespace SportHub.Services.Interfaces
         Task<bool> JoinMatchAsync(int matchId, int userId);
         Task<int> CreateMatchAsync(Match match, int createdByUserId);
         Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
+        Task<bool> DeleteMatchAsync(int matchId, int userId);
         Task<bool> ApproveParticipantAsync(int matchId, int participantId, int hostUserId);
         Task<bool> RejectParticipantAsync(int matchId, int participantId, int hostUserId);
         Task<bool> LeaveMatchAsync(int matchId, int userId);
+        Task<IReadOnlyList<ExpiredPendingJoin>> ExpireStalePendingJoinsAsync(TimeSpan maxPendingAge, CancellationToken cancellationToken = default);
     }
+
+    public record ExpiredPendingJoin(int UserId, int MatchId, string MatchTitle);
 }
 
 namespace SportHub.Services.Implementations
@@ -28,9 +33,56 @@ namespace SportHub.Services.Implementations
             _context = context;
         }
 
+        /// <summary>
+        /// Validates if user skill level meets the required skill level for a match
+        /// Skill hierarchy: Beginner (1) < Intermediate (2) < Advanced (3) < Expert (4)
+        /// </summary>
+        private bool ValidateUserSkillLevel(string? userSkill, string? requiredSkill)
+        {
+            // If no skill required or "Any", any user can join
+            if (string.IsNullOrWhiteSpace(requiredSkill) || string.Equals(requiredSkill, "Any", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // If user has no skill defined, cannot join matches with skill requirements
+            if (string.IsNullOrWhiteSpace(userSkill))
+                return false;
+
+            // Normalize skill levels for comparison
+            var skillMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                // English levels
+                { "Beginner", 1 },
+                { "Intermediate", 2 },
+                { "Advanced", 3 },
+                { "Expert", 4 },
+                { "Professional", 5 },
+                
+                // Vietnamese / Badminton specific levels
+                { "Newbie", 1 },
+                { "Yếu", 2 },
+                { "Yếu+", 3 },
+                { "TBY/TB-", 4 },
+                { "Trung Bình", 5 },
+                { "TB+/Khá", 6 }
+            };
+
+            // If required skill unknown, default to true or handle gracefully
+            if (!skillMap.TryGetValue(requiredSkill, out var requiredSkillValue))
+                return true;
+
+            // If user skill unknown, they can't join specific requirements
+            if (!skillMap.TryGetValue(userSkill, out var userSkillValue))
+                return false;
+
+            // User skill must be >= required skill (or just allow if it matches the spirit of the game)
+            // For now, let's keep the >= logic
+            return userSkillValue >= (requiredSkillValue - 1); // Give some buffer or strictness as needed
+        }
+
         public async Task<List<Match>> GetRecommendedMatchesAsync(int limit = 5)
         {
             return await _context.Matches
+                .Include(m => m.CreatedByUser)
                 .Include(m => m.Court).ThenInclude(c => c!.Venue)
                 .Include(m => m.Court).ThenInclude(c => c!.Images)
                 .Include(m => m.Court).ThenInclude(c => c!.PricingRules)
@@ -63,29 +115,32 @@ namespace SportHub.Services.Implementations
 
             if (match == null || match.Status != "Open") return false;
 
-            // Đã tham gia (bất kỳ status nào)
-            if (match.Participants.Any(p => p.UserID == userId)) return false;
+            // Đã có yêu cầu đang chờ hoặc đã được duyệt
+            if (match.Participants.Any(p => p.UserID == userId &&
+                (p.JoinStatus == "Pending" || p.JoinStatus == "Accepted")))
+                return false;
+
+            // ✅ NEW: Validate user skill level
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return false;
+
+            if (!ValidateUserSkillLevel(user.SkillLevel, match.SkillRequired))
+                return false;
 
             // Đếm chỉ Accepted để kiểm tra chỗ còn trống
             var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
             if (acceptedCount >= match.MaxParticipants) return false;
 
-            // Nếu RequiresApproval → Pending, ngược lại → Accepted
-            var joinStatus = match.RequiresApproval ? "Pending" : "Accepted";
-
+            // Ghép vãng lai: luôn chờ host duyệt (không vào thẳng)
             match.Participants.Add(new MatchParticipant
             {
                 MatchID = matchId,
                 UserID = userId,
-                JoinStatus = joinStatus,
+                JoinStatus = "Pending",
                 JoinedAt = DateTime.UtcNow
             });
 
-            // Tự động đổi Full nếu đủ người (chỉ tính Accepted)
-            if (!match.RequiresApproval && acceptedCount + 1 >= match.MaxParticipants)
-            {
-                match.Status = "Full";
-            }
+            match.RequiresApproval = true;
 
             await _context.SaveChangesAsync();
             return true;
@@ -95,6 +150,7 @@ namespace SportHub.Services.Implementations
         {
             match.CreatedByUserID = createdByUserId;
             match.Status = "Open";
+            match.RequiresApproval = true;
             match.CreatedAt = DateTime.UtcNow;
 
             _context.Matches.Add(match);
@@ -131,8 +187,20 @@ namespace SportHub.Services.Implementations
             match.MaxParticipants = updatedMatch.MaxParticipants;
             match.Title = updatedMatch.Title;
             match.Description = updatedMatch.Description;
-            match.RequiresApproval = updatedMatch.RequiresApproval;
+            match.RequiresApproval = true;
 
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteMatchAsync(int matchId, int userId)
+        {
+            var match = await _context.Matches
+                .FirstOrDefaultAsync(m => m.MatchID == matchId && m.CreatedByUserID == userId);
+
+            if (match == null) return false;
+
+            _context.Matches.Remove(match);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -140,13 +208,17 @@ namespace SportHub.Services.Implementations
         public async Task<bool> ApproveParticipantAsync(int matchId, int participantId, int hostUserId)
         {
             var match = await _context.Matches
-                .Include(m => m.Participants)
+                .Include(m => m.Participants).ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(m => m.MatchID == matchId && m.CreatedByUserID == hostUserId);
 
             if (match == null) return false;
 
             var participant = match.Participants.FirstOrDefault(p => p.ParticipantID == participantId && p.JoinStatus == "Pending");
             if (participant == null) return false;
+
+            // ✅ NEW: Validate participant skill level before approving
+            if (!ValidateUserSkillLevel(participant.User.SkillLevel, match.SkillRequired))
+                return false;
 
             var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
             if (acceptedCount >= match.MaxParticipants) return false; // Hết chỗ
@@ -196,6 +268,34 @@ namespace SportHub.Services.Implementations
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IReadOnlyList<ExpiredPendingJoin>> ExpireStalePendingJoinsAsync(
+            TimeSpan maxPendingAge,
+            CancellationToken cancellationToken = default)
+        {
+            var cutoff = DateTime.UtcNow - maxPendingAge;
+
+            var stale = await _context.MatchParticipants
+                .Include(p => p.Match)
+                .Where(p => p.JoinStatus == "Pending" && p.JoinedAt < cutoff)
+                .ToListAsync(cancellationToken);
+
+            if (stale.Count == 0)
+                return Array.Empty<ExpiredPendingJoin>();
+
+            var result = new List<ExpiredPendingJoin>();
+            foreach (var participant in stale)
+            {
+                participant.JoinStatus = "Cancelled";
+                var title = string.IsNullOrWhiteSpace(participant.Match.Title)
+                    ? participant.Match.MatchType
+                    : participant.Match.Title;
+                result.Add(new ExpiredPendingJoin(participant.UserID, participant.MatchID, title ?? "Trận đấu"));
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return result;
         }
     }
 }

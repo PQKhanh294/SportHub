@@ -30,6 +30,8 @@ namespace SportHub.Models.Entities
         // Số năm kinh nghiệm
         public int? ExperienceYears { get; set; }
 
+        public string? SkillLevel { get; set; }
+
         public string? Notes { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
@@ -44,7 +46,7 @@ namespace SportHub.Models.Entities
         public int UserID { get; set; }
         public User User { get; set; } = null!;
 
-        // "MatchJoin" | "MatchApprove" | "MatchReject" | "BookingConfirmed" | "BookingCancelled" | "System"
+        // "MatchJoin" | "MatchApprove" | "MatchReject" | "MatchJoinExpired" | "BookingConfirmed" | "BookingCancelled" | "System"
         public string Type { get; set; } = "System";
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;

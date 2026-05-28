@@ -17,6 +17,8 @@ namespace SportHub.Models.ViewModels
         public string District { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public double? DistanceKm { get; set; }           // Tính theo tọa độ người dùng
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
 
         // Giá — lấy từ PricingRules theo giờ cao điểm/thường
         public decimal MinPricePerHour { get; set; }
