@@ -1,29 +1,55 @@
-﻿@page "{id:int?}"
+@page "{id:int?}"
 @model SportHub.Pages.Courts.DetailsModel
 @{
-    ViewData["Title"] = "Court Details";
+    ViewData["Title"] = "Chi tiết sân";
     var item = Model.Item;
+}
+
+@* ─── DEBUG: Hiển thị lỗi TempData rõ ràng (xóa sau khi fix xong) ─── *@
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="debug-error" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
+        <div class="bg-red-600 text-white rounded-xl px-5 py-4 shadow-2xl">
+            <p class="font-bold text-sm">❌ SERVER ERROR (Debug):</p>
+            <p class="text-sm mt-1">@TempData["ErrorMessage"]</p>
+        </div>
+    </div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
+        <div class="bg-green-600 text-white rounded-xl px-5 py-4 shadow-2xl">
+            <p class="text-sm">✅ @TempData["SuccessMessage"]</p>
+        </div>
+    </div>
 }
 
 @if (item == null)
 {
     <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <p class="text-slate-500 dark:text-slate-400">Court not found.</p>
+        <p class="text-slate-500 dark:text-slate-400">Không tìm thấy sân.</p>
     </section>
+    return;
 }
-else
-{
 
 <section class="space-y-8">
+
+    <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
             <h1 class="text-4xl font-black tracking-tight">@item.CourtName</h1>
-            <p class="text-slate-500 dark:text-slate-400 mt-2">@item.VenueName, @item.Address</p>
+            <p class="text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base text-primary">location_on</span>
+                @item.VenueName — @item.Address
+            </p>
         </div>
-        <a asp-page="/Courts/Search" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">Back to search</a>
+        <a asp-page="/Courts/Search" class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold text-sm">
+            <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại tìm kiếm
+        </a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-[420px]">
+    <!-- Gallery ảnh -->
+    <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[400px]">
         <img class="md:col-span-2 md:row-span-2 w-full h-full object-cover rounded-xl" src="@item.Images[0]" alt="Main court" />
         <img class="w-full h-full object-cover rounded-xl" src="@item.Images[1]" alt="Gallery" />
         <img class="w-full h-full object-cover rounded-xl" src="@item.Images[2]" alt="Gallery" />
@@ -31,17 +57,277 @@ else
         <img class="w-full h-full object-cover rounded-xl" src="@item.Images[4]" alt="Gallery" />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <h2 class="text-2xl font-bold mb-4">About this court</h2>
-            <p class="text-slate-600 dark:text-slate-400">@item.Description</p>
+    <!-- Nội dung chính + Form đặt sân -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <!-- Cột trái: Thông tin sân -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Mô tả -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-3">Về sân này</h2>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">@item.Description</p>
+            </div>
+
+            <!-- Giờ mở cửa & Tiện ích -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">Thông tin & Tiện ích</h2>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <span class="material-symbols-outlined text-primary text-base">schedule</span>
+                        <span>@item.OpenTime.ToString(@"hh\:mm") – @item.CloseTime.ToString(@"hh\:mm")</span>
+                    </div>
+                    @if (item.HasParking)
+                    {
+                        <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-emerald-500 text-base">local_parking</span>
+                            <span>Bãi đỗ xe</span>
+                        </div>
+                    }
+                    @if (item.HasShower)
+                    {
+                        <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-emerald-500 text-base">shower</span>
+                            <span>Phòng tắm</span>
+                        </div>
+                    }
+                    @if (item.HasLocker)
+                    {
+                        <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-emerald-500 text-base">lock</span>
+                            <span>Tủ đựng đồ</span>
+                        </div>
+                    }
+                    @if (item.HasFood)
+                    {
+                        <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-emerald-500 text-base">restaurant</span>
+                            <span>Canteen / Nước uống</span>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
-        <aside class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6">
-            <p class="text-slate-500 mb-1">Starting from</p>
-            <p class="text-3xl font-black text-primary mb-4">@item.MinPriceDisplay<span class="text-sm text-slate-400">/hour</span></p>
-            <a asp-page="/Bookings/MyBookings" class="w-full inline-flex justify-center py-3 bg-primary text-white rounded-xl font-bold">Book now</a>
+
+        <!-- Cột phải: Form đặt sân -->
+        <aside class="sticky top-20">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-primary px-6 py-4">
+                    <p class="text-white font-bold text-lg">Đặt sân ngay</p>
+                    <p class="text-white/80 text-sm">@item.MinPriceDisplay</p>
+                </div>
+
+                <div class="p-5 space-y-5">
+
+                    <!-- Validation errors -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <p class="text-sm text-red-600 dark:text-red-400">@err.ErrorMessage</p>
+                            }
+                        </div>
+                    }
+
+                    <form method="post" asp-page-handler="Book" id="booking-form">
+                        <!-- Dùng name/value trực tiếp, tránh xung đột asp-for -->
+                        <input type="hidden" name="BookingInput.CourtID" value="@item.CourtId" />
+                        <input type="hidden" name="BookingInput.PaymentMethod" value="BankTransfer" />
+                        <!-- Date ẩn: luôn đồng bộ với datepicker, gửi đúng yyyy-MM-dd -->
+                        <input type="hidden" id="booking-date-hidden" name="BookingInput.BookingDate"
+                               value="@Model.BookingInput.BookingDate.ToString("yyyy-MM-dd")" />
+
+                        <!-- Chọn ngày (chỉ để UI, sync vào hidden bên trên) -->
+                        <div class="space-y-1.5 mb-4">
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Ngày đặt sân</label>
+                            <input type="date"
+                                   id="booking-date-picker"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   value="@Model.BookingInput.BookingDate.ToString("yyyy-MM-dd")"
+                                   class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   onchange="onDateChange(this.value, @item.CourtId)" />
+                        </div>
+
+                        <!-- Khung giờ trống -->
+                        <div class="space-y-1.5 mb-4">
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                Chọn khung giờ
+                                <span id="slot-loading" class="hidden ml-2 inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                            </label>
+
+                            @if (Model.AvailableSlots.Count == 0)
+                            {
+                                <p class="text-sm text-slate-400 dark:text-slate-500 italic">Không có khung giờ trống cho ngày này.</p>
+                            }
+                            else
+                            {
+                                <div id="slots-container" class="grid grid-cols-2 gap-2">
+                                    @foreach (var slot in Model.AvailableSlots)
+                                    {
+                                        <label class="slot-label relative cursor-pointer">
+                                            <input type="checkbox"
+                                                   name="BookingInput.SelectedSlotIDs"
+                                                   value="@slot.SlotID"
+                                                   class="slot-checkbox sr-only"
+                                                   onchange="updateTotal()" />
+                                            <div class="slot-card border-2 border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-center transition-all hover:border-primary group">
+                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-300 group-[.selected]:text-primary">@slot.SlotLabel</p>
+                                                <p class="text-xs text-primary font-semibold mt-0.5">@slot.PriceDisplay</p>
+                                            </div>
+                                        </label>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Tóm tắt giá -->
+                        <div id="price-summary" class="hidden border-t border-slate-100 dark:border-slate-800 pt-4 mb-4 space-y-1.5 text-sm">
+                            <div class="flex justify-between text-slate-500 dark:text-slate-400">
+                                <span id="slot-count-text">0 khung giờ</span>
+                                <span id="subtotal-text">0 VND</span>
+                            </div>
+                            <div class="flex justify-between font-bold text-slate-900 dark:text-white text-base">
+                                <span>Tổng cộng</span>
+                                <span id="total-text" class="text-primary">0 VND</span>
+                            </div>
+                        </div>
+
+                        <!-- Nút đặt sân -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button type="submit" id="btn-book"
+                                    class="w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onclick="return validateBeforeSubmit()">
+                                <span class="material-symbols-outlined">qr_code_2</span>
+                                Tiến hành đặt sân & Thanh toán
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-page="/Auth/Login"
+                               asp-route-returnUrl="@Request.Path"
+                               class="w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all">
+                                <span class="material-symbols-outlined">login</span>
+                                Đăng nhập để đặt sân
+                            </a>
+                        }
+                    </form>
+                </div>
+            </div>
         </aside>
+
     </div>
 </section>
 
+@section Scripts {
+<script>
+    // Giá từng slot được lưu trong data attributes
+    const slotPrices = {
+        @foreach (var slot in Model.AvailableSlots)
+        {
+            @Html.Raw($"{slot.SlotID}: {(double)slot.Price},\n")
+        }
+    };
+
+    // Khi tick chọn slot → cập nhật visual + tổng tiền
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.slot-checkbox').forEach(cb => {
+            cb.addEventListener('change', function () {
+                const card = this.closest('.slot-label').querySelector('.slot-card');
+                if (this.checked) {
+                    card.classList.add('border-primary', 'bg-primary/5', 'selected');
+                } else {
+                    card.classList.remove('border-primary', 'bg-primary/5', 'selected');
+                }
+                updateTotal();
+            });
+        });
+    });
+
+    function updateTotal() {
+        const checked = document.querySelectorAll('.slot-checkbox:checked');
+        const summary = document.getElementById('price-summary');
+        const countEl = document.getElementById('slot-count-text');
+        const subEl   = document.getElementById('subtotal-text');
+        const totalEl = document.getElementById('total-text');
+
+        let total = 0;
+        checked.forEach(cb => {
+            total += slotPrices[cb.value] || 0;
+        });
+
+        if (checked.length > 0) {
+            summary.classList.remove('hidden');
+            countEl.textContent  = `${checked.length} khung giờ`;
+            subEl.textContent    = total.toLocaleString('vi-VN') + ' VND';
+            totalEl.textContent  = total.toLocaleString('vi-VN') + ' VND';
+        } else {
+            summary.classList.add('hidden');
+        }
+    }
+
+    function validateBeforeSubmit() {
+        console.log('[DEBUG] ===== validateBeforeSubmit BẮT ĐẦU =====');
+
+        const checked = document.querySelectorAll('.slot-checkbox:checked');
+        console.log('[DEBUG] Slots được chọn:', checked.length, [...checked].map(c => c.value));
+
+        if (checked.length === 0) {
+            console.warn('[DEBUG] ❌ Không có slot nào được chọn!');
+            alert('Vui lòng chọn ít nhất một khung giờ trước khi đặt sân.');
+            return false;
+        }
+
+        // Đảm bảo hidden date đã đúng trước khi submit
+        const picker = document.getElementById('booking-date-picker');
+        const hidden = document.getElementById('booking-date-hidden');
+        if (picker && hidden && picker.value) {
+            hidden.value = picker.value;
+        }
+
+        const courtId  = document.querySelector('[name="BookingInput.CourtID"]')?.value;
+        const dateVal  = hidden?.value;
+        const slotIds  = [...checked].map(c => c.value);
+        const method   = document.querySelector('[name="BookingInput.PaymentMethod"]')?.value;
+
+        console.log('[DEBUG] Form data sẽ gửi:');
+        console.log('[DEBUG]   CourtID     :', courtId);
+        console.log('[DEBUG]   BookingDate :', dateVal);
+        console.log('[DEBUG]   SlotIDs     :', slotIds);
+        console.log('[DEBUG]   PaymentMethod:', method);
+        console.log('[DEBUG]   Form action :', document.getElementById('booking-form')?.action);
+
+        if (!courtId || courtId === '0') {
+            console.error('[DEBUG] ❌ CourtID rỗng hoặc 0!');
+        }
+        if (!dateVal) {
+            console.error('[DEBUG] ❌ BookingDate rỗng!');
+        }
+
+        const btn = document.getElementById('btn-book');
+        
+        // Delay việc disable button để browser kịp submit form
+        setTimeout(() => {
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>Đang xử lý...';
+            }
+        }, 10);
+
+        console.log('[DEBUG] ✅ Form hợp lệ → đang submit...');
+        return true;
+    }
+
+    // Khi đổi ngày: sync hidden input VÀ reload slot
+    function onDateChange(dateValue, courtId) {
+        if (!dateValue) return;
+        // Đồng bộ hidden field
+        const hidden = document.getElementById('booking-date-hidden');
+        if (hidden) hidden.value = dateValue;
+        // Load lại slot mới
+        document.getElementById('slot-loading').classList.remove('hidden');
+        window.location.href = `/Courts/Details/${courtId}?date=${dateValue}`;
+    }
+</script>
 }

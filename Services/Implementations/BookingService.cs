@@ -15,11 +15,19 @@ namespace SportHub.Services.Implementations
 
         public async Task<Booking> CreateBookingAsync(int userId, int courtId, DateTime date, List<int> slotIds, string paymentMethod)
         {
+            var dbg = $"[SVC {DateTime.Now:HH:mm:ss}]";
+            Console.WriteLine($"{dbg} ===== CreateBookingAsync BẮT ĐẦU =====");
+            Console.WriteLine($"{dbg}   userId={userId}, courtId={courtId}, date={date:yyyy-MM-dd}, slots=[{string.Join(",", slotIds)}], method={paymentMethod}");
+
             // Bước 1: Transaction
+            Console.WriteLine($"{dbg} BƯỚC 1: Mở transaction...");
             using var transaction = await _context.Database.BeginTransactionAsync();
+            Console.WriteLine($"{dbg} ✅ Transaction opened");
+
             try
             {
                 // Bước 2: Kiểm tra slot trống
+                Console.WriteLine($"{dbg} BƯỚC 2: Kiểm tra slot bị đặt rồi...");
                 var existingBookings = await _context.BookingSlots
                     .Include(bs => bs.Booking)
                     .Where(bs => bs.Booking.CourtID == courtId 
@@ -28,24 +36,28 @@ namespace SportHub.Services.Implementations
                               && slotIds.Contains(bs.SlotID))
                     .ToListAsync();
 
+                Console.WriteLine($"{dbg}   Slot đã đặt tìm thấy: {existingBookings.Count}");
                 if (existingBookings.Any())
                 {
+                    Console.WriteLine($"{dbg} ❌ Slot bị trùng: [{string.Join(",", existingBookings.Select(x => x.SlotID))}]");
                     throw new InvalidOperationException("One or more selected slots are already booked.");
                 }
 
                 // Bước 3: Tính giá
+                Console.WriteLine($"{dbg} BƯỚC 3: Query PricingRules...");
                 decimal totalAmount = 0;
                 var pricingRules = await _context.PricingRules
                     .Where(p => p.CourtID == courtId && slotIds.Contains(p.SlotID))
                     .ToListAsync();
                     
-                // (Giả sử logic dayType đơn giản)
                 string currentDayType = (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) ? "Weekend" : "Weekday";
+                Console.WriteLine($"{dbg}   DayType={currentDayType}, PricingRules tìm thấy: {pricingRules.Count}");
                 
                 var createdBookingSlots = new List<BookingSlot>();
                 foreach (var slotId in slotIds)
                 {
                     var price = pricingRules.FirstOrDefault(p => p.SlotID == slotId && p.DayType == currentDayType)?.UnitPrice ?? 100000;
+                    Console.WriteLine($"{dbg}   Slot {slotId} → giá {price:N0} VND ({(pricingRules.Any(p => p.SlotID == slotId) ? "có rule" : "dùng default")})");
                     totalAmount += price;
                     
                     createdBookingSlots.Add(new BookingSlot
@@ -54,15 +66,17 @@ namespace SportHub.Services.Implementations
                         UnitPrice = price
                     });
                 }
+                Console.WriteLine($"{dbg}   TotalAmount = {totalAmount:N0} VND");
 
                 // Bước 4: Tạo Booking
+                Console.WriteLine($"{dbg} BƯỚC 4: Tạo Booking entity...");
                 var booking = new Booking
                 {
                     UserID = userId,
                     CourtID = courtId,
                     BookingDate = date,
                     TotalAmount = totalAmount,
-                    FinalAmount = totalAmount, // Bỏ qua discount tạm thời
+                    FinalAmount = totalAmount,
                     Status = "Pending",
                     BookedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
@@ -80,15 +94,29 @@ namespace SportHub.Services.Implementations
                     }
                 };
 
+                Console.WriteLine($"{dbg}   Booking entity tạo xong. PaymentMethod='{paymentMethod}'");
+
+                // Bước 5: Save
+                Console.WriteLine($"{dbg} BƯỚC 5: SaveChangesAsync...");
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
+                Console.WriteLine($"{dbg} ✅ SaveChanges OK — BookingID={booking.BookingID}");
+
+                // Bước 6: Commit
+                Console.WriteLine($"{dbg} BƯỚC 6: CommitAsync...");
                 await transaction.CommitAsync();
+                Console.WriteLine($"{dbg} ✅ Commit OK — Booking {booking.BookingID} hoàn tất!");
 
                 return booking;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"{dbg} ❌ EXCEPTION trong CreateBookingAsync: {ex.GetType().Name}: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"{dbg}   InnerException: {ex.InnerException.Message}");
+                Console.WriteLine($"{dbg} ⏪ RollbackAsync...");
                 await transaction.RollbackAsync();
+                Console.WriteLine($"{dbg} ✅ Rollback xong. Re-throw exception.");
                 throw;
             }
         }
