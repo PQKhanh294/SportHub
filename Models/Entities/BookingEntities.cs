@@ -52,6 +52,8 @@ namespace SportHub.Models.Entities
         public string Status { get; set; } = "Pending"; // Pending, Success, Failed, Refunded
         public string PaymentType { get; set; } = "Payment"; // Payment, Refund
         
+        public string? ReceiptUrl { get; set; } // Ảnh chụp biên lai chuyển khoản
+        
         public DateTime? PaidAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
