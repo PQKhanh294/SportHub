@@ -46,7 +46,7 @@ namespace SportHub.Models.Entities
         public int UserID { get; set; }
         public User User { get; set; } = null!;
 
-        // "MatchJoin" | "MatchApprove" | "MatchReject" | "MatchJoinExpired" | "BookingConfirmed" | "BookingCancelled" | "System"
+        // "MatchJoin" | "MatchApprove" | "MatchReject" | "MatchJoinExpired" | "BookingConfirmed" | "BookingCancelled" | "System" | "Chat"
         public string Type { get; set; } = "System";
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;

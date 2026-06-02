@@ -39,6 +39,10 @@ namespace SportHub.Data
         // Nhóm 6: New Features
         public DbSet<UserSportProfile> UserSportProfiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        
+        // Nhóm 7: Social (Friends & Chat)
+        public DbSet<Friendship> Friendships { get; set; } = null!;
+        public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -252,6 +256,30 @@ namespace SportHub.Data
                 .HasForeignKey(ci => ci.CourtID)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Friendship>()
+                .HasOne(f => f.Sender)
+                .WithMany()
+                .HasForeignKey(f => f.SenderID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Friendship>()
+                .HasOne(f => f.Receiver)
+                .WithMany()
+                .HasForeignKey(f => f.ReceiverID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(c => c.Sender)
+                .WithMany()
+                .HasForeignKey(c => c.SenderID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(c => c.Receiver)
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverID)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Court)
                 .WithMany()
@@ -377,7 +405,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System')");
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat')");
             });
 
             modelBuilder.Entity<Notification>()

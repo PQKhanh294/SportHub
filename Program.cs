@@ -39,6 +39,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.INotificationService, SportHub.Services.Implementations.NotificationService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 
@@ -47,50 +49,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var hasMigrations = dbContext.Database.GetMigrations().Any();
-
-    if (hasMigrations)
-    {
-        dbContext.Database.Migrate();
-    }
-    else
-    {
-        dbContext.Database.EnsureCreated();
-
-        // Trường hợp DB đã tồn tại nhưng chưa có schema ứng dụng (ví dụ chỉ có bảng hệ thống)
-        if (!TableExists(dbContext, "Users"))
-        {
-            var databaseCreator = dbContext.GetService<IRelationalDatabaseCreator>();
-            databaseCreator.CreateTables();
-        }
-    }
-
-    EnsureUserLocationColumns(dbContext);
-    EnsureMatchRequiresApproval(dbContext);
-}
-
-static void EnsureMatchRequiresApproval(ApplicationDbContext dbContext)
-{
-    if (!TableExists(dbContext, "Matches"))
-        return;
-
-    dbContext.Database.ExecuteSqlRaw(
-        "UPDATE dbo.Matches SET RequiresApproval = 1 WHERE RequiresApproval = 0");
-}
-
-static void EnsureUserLocationColumns(ApplicationDbContext dbContext)
-{
-    dbContext.Database.ExecuteSqlRaw("""
-        IF OBJECT_ID(N'dbo.Users', N'U') IS NOT NULL
-        BEGIN
-            IF COL_LENGTH('dbo.Users', 'DefaultAddress') IS NULL
-                ALTER TABLE dbo.Users ADD DefaultAddress NVARCHAR(300) NULL;
-            IF COL_LENGTH('dbo.Users', 'DefaultLatitude') IS NULL
-                ALTER TABLE dbo.Users ADD DefaultLatitude DECIMAL(10,8) NULL;
-            IF COL_LENGTH('dbo.Users', 'DefaultLongitude') IS NULL
-                ALTER TABLE dbo.Users ADD DefaultLongitude DECIMAL(11,8) NULL;
-        END
-        """);
+    dbContext.Database.Migrate();
 }
 
 // Cấu hình Middleware Pipeline
@@ -120,6 +79,7 @@ app.UseAuthorization();
 // Map Razor Pages
 app.MapRazorPages();
 app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<SportHub.Hubs.ChatHub>("/hubs/chat");
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Lifetime.ApplicationStarted.Register(() =>
@@ -129,26 +89,4 @@ app.Lifetime.ApplicationStarted.Register(() =>
 
 app.Run();
 
-static bool TableExists(ApplicationDbContext dbContext, string tableName)
-{
-    if (string.IsNullOrWhiteSpace(tableName) || !System.Text.RegularExpressions.Regex.IsMatch(tableName, @"^[A-Za-z_][A-Za-z0-9_]*$"))
-        return false;
-
-    dbContext.Database.OpenConnection();
-    try
-    {
-        using var command = dbContext.Database.GetDbConnection().CreateCommand();
-        command.CommandText = "SELECT CASE WHEN OBJECT_ID(@tableName, N'U') IS NULL THEN 0 ELSE 1 END";
-        var param = command.CreateParameter();
-        param.ParameterName = "@tableName";
-        param.Value = $"dbo.{tableName}";
-        command.Parameters.Add(param);
-        var result = command.ExecuteScalar();
-        return Convert.ToInt32(result) == 1;
-    }
-    finally
-    {
-        dbContext.Database.CloseConnection();
-    }
-}
 

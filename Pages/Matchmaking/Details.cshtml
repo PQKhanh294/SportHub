@@ -80,10 +80,10 @@ else
                             @(item.SpotsLeft == 0 ? "Đã đầy" : $"{item.SpotsLeft} chỗ")
                         </p>
                     </div>
-                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                    <a href="/Users/Profile/@item.HostId" class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors group">
                         <img class="size-7 rounded-full" src="@item.HostAvatar" alt="@item.HostName" />
-                        <p class="text-sm text-slate-600 dark:text-slate-400">Host: <span class="font-semibold">@item.HostName</span></p>
-                    </div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Host: <span class="font-semibold group-hover:text-primary transition-colors">@item.HostName</span></p>
+                    </a>
                 </div>
             </div>
         </article>
@@ -103,14 +103,14 @@ else
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @foreach (var p in item.AcceptedParticipants)
                     {
-                        <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
+                        <a href="/Users/Profile/@p.UserId" class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                             <img class="size-10 rounded-full object-cover flex-shrink-0" src="@p.AvatarUrl" alt="@p.FullName" />
                             <div>
-                                <p class="font-semibold text-sm text-slate-900 dark:text-white">@p.FullName</p>
+                                <p class="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-primary transition-colors">@p.FullName</p>
                                 <p class="text-xs text-slate-500">@p.SkillLevel</p>
                             </div>
                             <span class="material-symbols-outlined text-emerald-500 ml-auto text-sm">check_circle</span>
-                        </div>
+                        </a>
                     }
                 </div>
             }
@@ -140,9 +140,11 @@ else
                     @foreach (var pending in item.PendingParticipants)
                     {
                         <div class="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                            <img class="size-12 rounded-full object-cover flex-shrink-0" src="@pending.AvatarUrl" alt="@pending.FullName" />
+                            <a href="/Users/Profile/@pending.UserId" class="flex-shrink-0">
+                                <img class="size-12 rounded-full object-cover" src="@pending.AvatarUrl" alt="@pending.FullName" />
+                            </a>
                             <div class="flex-1 min-w-0">
-                                <p class="font-bold text-slate-900 dark:text-white">@pending.FullName</p>
+                                <a href="/Users/Profile/@pending.UserId" class="font-bold text-slate-900 dark:text-white hover:text-primary transition-colors block">@pending.FullName</a>
                                 <p class="text-xs text-slate-500">Trình độ: @pending.SkillLevel</p>
                                 <p class="text-xs text-slate-400">Đăng ký lúc: @pending.JoinedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
                             </div>

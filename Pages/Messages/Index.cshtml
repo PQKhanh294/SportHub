@@ -1,0 +1,216 @@
+@page
+@model SportHub.Pages.Messages.IndexModel
+@{
+    ViewData["Title"] = "Tin nhắn";
+}
+
+<div class="max-w-6xl mx-auto h-[calc(100vh-140px)] min-h-[600px] flex bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+    
+    <!-- Cột trái: Danh sách bạn bè -->
+    <div class="w-full md:w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col @(Model.ActiveChatUser != null ? "hidden md:flex" : "flex")">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-xl font-black">Đoạn chat</h2>
+            <div class="mt-4 relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" placeholder="Tìm kiếm bạn bè..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-2">
+            @if (!Model.Friends.Any())
+            {
+                <div class="text-center p-4 mt-4 text-slate-500">
+                    <p class="mb-4">Bạn chưa có bạn bè nào.</p>
+                    <a href="/Users/Index" class="inline-block px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors">Tìm bạn cộng đồng</a>
+                </div>
+                
+                @if (Model.SuggestedFriends.Any())
+                {
+                    <div class="mt-8 px-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Bạn bè đề cử</h3>
+                        <div class="space-y-2">
+                            @foreach (var suggestion in Model.SuggestedFriends)
+                            {
+                                <a href="/Users/Profile/@suggestion.UserID" class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
+                                    <img src="@(string.IsNullOrEmpty(suggestion.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(suggestion.FullName)}&background=E2E8F0&color=1E293B" : suggestion.AvatarUrl)" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">@suggestion.FullName</p>
+                                        <p class="text-[10px] text-slate-500">Trình độ: @(suggestion.SkillLevel ?? "Chưa rõ")</p>
+                                    </div>
+                                    <span class="material-symbols-outlined text-[16px] text-slate-300 group-hover:text-primary transition-colors">person_add</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @foreach (var friend in Model.Friends)
+                {
+                    <a href="/Messages?userId=@friend.UserID" class="flex items-center gap-3 p-3 rounded-2xl transition-colors @(Model.ActiveChatUser?.UserID == friend.UserID ? "bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50")">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden flex items-center justify-center font-bold text-slate-500">
+                            @if (string.IsNullOrEmpty(friend.AvatarUrl))
+                            {
+                                @friend.FullName[0]
+                            }
+                            else
+                            {
+                                <img src="@friend.AvatarUrl" class="w-full h-full object-cover" />
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-slate-900 dark:text-white truncate">@friend.FullName</h4>
+                        </div>
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Cột phải: Khung Chat -->
+    <div class="flex-1 flex flex-col @(Model.ActiveChatUser == null ? "hidden md:flex" : "flex")">
+        @if (Model.ActiveChatUser == null)
+        {
+            <div class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50 dark:bg-slate-900/50">
+                <span class="material-symbols-outlined text-7xl mb-4 opacity-50">chat_bubble</span>
+                <h3 class="text-xl font-bold text-slate-700 dark:text-slate-300">Tin nhắn của bạn</h3>
+                <p>Chọn một người bạn để bắt đầu trò chuyện</p>
+            </div>
+        }
+        else
+        {
+            <!-- Header chat -->
+            <div class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4">
+                <div class="flex items-center gap-3">
+                    <a href="/Messages" class="md:hidden w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </a>
+                    <a href="/Users/Profile/@Model.ActiveChatUser.UserID" class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary overflow-hidden">
+                            @if (string.IsNullOrEmpty(Model.ActiveChatUser.AvatarUrl))
+                            {
+                                @Model.ActiveChatUser.FullName[0]
+                            }
+                            else
+                            {
+                                <img src="@Model.ActiveChatUser.AvatarUrl" class="w-full h-full object-cover" />
+                            }
+                        </div>
+                        <h3 class="font-bold text-lg">@Model.ActiveChatUser.FullName</h3>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Khung tin nhắn -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/30" id="chat-messages">
+                @foreach (var msg in Model.ChatHistory)
+                {
+                    bool isMine = msg.SenderID == Model.CurrentUserId;
+                    <div class="flex @(isMine ? "justify-end" : "justify-start")">
+                        <div class="max-w-[70%] @(isMine ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white") px-4 py-2 rounded-2xl @(isMine ? "rounded-br-sm" : "rounded-bl-sm") shadow-sm">
+                            <p class="text-sm">@msg.Content</p>
+                            <p class="text-[10px] mt-1 opacity-70 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Input gửi tin -->
+            <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                <form id="chat-form" class="flex gap-2">
+                    <input type="hidden" id="receiver-id" value="@Model.ActiveChatUser.UserID" />
+                    <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off" class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all border-none" required />
+                    <button type="submit" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-transform active:scale-95 flex-shrink-0">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.ActiveChatUser != null)
+    {
+        <script>
+            // Tự động cuộn xuống cuối
+            const chatMessages = document.getElementById("chat-messages");
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Kết nối SignalR ChatHub
+            const chatConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/chat")
+                .withAutomaticReconnect()
+                .build();
+
+            const currentUserId = @Model.CurrentUserId;
+            const activeReceiverId = @Model.ActiveChatUser.UserID;
+
+            // Xử lý khi nhận tin nhắn mới
+            chatConnection.on("ReceiveMessage", function (msg) {
+                // Chỉ hiện nếu tin nhắn là của người đang chat (đang mở khung chat)
+                if (msg.senderID === activeReceiverId) {
+                    appendMessage(msg.content, msg.createdAt, false);
+                }
+                // (Trong thực tế sẽ cần cập nhật preview bên menu trái nữa)
+            });
+
+            // Xử lý khi gửi thành công (hệ thống dội lại)
+            chatConnection.on("MessageSent", function (msg) {
+                if (msg.receiverID === activeReceiverId) {
+                    appendMessage(msg.content, msg.createdAt, true);
+                }
+            });
+
+            chatConnection.start().catch(err => console.error(err.toString()));
+
+            // Gửi tin nhắn
+            document.getElementById("chat-form").addEventListener("submit", function(e) {
+                e.preventDefault();
+                const input = document.getElementById("chat-input");
+                const content = input.value.trim();
+                const receiverId = parseInt(document.getElementById("receiver-id").value);
+
+                if (content && chatConnection.state === signalR.HubConnectionState.Connected) {
+                    // Gọi hàm SendMessage trong ChatHub
+                    chatConnection.invoke("SendMessage", receiverId, content)
+                        .catch(err => console.error(err.toString()));
+                    
+                    input.value = "";
+                    input.focus();
+                }
+            });
+
+            function appendMessage(content, timeIso, isMine) {
+                const time = new Date(timeIso);
+                const timeStr = time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0');
+                
+                const divContainer = document.createElement("div");
+                divContainer.className = "flex " + (isMine ? "justify-end" : "justify-start");
+                
+                const divBubble = document.createElement("div");
+                let bubbleColor = isMine ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white";
+                let bubbleShape = isMine ? "rounded-br-sm" : "rounded-bl-sm";
+                divBubble.className = `max-w-[70%] ${bubbleColor} px-4 py-2 rounded-2xl ${bubbleShape} shadow-sm`;
+                
+                const pContent = document.createElement("p");
+                pContent.className = "text-sm";
+                pContent.innerText = content;
+                
+                const pTime = document.createElement("p");
+                pTime.className = "text-[10px] mt-1 opacity-70 text-right";
+                pTime.innerText = timeStr;
+                
+                divBubble.appendChild(pContent);
+                divBubble.appendChild(pTime);
+                divContainer.appendChild(divBubble);
+                
+                chatMessages.appendChild(divContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        </script>
+    }
+}
