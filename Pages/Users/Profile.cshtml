@@ -1,0 +1,83 @@
+@page "{id:int}"
+@model SportHub.Pages.Users.ProfileModel
+@{
+    ViewData["Title"] = "Hồ sơ của " + Model.TargetUser.FullName;
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center gap-8">
+        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 dark:border-slate-800 flex-shrink-0">
+            @if (string.IsNullOrEmpty(Model.TargetUser.AvatarUrl))
+            {
+                <div class="w-full h-full bg-primary/10 flex items-center justify-center text-4xl font-black text-primary">
+                    @Model.TargetUser.FullName[0]
+                </div>
+            }
+            else
+            {
+                <img src="@Model.TargetUser.AvatarUrl" alt="@Model.TargetUser.FullName" class="w-full h-full object-cover" />
+            }
+        </div>
+        
+        <div class="flex-1 text-center md:text-left">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white mb-2">@Model.TargetUser.FullName</h1>
+            <p class="text-slate-500 mb-4">@Model.TargetUser.Email</p>
+            
+            <div class="flex items-center justify-center md:justify-start gap-4">
+                @if (Model.FriendshipStatus == "None")
+                {
+                    <form method="post" asp-page-handler="AddFriend" asp-route-id="@Model.TargetUser.UserID">
+                        <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2 transition-colors">
+                            <span class="material-symbols-outlined">person_add</span> Thêm bạn bè
+                        </button>
+                    </form>
+                }
+                else if (Model.FriendshipStatus == "Pending")
+                {
+                    @if (Model.IsSender)
+                    {
+                        <form method="post" asp-page-handler="CancelRequest" asp-route-id="@Model.TargetUser.UserID">
+                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined">cancel</span> Hủy lời mời
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="flex gap-2">
+                            <form method="post" asp-page-handler="AcceptRequest" asp-route-id="@Model.TargetUser.UserID">
+                                <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2 transition-colors">
+                                    <span class="material-symbols-outlined">check_circle</span> Chấp nhận
+                                </button>
+                            </form>
+                            <form method="post" asp-page-handler="DeclineRequest" asp-route-id="@Model.TargetUser.UserID">
+                                <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 transition-colors flex items-center gap-2">
+                                    <span class="material-symbols-outlined">cancel</span> Từ chối
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+                else if (Model.FriendshipStatus == "Accepted")
+                {
+                    <div class="flex gap-2">
+                        <a href="/Messages?userId=@Model.TargetUser.UserID" class="px-6 py-2 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 flex items-center gap-2 transition-colors">
+                            <span class="material-symbols-outlined">chat</span> Nhắn tin
+                        </a>
+                        <form method="post" asp-page-handler="Unfriend" asp-route-id="@Model.TargetUser.UserID" onsubmit="return confirm('Bạn có chắc chắn muốn hủy kết bạn?');">
+                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined">person_remove</span> Hủy kết bạn
+                            </button>
+                        </form>
+                    </div>
+                }
+                else if (Model.FriendshipStatus == "Self")
+                {
+                    <a href="/Auth/Profile" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-300 transition-colors">
+                        <span class="material-symbols-outlined">edit</span> Chỉnh sửa hồ sơ
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

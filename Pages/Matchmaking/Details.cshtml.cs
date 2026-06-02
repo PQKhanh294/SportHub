@@ -104,6 +104,7 @@ namespace SportHub.Pages.Matchmaking
                 CanJoin            = canJoin,
                 IsOwner            = isOwner,
                 RequiresApproval   = match.RequiresApproval,
+                HostId             = match.CreatedByUserID,
                 HostName           = match.CreatedByUser?.FullName ?? "Host",
                 HostAvatar         = string.IsNullOrWhiteSpace(match.CreatedByUser?.AvatarUrl)
                     ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(match.CreatedByUser?.FullName ?? "H")}&background=E2E8F0&color=1E293B&size=64"
@@ -367,12 +368,14 @@ namespace SportHub.Pages.Matchmaking
             public bool CanJoin { get; set; }
             public bool IsOwner { get; set; }
             public bool RequiresApproval { get; set; }
+            public int HostId { get; set; }
             public string HostName { get; set; } = string.Empty;
             public string HostAvatar { get; set; } = string.Empty;
         }
 
         public class ParticipantItem
         {
+            public int UserId { get; set; }
             public string FullName { get; set; } = string.Empty;
             public string AvatarUrl { get; set; } = string.Empty;
             public string SkillLevel { get; set; } = string.Empty;

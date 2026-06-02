@@ -37,6 +37,7 @@
                         "MatchJoinExpired"  => ("schedule",      "text-orange-500"),
                         "BookingConfirmed"  => ("calendar_today","text-primary"),
                         "BookingCancelled"  => ("event_busy",    "text-rose-400"),
+                        "Chat"              => ("chat",          "text-indigo-500"),
                         _                   => ("notifications", "text-slate-400")
                     };
                     <article class="p-5 flex items-start gap-4 @(!n.IsRead ? "bg-primary/5 dark:bg-primary/10" : "")">
@@ -72,6 +73,7 @@
                     case 'MatchJoinExpired': return { icon: 'schedule', cls: 'text-orange-500' };
                     case 'BookingConfirmed': return { icon: 'calendar_today', cls: 'text-primary' };
                     case 'BookingCancelled': return { icon: 'event_busy', cls: 'text-rose-400' };
+                    case 'Chat': return { icon: 'chat', cls: 'text-indigo-500' };
                     default: return { icon: 'notifications', cls: 'text-slate-400' };
                 }
             }

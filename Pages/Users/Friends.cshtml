@@ -1,0 +1,96 @@
+@page
+@model SportHub.Pages.Users.FriendsModel
+@{
+    ViewData["Title"] = "Bạn bè";
+}
+
+<div class="max-w-4xl mx-auto space-y-8">
+    
+    @if (Model.PendingRequests.Any())
+    {
+        <div>
+            <h2 class="text-2xl font-black mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">person_add</span> Lời mời kết bạn
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach (var req in Model.PendingRequests)
+                {
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/Users/Profile/@req.Sender.UserID'">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                                @if (string.IsNullOrEmpty(req.Sender.AvatarUrl))
+                                {
+                                    @req.Sender.FullName[0]
+                                }
+                                else
+                                {
+                                    <img src="@req.Sender.AvatarUrl" class="w-full h-full object-cover" />
+                                }
+                            </div>
+                            <div>
+                                <h3 class="font-bold hover:text-primary transition-colors">@req.Sender.FullName</h3>
+                                <p class="text-xs text-slate-500">@req.Sender.Email</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <form method="post" asp-page-handler="Accept" asp-route-senderId="@req.SenderID">
+                                <button type="submit" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Chấp nhận">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                            </form>
+                            <form method="post" asp-page-handler="Decline" asp-route-senderId="@req.SenderID">
+                                <button type="submit" class="w-10 h-10 rounded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Từ chối">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div>
+        <h2 class="text-2xl font-black mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">group</span> Danh sách bạn bè (@Model.Friends.Count)
+        </h2>
+        
+        @if (Model.Friends.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach (var friend in Model.Friends)
+                {
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/Users/Profile/@friend.UserID'">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                                @if (string.IsNullOrEmpty(friend.AvatarUrl))
+                                {
+                                    @friend.FullName[0]
+                                }
+                                else
+                                {
+                                    <img src="@friend.AvatarUrl" class="w-full h-full object-cover" />
+                                }
+                            </div>
+                            <div>
+                                <h3 class="font-bold hover:text-primary transition-colors">@friend.FullName</h3>
+                                <p class="text-xs text-slate-500">@friend.Email</p>
+                            </div>
+                        </div>
+                        <a href="/Messages?userId=@friend.UserID" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-primary hover:text-white transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">chat</span> Nhắn tin
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">group_off</span>
+                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Chưa có bạn bè</h3>
+                <p class="text-slate-500">Hãy tìm kiếm và kết bạn để cùng nhau chơi thể thao nhé!</p>
+            </div>
+        }
+    </div>
+</div>
