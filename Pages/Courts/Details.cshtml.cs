@@ -238,6 +238,9 @@ namespace SportHub.Pages.Courts
             var dayType = (dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday)
                 ? "Weekend" : "Weekday";
 
+            var vietnamTime = DateTime.UtcNow.AddHours(7);
+            var today = vietnamTime.Date;
+
             AvailableSlots = slots.Select(s =>
             {
                 var price = pricingRules
@@ -246,6 +249,19 @@ namespace SportHub.Pages.Courts
                     .FirstOrDefault(p => p.SlotID == s.SlotID)?.UnitPrice
                     ?? 150_000m;
 
+                bool isPast = false;
+                if (targetDate.Date == today)
+                {
+                    if (vietnamTime.TimeOfDay >= s.StartTime)
+                    {
+                        isPast = true;
+                    }
+                }
+                else if (targetDate.Date < today)
+                {
+                    isPast = true;
+                }
+
                 return new SlotItem
                 {
                     SlotID     = s.SlotID,
@@ -253,7 +269,8 @@ namespace SportHub.Pages.Courts
                     EndTime    = s.EndTime,
                     SlotLabel  = s.SlotLabel ?? $"{s.StartTime:hh\\:mm}–{s.EndTime:hh\\:mm}",
                     Price      = price,
-                    IsAvailable = true
+                    IsAvailable = true,
+                    IsPast     = isPast
                 };
             }).OrderBy(s => s.StartTime).ToList();
         }
@@ -298,6 +315,7 @@ namespace SportHub.Pages.Courts
             public string SlotLabel { get; set; } = string.Empty;
             public decimal Price { get; set; }
             public bool IsAvailable { get; set; }
+            public bool IsPast { get; set; }
             public string PriceDisplay => $"{Price:N0}đ";
         }
     }
