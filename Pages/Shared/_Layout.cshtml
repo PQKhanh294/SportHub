@@ -141,12 +141,12 @@
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <!-- Friends -->
-                    <a asp-page="/Users/Friends" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center" title="Bạn bè">
+                    <a asp-page="/Users/Friends" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="Bạn bè">
                         <span class="material-symbols-outlined">group</span>
                     </a>
                     
                     <!-- Chat -->
-                    <a asp-page="/Messages/Index" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center" title="Tin nhắn">
+                    <a asp-page="/Messages/Index" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="Tin nhắn">
                         <span class="material-symbols-outlined">chat</span>
                     </a>
                 }
@@ -205,6 +205,12 @@
                 <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Trang chủ</a>
                 <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Ghép cặp</a>
                 <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tìm sân</a>
+                <a asp-page="/Users/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cộng đồng</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-page="/Users/Friends" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Bạn bè</a>
+                    <a asp-page="/Messages/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tin nhắn</a>
+                }
                 <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Lịch đặt</a>
                 <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cá nhân</a>
                 <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cài đặt</a>
