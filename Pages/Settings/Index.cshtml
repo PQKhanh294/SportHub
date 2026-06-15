@@ -13,7 +13,6 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6">
-        <!-- Chế độ giao diện -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm overflow-hidden relative">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -25,26 +24,30 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <form method="post" asp-page-handler="SetTheme">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="theme" value="light" />
                     <button type="submit" class="w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 @(Model.CurrentTheme == "light" ? "border-primary bg-primary/5 ring-4 ring-primary/10" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
                         <div class="size-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
                             <span class="material-symbols-outlined">light_mode</span>
                         </div>
                         <span class="font-bold">@Localizer["LightMode"]</span>
-                        @if (Model.CurrentTheme == "light") {
+                        @if (Model.CurrentTheme == "light")
+                        {
                             <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span>
                         }
                     </button>
                 </form>
 
                 <form method="post" asp-page-handler="SetTheme">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="theme" value="dark" />
                     <button type="submit" class="w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 @(Model.CurrentTheme == "dark" ? "border-primary bg-primary/5 ring-4 ring-primary/10" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
                         <div class="size-12 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center border border-slate-700">
                             <span class="material-symbols-outlined">dark_mode</span>
                         </div>
                         <span class="font-bold">@Localizer["DarkMode"]</span>
-                        @if (Model.CurrentTheme == "dark") {
+                        @if (Model.CurrentTheme == "dark")
+                        {
                             <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span>
                         }
                     </button>
@@ -52,7 +55,6 @@
             </div>
         </div>
 
-        <!-- Ngôn ngữ -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -64,32 +66,36 @@
 
             <div class="space-y-3">
                 <form method="post" asp-page-handler="SetLanguage">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="culture" value="vi-VN" />
                     <button type="submit" class="w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all @(Model.CurrentLanguage == "vi-VN" ? "border-primary bg-primary/5" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
                         <div class="flex items-center gap-4">
-                            <span class="text-2xl">🇻🇳</span>
+                            <span class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-black text-primary">VN</span>
                             <div class="text-left">
                                 <p class="font-bold">Tiếng Việt</p>
                                 <p class="text-xs text-slate-500">Tiếng Việt (Việt Nam)</p>
                             </div>
                         </div>
-                        @if (Model.CurrentLanguage == "vi-VN") {
+                        @if (Model.CurrentLanguage == "vi-VN")
+                        {
                             <span class="material-symbols-outlined text-primary font-bold">check_circle</span>
                         }
                     </button>
                 </form>
 
                 <form method="post" asp-page-handler="SetLanguage">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="culture" value="en-US" />
                     <button type="submit" class="w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all @(Model.CurrentLanguage == "en-US" ? "border-primary bg-primary/5" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
                         <div class="flex items-center gap-4">
-                            <span class="text-2xl">🇺🇸</span>
+                            <span class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-black text-primary">US</span>
                             <div class="text-left">
                                 <p class="font-bold">English</p>
                                 <p class="text-xs text-slate-500">English (United States)</p>
                             </div>
                         </div>
-                        @if (Model.CurrentLanguage == "en-US") {
+                        @if (Model.CurrentLanguage == "en-US")
+                        {
                             <span class="material-symbols-outlined text-primary font-bold">check_circle</span>
                         }
                     </button>
@@ -98,8 +104,7 @@
         </div>
     </div>
 
-    <!-- Thông tin hệ thống -->
     <div class="text-center pt-4">
-        <p class="text-xs text-slate-400 font-medium tracking-widest uppercase">Sport Hub v1.0.0 — 2026</p>
+        <p class="text-xs text-slate-400 font-medium tracking-widest uppercase">Sport Hub v1.0.0 - 2026</p>
     </div>
 </section>

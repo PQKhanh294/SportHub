@@ -30,6 +30,7 @@ namespace SportHub.Data
         // Nhóm 4: Match & MatchParticipants
         public DbSet<Match> Matches { get; set; } = null!;
         public DbSet<MatchParticipant> MatchParticipants { get; set; } = null!;
+        public DbSet<MatchInteraction> MatchInteractions { get; set; } = null!;
 
         // Nhóm 5: Misc
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
@@ -39,10 +40,12 @@ namespace SportHub.Data
         // Nhóm 6: New Features
         public DbSet<UserSportProfile> UserSportProfiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<UserBadge> UserBadges { get; set; } = null!;
         
         // Nhóm 7: Social (Friends & Chat)
         public DbSet<Friendship> Friendships { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<ChatBookingProposal> ChatBookingProposals { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,9 +67,12 @@ namespace SportHub.Data
             modelBuilder.Entity<Payment>().ToTable("Payments");
             modelBuilder.Entity<Match>().ToTable("Matches");
             modelBuilder.Entity<MatchParticipant>().ToTable("MatchParticipants");
+            modelBuilder.Entity<MatchInteraction>().ToTable("MatchInteractions");
             modelBuilder.Entity<Review>().ToTable("Reviews");
             modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
             modelBuilder.Entity<Notification>().ToTable("Notifications");
+            modelBuilder.Entity<UserBadge>().ToTable("UserBadges");
+            modelBuilder.Entity<ChatBookingProposal>().ToTable("ChatBookingProposals");
 
             // Primary keys (khai báo tường minh để tránh lỗi nhận diện key theo convention)
             modelBuilder.Entity<User>().HasKey(u => u.UserID);
@@ -81,11 +87,14 @@ namespace SportHub.Data
             modelBuilder.Entity<Payment>().HasKey(p => p.PaymentID);
             modelBuilder.Entity<Match>().HasKey(m => m.MatchID);
             modelBuilder.Entity<MatchParticipant>().HasKey(mp => mp.ParticipantID);
+            modelBuilder.Entity<MatchInteraction>().HasKey(mi => mi.InteractionID);
             modelBuilder.Entity<TimeSlot>().HasKey(ts => ts.SlotID);
             modelBuilder.Entity<PricingRule>().HasKey(pr => pr.PricingID);
             modelBuilder.Entity<Review>().HasKey(r => r.ReviewID);
             modelBuilder.Entity<UserSportProfile>().HasKey(usp => usp.ProfileID);
             modelBuilder.Entity<Notification>().HasKey(n => n.NotificationID);
+            modelBuilder.Entity<UserBadge>().HasKey(b => b.BadgeID);
+            modelBuilder.Entity<ChatBookingProposal>().HasKey(p => p.ProposalID);
 
             // Composite Key (N:N) - UserRole
             modelBuilder.Entity<UserRole>()
@@ -124,6 +133,16 @@ namespace SportHub.Data
                 .HasIndex(mp => new { mp.MatchID, mp.UserID })
                 .IsUnique();
 
+            modelBuilder.Entity<MatchInteraction>()
+                .HasIndex(mi => new { mi.MatchID, mi.UserID, mi.Action });
+
+            modelBuilder.Entity<UserBadge>()
+                .HasIndex(b => new { b.UserID, b.BadgeKey })
+                .IsUnique();
+
+            modelBuilder.Entity<ChatBookingProposal>()
+                .HasIndex(p => new { p.MatchID, p.SenderID, p.ReceiverID, p.Status });
+
             modelBuilder.Entity<Review>()
                 .HasIndex(r => new { r.BookingID, r.UserID })
                 .IsUnique();
@@ -154,17 +173,24 @@ namespace SportHub.Data
             modelBuilder.Entity<Match>().Property(m => m.MatchDate).HasColumnType("date");
             modelBuilder.Entity<Match>().Property(m => m.StartTime).HasColumnType("time");
             modelBuilder.Entity<Match>().Property(m => m.EndTime).HasColumnType("time");
+            modelBuilder.Entity<ChatBookingProposal>().Property(p => p.BookingDate).HasColumnType("date");
+            modelBuilder.Entity<ChatBookingProposal>().Property(p => p.StartTime).HasColumnType("time");
+            modelBuilder.Entity<ChatBookingProposal>().Property(p => p.EndTime).HasColumnType("time");
 
             modelBuilder.Entity<CourtVenue>().Property(v => v.Latitude).HasPrecision(10, 8);
             modelBuilder.Entity<CourtVenue>().Property(v => v.Longitude).HasPrecision(11, 8);
             modelBuilder.Entity<User>().Property(u => u.DefaultLatitude).HasPrecision(10, 8);
             modelBuilder.Entity<User>().Property(u => u.DefaultLongitude).HasPrecision(11, 8);
+            modelBuilder.Entity<Match>().Property(m => m.CustomLatitude).HasPrecision(10, 8);
+            modelBuilder.Entity<Match>().Property(m => m.CustomLongitude).HasPrecision(11, 8);
+            modelBuilder.Entity<Match>().Property(m => m.CustomPriceVnd).HasPrecision(12, 2);
             modelBuilder.Entity<PricingRule>().Property(p => p.UnitPrice).HasPrecision(12, 2);
             modelBuilder.Entity<Booking>().Property(b => b.TotalAmount).HasPrecision(12, 2);
             modelBuilder.Entity<Booking>().Property(b => b.DiscountAmount).HasPrecision(12, 2);
             modelBuilder.Entity<Booking>().Property(b => b.FinalAmount).HasPrecision(12, 2);
             modelBuilder.Entity<BookingSlot>().Property(bs => bs.UnitPrice).HasPrecision(12, 2);
             modelBuilder.Entity<Payment>().Property(p => p.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<ChatBookingProposal>().Property(p => p.EstimatedCost).HasPrecision(12, 2);
 
             // Check constraints quan trọng theo script SQL
             modelBuilder.Entity<User>().ToTable(t =>
@@ -200,6 +226,22 @@ namespace SportHub.Data
             {
                 t.HasCheckConstraint("CK_MatchParticipants_TeamSide", "TeamSide IS NULL OR TeamSide IN ('A','B')");
                 t.HasCheckConstraint("CK_MatchParticipants_JoinStatus", "JoinStatus IN ('Pending','Accepted','Declined','Cancelled')");
+            });
+
+            modelBuilder.Entity<MatchInteraction>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_MatchInteractions_Action", "Action IN ('View','Skip','Request')");
+            });
+
+            modelBuilder.Entity<ChatBookingProposal>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_ChatBookingProposals_Status", "Status IN ('Waiting','Accepted','Rejected','Booked')");
+                t.HasCheckConstraint("CK_ChatBookingProposals_SplitMode", "SplitMode IN ('Equal','HostPays')");
+            });
+
+            modelBuilder.Entity<UserBadge>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_UserBadges_Level", "Level IN ('Bronze','Silver','Gold')");
             });
 
             modelBuilder.Entity<Review>().ToTable(t =>
@@ -346,6 +388,18 @@ namespace SportHub.Data
                 .HasForeignKey(mp => mp.UserID)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<MatchInteraction>()
+                .HasOne(mi => mi.Match)
+                .WithMany()
+                .HasForeignKey(mi => mi.MatchID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MatchInteraction>()
+                .HasOne(mi => mi.User)
+                .WithMany()
+                .HasForeignKey(mi => mi.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Court)
                 .WithMany(c => c.Reviews)
@@ -410,6 +464,36 @@ namespace SportHub.Data
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.UserID, n.IsRead });
+
+            modelBuilder.Entity<UserBadge>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatBookingProposal>()
+                .HasOne(p => p.Match)
+                .WithMany()
+                .HasForeignKey(p => p.MatchID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatBookingProposal>()
+                .HasOne(p => p.Sender)
+                .WithMany()
+                .HasForeignKey(p => p.SenderID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatBookingProposal>()
+                .HasOne(p => p.Receiver)
+                .WithMany()
+                .HasForeignKey(p => p.ReceiverID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ChatBookingProposal>()
+                .HasOne(p => p.Court)
+                .WithMany()
+                .HasForeignKey(p => p.CourtID)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -26,6 +26,11 @@ namespace SportHub.Models.Entities
         
         public string? Title { get; set; }
         public string? Description { get; set; }
+        public string? CustomCourtName { get; set; }
+        public string? CustomCourtAddress { get; set; }
+        public decimal? CustomPriceVnd { get; set; }
+        public decimal? CustomLatitude { get; set; }
+        public decimal? CustomLongitude { get; set; }
         public string Status { get; set; } = "Open"; // Open, Full, InProgress, Completed, Cancelled
         public bool RequiresApproval { get; set; } = false; // Nếu true: người join phải chờ host duyệt
         
@@ -48,5 +53,19 @@ namespace SportHub.Models.Entities
         public string JoinStatus { get; set; } = "Pending"; // Pending, Accepted, Declined, Cancelled
         
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class MatchInteraction
+    {
+        public int InteractionID { get; set; }
+
+        public int MatchID { get; set; }
+        public Match Match { get; set; } = null!;
+
+        public int UserID { get; set; }
+        public User User { get; set; } = null!;
+
+        public string Action { get; set; } = "View"; // View, Skip, Request
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

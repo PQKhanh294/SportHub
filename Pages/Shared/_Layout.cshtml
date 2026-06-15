@@ -75,6 +75,7 @@
     <!-- End Google Tag Manager -->
 </head>
 
+@using System.Globalization
 @using System.Security.Claims
 @inject SportHub.Services.Interfaces.IUserService UserService
 @inject SportHub.Services.Interfaces.INotificationService NotificationService
@@ -93,6 +94,29 @@
             unreadNotificationCount = await NotificationService.GetUnreadCountAsync(currentUserId);
         }
     }
+
+    var isEnglish = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var navHome = isEnglish ? "Home" : "Trang chủ";
+    var navMatchmaking = isEnglish ? "Matchmaking" : "Ghép trận";
+    var navCommunity = isEnglish ? "Community" : "Cộng đồng";
+    var navProfile = isEnglish ? "Profile" : "Cá nhân";
+    var navSettings = isEnglish ? "Settings" : "Cài đặt";
+    var navFriends = isEnglish ? "Friends" : "Bạn bè";
+    var navMessages = isEnglish ? "Messages" : "Tin nhắn";
+    var navNotifications = isEnglish ? "Notifications" : "Thông báo";
+    var createMatchText = isEnglish ? "Create match" : "Tạo kèo";
+    var findMatchText = isEnglish ? "Find match now" : "Tìm kèo ngay";
+    var loginText = isEnglish ? "Log in" : "Đăng nhập";
+    var registerText = isEnglish ? "Register" : "Đăng ký";
+    var logoutText = isEnglish ? "Log out" : "Đăng xuất";
+    var openMenuText = isEnglish ? "Open menu" : "Mở menu";
+    var footerAbout = isEnglish ? "About us" : "Về chúng tôi";
+    var footerRules = isEnglish ? "Community rules" : "Quy tắc cộng đồng";
+    var footerPrivacy = isEnglish ? "Privacy policy" : "Chính sách bảo mật";
+    var footerTerms = isEnglish ? "Terms of use" : "Điều khoản sử dụng";
+    var footerSupport = isEnglish ? "Support" : "Hỗ trợ";
+    var footerCopyright = isEnglish ? "All rights reserved by the development team." : "Bản quyền thuộc về đội ngũ phát triển.";
+    var toastDetailText = isEnglish ? "View details" : "Xem chi tiết";
 }
 
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
@@ -105,7 +129,7 @@
 <!-- ================================================================
      NAVBAR — Thanh điều hướng cố định trên đầu
      ================================================================ -->
-<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<header class="sticky top-0 z-50 w-full bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
 
@@ -118,55 +142,51 @@
             </div>
 
             <!-- Navigation Links (Desktop) -->
-            <nav class="hidden md:flex items-center space-x-8">
+            <nav class="hidden lg:flex items-center space-x-7">
                 <a asp-page="/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Home" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Trang chủ
+                    @navHome
                 </a>
                 <a asp-page="/Matchmaking/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Matchmaking" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Ghép cặp
-                </a>
-                <a asp-page="/Courts/Search"
-                   class="@(ViewData["ActivePage"]?.ToString() == "SearchCourts" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Tìm sân
+                    @navMatchmaking
                 </a>
                 <a asp-page="/Users/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Community" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Cộng đồng
-                </a>
-                <a asp-page="/Bookings/MyBookings"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Bookings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Lịch đặt
+                    @navCommunity
                 </a>
                 <a asp-page="/Profile/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Profile" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Cá nhân
+                    @navProfile
                 </a>
                 <a asp-page="/Settings/Index"
                    class="@(ViewData["ActivePage"]?.ToString() == "Settings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    Cài đặt
+                    @navSettings
                 </a>
             </nav>
 
             <!-- User Actions -->
-            <div class="flex items-center gap-4">
-                
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a asp-page="/Matchmaking/Create"
+                   class="hidden xl:inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 hover:-translate-y-0.5">
+                    <span class="material-symbols-outlined text-base">bolt</span>
+                    @createMatchText
+                </a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <!-- Friends -->
-                    <a asp-page="/Users/Friends" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="Bạn bè">
+                    <a asp-page="/Users/Friends" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="@navFriends">
                         <span class="material-symbols-outlined">group</span>
                     </a>
                     
                     <!-- Chat -->
-                    <a asp-page="/Messages/Index" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="Tin nhắn">
+                    <a asp-page="/Messages/Index" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="@navMessages">
                         <span class="material-symbols-outlined">chat</span>
                     </a>
                 }
 
                 <!-- Notification Bell -->
-                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center" title="Thông báo">
+                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center" title="@navNotifications">
                     <span class="material-symbols-outlined">notifications</span>
                     <span id="notification-badge"
                           class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none @(unreadNotificationCount > 0 ? "" : "hidden")">
@@ -182,11 +202,11 @@
                             <img class="w-full h-full object-cover"
                                  src="@(string.IsNullOrWhiteSpace(currentUserAvatar) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(User.Identity?.Name ?? "Sport Hub")}&background=E2E8F0&color=1E293B" : currentUserAvatar)"
                                  onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Sport+Hub&background=E2E8F0&color=1E293B';"
-                                 alt="@User.Identity.Name" />
+                                 alt="@(User.Identity?.Name ?? "Sport Hub")" />
                         </a>
                         <form method="post" asp-page="/Auth/Logout">
                             <button type="submit" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                                Đăng xuất
+                                @logoutText
                             </button>
                         </form>
                     </div>
@@ -196,17 +216,17 @@
                     <div class="flex items-center gap-2">
                         <a asp-page="/Auth/Login"
                            class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                            Đăng nhập
+                            @loginText
                         </a>
                         <a asp-page="/Auth/Register"
                            class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all">
-                            Đăng ký
+                            @registerText
                         </a>
                     </div>
                 }
 
                 <!-- Hamburger Mobile -->
-                <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 rounded-full">
+                <button id="mobile-menu-btn" class="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" aria-label="@openMenuText">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
             </div>
@@ -214,20 +234,24 @@
         </div>
 
         <!-- Mobile Nav Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden pb-4">
-            <nav class="flex flex-col space-y-1 pt-2">
-                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Trang chủ</a>
-                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Ghép cặp</a>
-                <a asp-page="/Courts/Search" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tìm sân</a>
-                <a asp-page="/Users/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cộng đồng</a>
+        <div id="mobile-menu" class="hidden lg:hidden pb-4">
+            <div class="grid grid-cols-2 gap-2 py-3">
+                <a asp-page="/Matchmaking/Index" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-black text-white shadow-sm">
+                    <span class="material-symbols-outlined text-lg">person_search</span>
+                    @findMatchText
+                </a>
+            </div>
+            <nav class="flex flex-col space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navHome</a>
+                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navMatchmaking</a>
+                <a asp-page="/Users/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navCommunity</a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a asp-page="/Users/Friends" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Bạn bè</a>
-                    <a asp-page="/Messages/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tin nhắn</a>
+                    <a asp-page="/Users/Friends" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navFriends</a>
+                    <a asp-page="/Messages/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navMessages</a>
                 }
-                <a asp-page="/Bookings/MyBookings" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Lịch đặt</a>
-                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cá nhân</a>
-                <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Cài đặt</a>
+                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navProfile</a>
+                <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navSettings</a>
             </nav>
         </div>
 
@@ -275,11 +299,11 @@
 
             <!-- Footer Links -->
             <div class="flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
-                <a class="hover:text-primary transition-colors" href="#">Về chúng tôi</a>
-                <a class="hover:text-primary transition-colors" href="#">Quy tắc cộng đồng</a>
-                <a class="hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
-                <a class="hover:text-primary transition-colors" href="#">Điều khoản sử dụng</a>
-                <a class="hover:text-primary transition-colors" href="#">Hỗ trợ</a>
+                <a class="hover:text-primary transition-colors" href="#">@footerAbout</a>
+                <a class="hover:text-primary transition-colors" href="#">@footerRules</a>
+                <a class="hover:text-primary transition-colors" href="#">@footerPrivacy</a>
+                <a class="hover:text-primary transition-colors" href="#">@footerTerms</a>
+                <a class="hover:text-primary transition-colors" href="#">@footerSupport</a>
             </div>
 
             <!-- Social Icons -->
@@ -296,7 +320,7 @@
 
         <!-- Copyright -->
         <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
-            &copy; @DateTime.Now.Year Sport Hub. Bản quyền thuộc về đội ngũ phát triển.
+            &copy; @DateTime.Now.Year Sport Hub. @footerCopyright
         </div>
 
     </div>
@@ -355,7 +379,7 @@
                             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
                                 ${message}
                             </p>
-                            ${linkUrl ? `<a href="${linkUrl}" class="mt-2 text-xs font-semibold text-primary hover:underline block">Xem chi tiết</a>` : ''}
+                            ${linkUrl ? `<a href="${linkUrl}" class="mt-2 text-xs font-semibold text-primary hover:underline block">@toastDetailText</a>` : ''}
                         </div>
                         <div class="ml-4 flex-shrink-0 flex">
                             <button onclick="document.getElementById('${toastId}').remove()" class="bg-transparent rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none">

@@ -165,7 +165,12 @@ namespace SportHub.Pages.Matchmaking
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
                 RequiresApproval = true,
-                Description = BuildDescriptionWithCustomCourt(Input.Description, Input.CourtName, Input.CourtAddress, Input.PriceVnd, Input.Latitude, Input.Longitude)
+                Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description.Trim(),
+                CustomCourtName = string.IsNullOrWhiteSpace(Input.CourtName) ? null : Input.CourtName.Trim(),
+                CustomCourtAddress = string.IsNullOrWhiteSpace(Input.CourtAddress) ? null : Input.CourtAddress.Trim(),
+                CustomPriceVnd = Input.PriceVnd,
+                CustomLatitude = Input.Latitude,
+                CustomLongitude = Input.Longitude
             };
 
             var matchId = await _matchService.CreateMatchAsync(match, userId);
@@ -214,43 +219,6 @@ namespace SportHub.Pages.Matchmaking
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(claim, out var id) ? id : 0;
-        }
-
-        private static string? BuildDescriptionWithCustomCourt(string? description, string? courtName, string? courtAddress, decimal? priceVnd, decimal? lat, decimal? lon)
-        {
-            var parts = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(courtName))
-            {
-                parts.Add($"Court name: {courtName.Trim()}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(courtAddress))
-            {
-                parts.Add($"Court address: {courtAddress.Trim()}");
-            }
-
-            if (lat.HasValue)
-            {
-                parts.Add($"Court latitude: {lat.Value.ToString(CultureInfo.InvariantCulture)}");
-            }
-
-            if (lon.HasValue)
-            {
-                parts.Add($"Court longitude: {lon.Value.ToString(CultureInfo.InvariantCulture)}");
-            }
-
-            if (priceVnd.HasValue)
-            {
-                parts.Add($"Match price VND: {priceVnd.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(description))
-            {
-                parts.Add(description.Trim());
-            }
-
-            return parts.Count == 0 ? null : string.Join(Environment.NewLine, parts);
         }
 
         private static string NormalizeSportName(string sportName)

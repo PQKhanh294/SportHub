@@ -93,6 +93,31 @@
                     }
                 </div>
             </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 class="font-bold mb-4 text-lg">Huy hiá»‡u SportHub</h3>
+                <div class="space-y-3">
+                    @foreach (var badge in Model.Badges)
+                    {
+                        <div class="p-3 rounded-xl border @(badge.IsEarned ? "border-primary/30 bg-primary/5" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50")">
+                            <div class="flex items-start gap-3">
+                                <span class="material-symbols-outlined @(badge.IsEarned ? "text-primary" : "text-slate-400")">@badge.Icon</span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <p class="font-black text-sm">@badge.Name</p>
+                                        <span class="text-[10px] font-bold px-2 py-1 rounded-full @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1">@badge.Description</p>
+                                    <div class="mt-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                        <div class="h-full bg-primary" style="width:@badge.ProgressPercent%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 mt-1">@badge.ProgressValue / @badge.TargetValue</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
 
         <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">

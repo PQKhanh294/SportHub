@@ -168,14 +168,22 @@
                     Bộ lọc
                 </h3>
                 
-                <form method="get" class="space-y-5" id="filterForm">
-                    <!-- UX Add: Status Filters -->
-                    <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                        <button type="button" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg bg-white dark:bg-slate-900 shadow-sm text-primary">Tất cả</button>
-                        <button type="button" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:text-primary transition-colors flex items-center justify-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">local_fire_department</span>
-                            Sắp đầy
-                        </button>
+                <form method="get" class="space-y-4" id="filterForm">
+                    <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4" open>
+                        <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Cơ bản</summary>
+                        <div class="mt-4 space-y-5">
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 uppercase text-slate-600 dark:text-slate-400">Trạng thái kèo</label>
+                        <select asp-for="StatusFilter" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium p-2.5 focus:border-primary focus:ring-1 focus:ring-primary">
+                            <option value="All">Tất cả trạng thái</option>
+                            <option value="OpenSlots">Còn slot</option>
+                            <option value="AlmostFull">Sắp đầy</option>
+                            <option value="Upcoming">Sắp diễn ra</option>
+                            <option value="Pending">Đang chờ duyệt</option>
+                            <option value="Joined">Đã tham gia</option>
+                            <option value="Owned">Kèo của tôi</option>
+                        </select>
                     </div>
 
                     <!-- Sport Filter -->
@@ -213,6 +221,12 @@
                         </select>
                     </div>
 
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4">
+                        <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Thời gian</summary>
+                        <div class="mt-4 space-y-5">
                     <!-- Time Range Filter (Restored & Dual) -->
                     <div>
                         <label class="block text-sm font-semibold mb-1 uppercase text-slate-600 dark:text-slate-400">Khung giờ</label>
@@ -269,6 +283,20 @@
                         }
                     </div>
 
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4">
+                        <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Khu vực</summary>
+                        <div class="mt-4 space-y-5">
+                            <div class="rounded-lg bg-primary/5 border border-primary/10 p-3 text-xs text-slate-600 dark:text-slate-300">
+                                <div class="flex items-center gap-2 font-semibold text-primary">
+                                    <span class="material-symbols-outlined text-base">near_me</span>
+                                    Tự động ưu tiên gần đến xa
+                                </div>
+                                <p class="mt-1">SportHub dùng vị trí trong hồ sơ hoặc GPS để xếp kèo gần bạn lên trước. Không cần chọn bán kính thủ công.</p>
+                                <p id="radiusLocationStatus" class="mt-1 font-semibold">Đang phát hiện vị trí...</p>
+                            </div>
                     <!-- Location Filter -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 uppercase text-slate-600 dark:text-slate-400">Khu vực đánh</label>
@@ -299,7 +327,7 @@
                     </div>
 
                     <!-- Radius Search Filter -->
-                    <div>
+                    <div class="hidden">
                         <label class="block text-sm font-semibold mb-1 uppercase text-slate-600 dark:text-slate-400">Bán kính tìm kiếm</label>
                         <div class="flex items-center gap-2 mb-2">
                             <input asp-for="Radius" id="radiusInput" type="number" min="0.5" max="50" step="0.5" placeholder="Km"
@@ -320,11 +348,17 @@
                         <div class="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs">
                             <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                 <span class="material-symbols-outlined text-sm">location_on</span>
-                                <span id="radiusLocationStatus">Phát hiện vị trí...</span>
+                                <span id="radiusLocationStatusHidden">Phát hiện vị trí...</span>
                             </div>
                         </div>
                     </div>
 
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4">
+                        <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Chi phí</summary>
+                        <div class="mt-4">
                     <!-- Price Range (Restored & Dual) -->
                     <div>
                         <label class="block text-sm font-semibold mb-1 uppercase text-slate-600 dark:text-slate-400">Khoảng giá (VNĐ)</label>
@@ -338,6 +372,9 @@
                             <input type="range" id="priceMax" min="0" max="1000000" step="10000" value="500000" class="range-input">
                         </div>
                     </div>
+
+                        </div>
+                    </details>
 
                     <!-- Filter Buttons -->
                     <div class="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -479,6 +516,15 @@
                                     </div>
                                     
                                     <div class="flex gap-2 w-full sm:w-auto">
+                                        @if (!match.IsOwnedByCurrentUser && !match.IsJoinedByCurrentUser && !match.IsPendingByCurrentUser)
+                                        {
+                                            <form method="post" asp-page-handler="Skip" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none">
+                                                <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
+                                                    <span class="material-symbols-outlined text-lg">close</span>
+                                                    Bá» qua
+                                                </button>
+                                            </form>
+                                        }
                                         @if (match.CanJoin)
                                         {
                                             <form method="post" asp-page-handler="Join" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none">
