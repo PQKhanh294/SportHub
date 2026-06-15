@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +43,9 @@ namespace SportHub.Pages.Matchmaking
 
         [BindProperty(SupportsGet = true)]
         public string? Time { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? StatusFilter { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public decimal? MinPrice { get; set; }
@@ -104,9 +107,15 @@ namespace SportHub.Pages.Matchmaking
                     UserDefaultLatitude = profileUser.DefaultLatitude;
                     UserDefaultLongitude = profileUser.DefaultLongitude;
                 }
-            }
+            };
 
-            var matches = await _matchService.GetRecommendedMatchesAsync(50);
+            var currentUser = currentUserId > 0
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserID == currentUserId)
+                : null;
+
+            var matches = currentUserId > 0
+                ? await _matchService.GetRecommendedMatchesForUserAsync(currentUserId, 50)
+                : await _matchService.GetRecommendedMatchesAsync(50);
 
             SportOptions = matches
                 .Select(m => NormalizeSportName(m.Sport?.SportName))
@@ -175,6 +184,11 @@ namespace SportHub.Pages.Matchmaking
                 }).ToList();
             }
 
+            if (!string.IsNullOrWhiteSpace(StatusFilter) && !string.Equals(StatusFilter, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                matches = ApplyStatusFilter(matches, StatusFilter, currentUserId);
+            }
+
             if (MinPrice.HasValue || MaxPrice.HasValue)
             {
                 matches = matches
@@ -198,8 +212,9 @@ namespace SportHub.Pages.Matchmaking
                     : null;
                 var isJoined = myParticipation?.JoinStatus == "Accepted";
                 var isPending = myParticipation?.JoinStatus == "Pending";
-                var venue = ExtractCustomVenue(m.Description) ?? m.Court?.Venue?.VenueName ?? "TBD Venue";
-                var venueAddress = ExtractCustomCourtAddress(m.Description)
+                var venue = BuildVenueName(m);
+                var venueAddress = m.CustomCourtAddress
+                    ?? ExtractCustomCourtAddress(m.Description)
                     ?? m.Court?.Venue?.Address
                     ?? venue;
 
@@ -210,7 +225,7 @@ namespace SportHub.Pages.Matchmaking
                     MatchType = string.IsNullOrWhiteSpace(m.MatchType) ? "Open Match" : m.MatchType,
                     SportName = m.Sport?.SportName ?? "Sport",
                     SkillRequired = GetSkillDisplay(m.SkillRequired),
-                    MatchScore = 80 + (m.MatchID % 20),
+                    MatchScore = CalculateMatchScore(m, currentUser),
                     StartText = $"{m.MatchDate.ToString("ddd, dd/MM", new System.Globalization.CultureInfo("vi-VN"))}",
                     StartTime = m.StartTime.ToString(@"hh\:mm"),
                     Venue = venue,
@@ -226,8 +241,8 @@ namespace SportHub.Pages.Matchmaking
                     HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl) 
                                 ? m.CreatedByUser.AvatarUrl 
                                 : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(m.CreatedByUser?.FullName ?? "Host")}&background=random&size=128",
-                    Latitude = ExtractCustomLatitude(m.Description) ?? m.Court?.Venue?.Latitude,
-                    Longitude = ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude
+                    Latitude = m.CustomLatitude ?? ExtractCustomLatitude(m.Description) ?? m.Court?.Venue?.Latitude,
+                    Longitude = m.CustomLongitude ?? ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude
                 };
             }).ToList();
 
@@ -257,7 +272,7 @@ namespace SportHub.Pages.Matchmaking
             var joined = await _matchService.JoinMatchAsync(id, userId);
             if (joined)
             {
-                SuccessMessage = "Yêu cầu đã gửi. Bạn đang trong hàng chờ — host sẽ duyệt trong vòng 2 giờ.";
+                SuccessMessage = "Yêu cầu đã gửi. Bạn đang trong hàng chờ - host sẽ duyệt trong vòng 2 giờ.";
                 var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
                 await _notificationService.CreateAsync(
                     match.CreatedByUserID,
@@ -270,6 +285,20 @@ namespace SportHub.Pages.Matchmaking
             {
                 ErrorMessage = "Không thể tham gia trận đấu. Kiểm tra lại trình độ hoặc trận đấu đã đầy/đóng.";
             }
+
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostSkipAsync(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0)
+                return RedirectToPage("/Auth/Login", new { returnUrl = "/Matchmaking" });
+
+            var skipped = await _matchService.SkipMatchAsync(id, userId);
+            TempData[skipped ? "SuccessMessage" : "ErrorMessage"] = skipped
+                ? "Đã bỏ qua trận này. Feed của bạn sẽ gọn hơn."
+                : "Không thể bỏ qua trận đấu này.";
 
             return RedirectToPage();
         }
@@ -297,7 +326,7 @@ namespace SportHub.Pages.Matchmaking
                 MatchId = mp.MatchID,
                 Title = string.IsNullOrWhiteSpace(mp.Match.Title) ? $"{mp.Match.MatchType} Match" : mp.Match.Title,
                 StartText = $"{mp.Match.MatchDate:ddd, dd MMM} {mp.Match.StartTime:hh\\:mm}",
-                Venue = ExtractCustomVenue(mp.Match.Description) ?? mp.Match.Court?.Venue?.VenueName ?? "TBD Venue",
+                Venue = BuildVenueName(mp.Match),
                 MatchDate = mp.Match.MatchDate
             }).ToList();
 
@@ -340,8 +369,14 @@ namespace SportHub.Pages.Matchmaking
                 }
 
                 var km = HaversineKm(origin.Value.Lat, origin.Value.Lon, venueLat.Value, venueLon.Value);
+                match.DistanceKm = km;
                 match.DistanceDisplay = FormatDistanceKm(km);
             }
+
+            Matches = Matches
+                .OrderBy(m => m.DistanceKm ?? double.MaxValue)
+                .ThenByDescending(m => m.MatchScore)
+                .ToList();
         }
 
         private async Task<(double Lat, double Lon)?> ResolveUserOriginAsync(int userId)
@@ -390,12 +425,12 @@ namespace SportHub.Pages.Matchmaking
                 return $"Từ {amount.Value:N0} VNĐ/giờ";
             }
 
-            return "Price not set";
+            return "Chưa có giá";
         }
 
         private static decimal? BuildMatchPriceAmount(Models.Entities.Match match)
         {
-            var customPrice = ExtractCustomPrice(match.Description);
+            var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
             if (customPrice.HasValue)
             {
                 return customPrice.Value;
@@ -475,6 +510,146 @@ namespace SportHub.Pages.Matchmaking
             return !string.IsNullOrWhiteSpace(name) ? name : addr;
         }
 
+        private static List<Models.Entities.Match> ApplyStatusFilter(List<Models.Entities.Match> matches, string statusFilter, int currentUserId)
+        {
+            var today = DateTime.Today;
+            var nextSevenDays = today.AddDays(7);
+
+            return statusFilter switch
+            {
+                "OpenSlots" => matches
+                    .Where(m => m.Status == "Open" && m.Participants.Count(p => p.JoinStatus == "Accepted") < m.MaxParticipants)
+                    .ToList(),
+                "AlmostFull" => matches
+                    .Where(m =>
+                    {
+                        var accepted = m.Participants.Count(p => p.JoinStatus == "Accepted");
+                        return accepted > 0 && accepted < m.MaxParticipants && accepted >= m.MaxParticipants - 1;
+                    })
+                    .ToList(),
+                "Upcoming" => matches
+                    .Where(m => m.MatchDate.Date >= today && m.MatchDate.Date <= nextSevenDays)
+                    .ToList(),
+                "Pending" => currentUserId <= 0
+                    ? new List<Models.Entities.Match>()
+                    : matches.Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Pending")).ToList(),
+                "Joined" => currentUserId <= 0
+                    ? new List<Models.Entities.Match>()
+                    : matches.Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Accepted")).ToList(),
+                "Owned" => currentUserId <= 0
+                    ? new List<Models.Entities.Match>()
+                    : matches.Where(m => m.CreatedByUserID == currentUserId).ToList(),
+                _ => matches
+            };
+        }
+
+        private static string BuildVenueName(Models.Entities.Match match)
+        {
+            if (!string.IsNullOrWhiteSpace(match.CustomCourtName) && !string.IsNullOrWhiteSpace(match.CustomCourtAddress))
+                return $"{match.CustomCourtName} - {match.CustomCourtAddress}";
+
+            if (!string.IsNullOrWhiteSpace(match.CustomCourtName))
+                return match.CustomCourtName;
+
+            if (!string.IsNullOrWhiteSpace(match.CustomCourtAddress))
+                return match.CustomCourtAddress;
+
+            return ExtractCustomVenue(match.Description) ?? match.Court?.Venue?.VenueName ?? "TBD Venue";
+        }
+
+        private int CalculateMatchScore(Models.Entities.Match match, Models.Entities.User? currentUser)
+        {
+            if (currentUser == null) return 70;
+
+            var score = 0;
+
+            if (!string.IsNullOrWhiteSpace(currentUser.FavoriteSport)
+                && match.Sport?.SportName?.Contains(currentUser.FavoriteSport, StringComparison.OrdinalIgnoreCase) == true)
+            {
+                score += 30;
+            }
+            else if (string.IsNullOrWhiteSpace(currentUser.FavoriteSport))
+            {
+                score += 18;
+            }
+
+            score += CalculateSkillScore(currentUser.SkillLevel, match.SkillRequired);
+            score += CalculateTimeScore(match.StartTime);
+
+            if (currentUser.DefaultLatitude.HasValue && currentUser.DefaultLongitude.HasValue)
+            {
+                var lat = match.CustomLatitude ?? match.Court?.Venue?.Latitude;
+                var lon = match.CustomLongitude ?? match.Court?.Venue?.Longitude;
+                if (lat.HasValue && lon.HasValue)
+                {
+                    var km = HaversineKm((double)currentUser.DefaultLatitude.Value, (double)currentUser.DefaultLongitude.Value, (double)lat.Value, (double)lon.Value);
+                    score += km <= 3 ? 15 : km <= 7 ? 10 : km <= 15 ? 6 : 2;
+                }
+                else
+                {
+                    score += 6;
+                }
+            }
+            else
+            {
+                score += 8;
+            }
+
+            var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
+            score += acceptedCount > 0 && acceptedCount < match.MaxParticipants ? 10 : 6;
+
+            return Math.Clamp(score, 35, 99);
+        }
+
+        private static int CalculateSkillScore(string? userSkill, string? requiredSkill)
+        {
+            if (string.IsNullOrWhiteSpace(requiredSkill) || requiredSkill.Equals("Any", StringComparison.OrdinalIgnoreCase))
+                return 22;
+
+            if (string.IsNullOrWhiteSpace(userSkill)) return 10;
+
+            var userValue = SkillToRank(userSkill);
+            var requiredValue = SkillToRank(requiredSkill);
+            if (!userValue.HasValue || !requiredValue.HasValue) return 15;
+
+            var diff = Math.Abs(userValue.Value - requiredValue.Value);
+            return diff switch
+            {
+                0 => 25,
+                1 => 20,
+                2 => 14,
+                _ => 8
+            };
+        }
+
+        private static int? SkillToRank(string value)
+        {
+            return value.Trim().ToLowerInvariant() switch
+            {
+                "newbie" or "beginner" => 1,
+                "yếu" or "intermediate" => 2,
+                "yếu+" => 3,
+                "tby/tb-" or "advanced" => 4,
+                "trung bình" => 5,
+                "tb+/khá" or "professional" => 6,
+                _ => null
+            };
+        }
+
+        private static int CalculateTimeScore(TimeSpan startTime)
+        {
+            if (startTime >= new TimeSpan(17, 0, 0) && startTime <= new TimeSpan(21, 0, 0))
+                return 20;
+
+            if (startTime >= new TimeSpan(6, 0, 0) && startTime < new TimeSpan(10, 0, 0))
+                return 18;
+
+            if (startTime >= new TimeSpan(10, 0, 0) && startTime < new TimeSpan(17, 0, 0))
+                return 14;
+
+            return 8;
+        }
+
         private static string? ExtractCustomCourtAddress(string? description)
         {
             if (string.IsNullOrWhiteSpace(description)) return null;
@@ -524,6 +699,7 @@ namespace SportHub.Pages.Matchmaking
             public string HostImage { get; set; } = string.Empty;
             public decimal? Latitude { get; set; }
             public decimal? Longitude { get; set; }
+            public double? DistanceKm { get; set; }
             public string? DistanceDisplay { get; set; }
         }
 
@@ -537,3 +713,4 @@ namespace SportHub.Pages.Matchmaking
         }
     }
 }
+

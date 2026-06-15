@@ -24,17 +24,45 @@
             Tìm bạn chơi lý tưởng
         </h1>
         <p class="text-lg text-slate-200 mb-8 max-w-lg">
-            Tham gia cộng đồng thể thao lớn nhất. Kết nối với người chơi cùng trình độ và đặt sân chất lượng ngay lập tức.
+            Tham gia cộng đồng thể thao lớn nhất. Kết nối với người chơi cùng trình độ và tìm kèo phù hợp chỉ trong vài phút.
         </p>
         <div class="flex flex-wrap gap-4">
             <a asp-page="/Matchmaking/Index" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
                 <span class="material-symbols-outlined">person_search</span>
                 Tìm người chơi
             </a>
-            <a asp-page="/Courts/Search" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined">calendar_today</span>
-                Đặt sân ngay
+            <a asp-page="/Matchmaking/Create" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">bolt</span>
+                Tạo kèo mới
             </a>
+        </div>
+    </div>
+</section>
+
+<!-- QUICK ACTIONS -->
+<section class="mb-12">
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-black uppercase tracking-wider text-primary">Bắt đầu nhanh</p>
+                <h2 class="mt-1 text-2xl font-black text-slate-900 dark:text-white">Hôm nay bạn muốn làm gì?</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[460px]">
+                <a asp-page="/Matchmaking/Index" class="group flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20">
+                    <span class="material-symbols-outlined rounded-lg bg-primary text-white p-2 group-hover:bg-white group-hover:text-primary">person_search</span>
+                    <span>
+                        <span class="block text-sm font-black">Tìm người chơi</span>
+                        <span class="block text-xs text-slate-500 group-hover:text-white/80">Ghép theo trình độ và giờ rảnh</span>
+                    </span>
+                </a>
+                <a asp-page="/Matchmaking/Create" class="group flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:shadow-md dark:border-slate-800 dark:bg-slate-800/60 dark:hover:bg-slate-800">
+                    <span class="material-symbols-outlined rounded-lg bg-amber-500 text-white p-2">bolt</span>
+                    <span>
+                        <span class="block text-sm font-black">Tạo kèo mới</span>
+                        <span class="block text-xs text-slate-500">Thiếu người thì đăng kèo</span>
+                    </span>
+                </a>
+            </div>
         </div>
     </div>
 </section>
@@ -96,7 +124,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
     <!-- SUGGESTED PLAYERS -->
-    <div class="lg:col-span-2">
+    <div class="lg:col-span-3">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Người chơi gợi ý</h2>
             <a asp-page="/Players/Index" class="text-primary font-semibold text-sm hover:underline">Xem thêm</a>
@@ -124,7 +152,7 @@
     </div>
 
     <!-- NEARBY COURTS -->
-    <div>
+    <div class="hidden">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Sân gần đây</h2>
             <a asp-page="/Courts/Map" class="text-primary font-semibold text-sm hover:underline">Bản đồ</a>

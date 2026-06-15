@@ -8,8 +8,10 @@ namespace SportHub.Services.Interfaces
     public interface IMatchService
     {
         Task<List<Match>> GetRecommendedMatchesAsync(int limit = 5);
+        Task<List<Match>> GetRecommendedMatchesForUserAsync(int userId, int limit = 5);
         Task<Match?> GetMatchDetailsAsync(int matchId);
         Task<bool> JoinMatchAsync(int matchId, int userId);
+        Task<bool> SkipMatchAsync(int matchId, int userId);
         Task<int> CreateMatchAsync(Match match, int createdByUserId);
         Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
         Task<bool> DeleteMatchAsync(int matchId, int userId);
@@ -95,6 +97,32 @@ namespace SportHub.Services.Implementations
                 .ToListAsync();
         }
 
+        public async Task<List<Match>> GetRecommendedMatchesForUserAsync(int userId, int limit = 5)
+        {
+            var skippedMatchIds = userId > 0
+                ? await _context.MatchInteractions
+                    .Where(i => i.UserID == userId && i.Action == "Skip")
+                    .Select(i => i.MatchID)
+                    .ToListAsync()
+                : new List<int>();
+
+            return await _context.Matches
+                .Include(m => m.CreatedByUser)
+                .Include(m => m.Court).ThenInclude(c => c!.Venue)
+                .Include(m => m.Court).ThenInclude(c => c!.Images)
+                .Include(m => m.Court).ThenInclude(c => c!.PricingRules)
+                .Include(m => m.Booking)
+                .Include(m => m.Sport)
+                .Include(m => m.Participants).ThenInclude(p => p.User)
+                .Where(m => m.Status == "Open"
+                    && m.MatchDate >= DateTime.Today
+                    && !skippedMatchIds.Contains(m.MatchID))
+                .OrderBy(m => m.MatchDate)
+                .ThenBy(m => m.StartTime)
+                .Take(limit)
+                .ToListAsync();
+        }
+
         public async Task<Match?> GetMatchDetailsAsync(int matchId)
         {
             return await _context.Matches
@@ -141,6 +169,36 @@ namespace SportHub.Services.Implementations
             });
 
             match.RequiresApproval = true;
+            _context.MatchInteractions.Add(new MatchInteraction
+            {
+                MatchID = matchId,
+                UserID = userId,
+                Action = "Request",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SkipMatchAsync(int matchId, int userId)
+        {
+            if (userId <= 0) return false;
+
+            var exists = await _context.Matches.AnyAsync(m => m.MatchID == matchId);
+            if (!exists) return false;
+
+            var alreadySkipped = await _context.MatchInteractions
+                .AnyAsync(i => i.MatchID == matchId && i.UserID == userId && i.Action == "Skip");
+            if (alreadySkipped) return true;
+
+            _context.MatchInteractions.Add(new MatchInteraction
+            {
+                MatchID = matchId,
+                UserID = userId,
+                Action = "Skip",
+                CreatedAt = DateTime.UtcNow
+            });
 
             await _context.SaveChangesAsync();
             return true;

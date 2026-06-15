@@ -54,4 +54,21 @@ namespace SportHub.Models.Entities
         public bool IsRead { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
+
+    public class UserBadge
+    {
+        public int BadgeID { get; set; }
+
+        public int UserID { get; set; }
+        public User User { get; set; } = null!;
+
+        public string BadgeKey { get; set; } = string.Empty;
+        public string BadgeName { get; set; } = string.Empty;
+        public string Level { get; set; } = "Bronze"; // Bronze, Silver, Gold
+        public int ProgressValue { get; set; }
+        public int TargetValue { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public DateTime EarnedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
 }

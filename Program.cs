@@ -7,6 +7,7 @@ using SportHub.Hubs;
 using SportHub.Services.Interfaces;
 using SportHub.Services.Implementations;
 using SportHub.Services;
+using SportHub.Middleware;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 
@@ -41,13 +42,15 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.INotificationService, SportHub.Services.Implementations.NotificationService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!builder.Configuration.GetValue<bool>("SkipDatabaseMigration"))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.Migrate();
 }
@@ -71,6 +74,7 @@ app.UseRequestLocalization(localizationOptions);
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Cho phép load file tĩnh từ wwwroot (CSS, JS)
+app.UseMiddleware<UiLocalizationMiddleware>();
 
 app.UseRouting();
 app.UseAuthentication();

@@ -45,8 +45,8 @@ namespace SportHub.Pages.Matchmaking
                           && match.Status == "Open"
                           && acceptedCount < match.MaxParticipants;
 
-            var customCourtName    = ExtractCustomCourtName(match.Description);
-            var customCourtAddress = ExtractCustomCourtAddress(match.Description);
+            var customCourtName    = match.CustomCourtName ?? ExtractCustomCourtName(match.Description);
+            var customCourtAddress = match.CustomCourtAddress ?? ExtractCustomCourtAddress(match.Description);
             var fallbackLocation   = BuildCustomLocation(customCourtName, customCourtAddress);
 
             // Danh sách chờ duyệt (chỉ host xem)
@@ -84,8 +84,8 @@ namespace SportHub.Pages.Matchmaking
                                     : (match.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault(i => i.IsMain)?.ImageUrl
                                     ?? match.Court?.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.ImageUrl
                                     ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuBuyetq-CjYniznRR2LQD8js1JDRvgAYveuoCNhfGsauk1CP-z2TywH1K-Xw5PoaJMxXqGfqFgGgDkMEgzi9rE2IjqCKCiiBCpyawFJCUII3zFhqq7ebqAlP1YZux0CAcfosVIK1Ru7RwxZqtC-tnt4OKa5N3qc919AjX0s1MzA5BQdsghli12q44PqbEusnjtcTT0Z1PbUvJZ-pHdJoDiRLPBOMKoQZYZLlGQ2lrBdViOvLJ4XVCkjH6QzdDesUC1Qk_Z_pnK3_GE"),
-                Latitude           = ExtractCustomLatitude(match.Description) ?? match.Court?.Venue?.Latitude,
-                Longitude          = ExtractCustomLongitude(match.Description) ?? match.Court?.Venue?.Longitude,
+                Latitude           = match.CustomLatitude ?? ExtractCustomLatitude(match.Description) ?? match.Court?.Venue?.Latitude,
+                Longitude          = match.CustomLongitude ?? ExtractCustomLongitude(match.Description) ?? match.Court?.Venue?.Longitude,
                 AcceptedParticipants = match.Participants
                     .Where(p => p.JoinStatus == "Accepted")
                     .Select(p => new ParticipantItem
@@ -321,7 +321,7 @@ namespace SportHub.Pages.Matchmaking
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
-            var customPrice = ExtractCustomPrice(match.Description);
+            var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
             if (customPrice.HasValue) return $"{customPrice.Value:N0} VND";
             if (match.Booking?.FinalAmount > 0) return $"{match.Booking.FinalAmount:N0} VND";
             if (match.Court?.PricingRules != null && match.Court.PricingRules.Any())

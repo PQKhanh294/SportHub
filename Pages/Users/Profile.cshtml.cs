@@ -11,16 +11,19 @@ namespace SportHub.Pages.Users
     {
         private readonly IUserService _userService;
         private readonly IFriendshipService _friendshipService;
+        private readonly IBadgeService _badgeService;
 
-        public ProfileModel(IUserService userService, IFriendshipService friendshipService)
+        public ProfileModel(IUserService userService, IFriendshipService friendshipService, IBadgeService badgeService)
         {
             _userService = userService;
             _friendshipService = friendshipService;
+            _badgeService = badgeService;
         }
 
         public User TargetUser { get; set; } = null!;
         public string FriendshipStatus { get; set; } = "None"; // None, Pending, Accepted
         public bool IsSender { get; set; } = false;
+        public List<BadgeProgressItem> Badges { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -28,6 +31,8 @@ namespace SportHub.Pages.Users
             if (target == null) return NotFound();
 
             TargetUser = target;
+            await _badgeService.SyncEarnedBadgesAsync(id);
+            Badges = await _badgeService.GetBadgeProgressAsync(id);
 
             var currentUserIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(currentUserIdStr, out int currentUserId) && currentUserId != id)
