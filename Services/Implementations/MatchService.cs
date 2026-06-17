@@ -7,6 +7,7 @@ namespace SportHub.Services.Interfaces
 {
     public interface IMatchService
     {
+
         Task<List<Match>> GetRecommendedMatchesAsync(int limit = 5);
         Task<List<Match>> GetRecommendedMatchesForUserAsync(int userId, int limit = 5);
         Task<Match?> GetMatchDetailsAsync(int matchId);
@@ -143,9 +144,9 @@ namespace SportHub.Services.Implementations
 
             if (match == null || match.Status != "Open") return false;
 
-            // Đã có yêu cầu đang chờ hoặc đã được duyệt
+            // Đã có yêu cầu đang chờ hoặc đã được duyệt/chấp nhận
             if (match.Participants.Any(p => p.UserID == userId &&
-                (p.JoinStatus == "Pending" || p.JoinStatus == "Accepted")))
+                (p.JoinStatus == "Pending" || p.JoinStatus == "Approved" || p.JoinStatus == "Accepted")))
                 return false;
 
             // ✅ NEW: Validate user skill level
@@ -155,8 +156,8 @@ namespace SportHub.Services.Implementations
             if (!ValidateUserSkillLevel(user.SkillLevel, match.SkillRequired))
                 return false;
 
-            // Đếm chỉ Accepted để kiểm tra chỗ còn trống
-            var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
+            // Đếm Accepted + Approved để kiểm tra chỗ còn trống
+            var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");
             if (acceptedCount >= match.MaxParticipants) return false;
 
             // Ghép vãng lai: luôn chờ host duyệt (không vào thẳng)
@@ -207,7 +208,7 @@ namespace SportHub.Services.Implementations
         public async Task<int> CreateMatchAsync(Match match, int createdByUserId)
         {
             match.CreatedByUserID = createdByUserId;
-            match.Status = "Open";
+            match.Status = "PendingDeposit"; // Becomes Open after host deposit confirmed
             match.RequiresApproval = true;
             match.CreatedAt = DateTime.UtcNow;
 
@@ -278,13 +279,30 @@ namespace SportHub.Services.Implementations
             if (!ValidateUserSkillLevel(participant.User.SkillLevel, match.SkillRequired))
                 return false;
 
-            var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
-            if (acceptedCount >= match.MaxParticipants) return false; // Hết chỗ
+            var filledCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");
+            if (filledCount >= match.MaxParticipants) return false; // Hết chỗ
 
-            participant.JoinStatus = "Accepted";
+            // Approved = chờ player thanh toán 5K trong 1 giờ
+            var deadline = DateTime.UtcNow.AddHours(1);
+            participant.JoinStatus = "Approved";
+            participant.PlayerFeeStatus = "AwaitingPayment";
+            participant.PlayerFeeDeadline = deadline;
 
-            // Tự động Full nếu đủ
-            if (acceptedCount + 1 >= match.MaxParticipants)
+            // Tạo bản ghi thanh toán PlayerFee
+            _context.MatchPayments.Add(new MatchPayment
+            {
+                MatchID = matchId,
+                PayerUserID = participant.UserID,
+                PaymentType = "PlayerFee",
+                Amount = 5_000m,
+                Status = "Pending",
+                ExpiresAt = deadline,
+                TransactionRef = $"FEE-{matchId}-{participant.UserID}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // Tự động Full nếu (Accepted + Approved) đủ
+            if (filledCount + 1 >= match.MaxParticipants)
                 match.Status = "Full";
 
             await _context.SaveChangesAsync();

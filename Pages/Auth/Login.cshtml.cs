@@ -68,6 +68,9 @@ namespace SportHub.Pages.Auth
                 new(ClaimTypes.Email, user.Email)
             };
 
+            foreach (var ur in user.UserRoles)
+                claims.Add(new Claim(ClaimTypes.Role, ur.Role.RoleName));
+
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 

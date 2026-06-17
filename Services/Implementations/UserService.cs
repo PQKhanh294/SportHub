@@ -26,6 +26,7 @@ namespace SportHub.Services.Implementations
         {
             var normalizedEmail = email.Trim().ToLower();
             return await _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
 
@@ -151,6 +152,24 @@ namespace SportHub.Services.Implementations
         {
             return await _context.Bookings
                 .CountAsync(b => b.UserID == userId);
+        }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .OrderByDescending(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<bool> SetUserActiveAsync(int userId, bool isActive)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return false;
+            user.IsActive = isActive;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -23,11 +23,11 @@ namespace SportHub.Services.Implementations
 
             var badges = new List<BadgeProgressItem>
             {
-                BuildBadge("morning-player", "Morning Player", "ChÆ¡i tráº­n báº¯t Ä‘áº§u trÆ°á»›c 10:00.", "wb_twilight", stats.MorningMatches, new[] { 3, 10, 25 }, earned),
-                BuildBadge("reliable-teammate", "Reliable Teammate", "Giá»¯ lá»‹ch háº¹n tá»‘t, Ã­t há»§y/no-show.", "verified", stats.ReliabilityScore, new[] { 80, 90, 95 }, earned),
-                BuildBadge("friendly-host", "Friendly Host", "Táº¡o tráº­n vÃ  kÃ©o Ä‘Æ°á»£c ngÆ°á»i chÆ¡i tham gia.", "diversity_3", stats.HostedMatchesWithPlayers, new[] { 3, 10, 25 }, earned),
-                BuildBadge("quick-responder", "Quick Responder", "Xá»­ lÃ½ yÃªu cáº§u tham gia thay vÃ¬ Ä‘á»ƒ chá».", "bolt", stats.HandledJoinRequests, new[] { 5, 20, 50 }, earned),
-                BuildBadge("community-builder", "Community Builder", "ÄÃ£ chÆ¡i cÃ¹ng nhiá»u ngÆ°á»i khÃ¡c nhau.", "groups", stats.UniquePartners, new[] { 5, 15, 40 }, earned)
+                BuildBadge("morning-player", "Morning Player", "Chơi trận bắt đầu trước 10:00.", "wb_twilight", stats.MorningMatches, new[] { 3, 10, 25 }, earned),
+                BuildBadge("reliable-teammate", "Reliable Teammate", "Giữ lịch hẹn tốt, ít hủy/no-show.", "verified", stats.ReliabilityScore, new[] { 80, 90, 95 }, earned),
+                BuildBadge("friendly-host", "Friendly Host", "Tạo trận và kéo được người chơi tham gia.", "diversity_3", stats.HostedMatchesWithPlayers, new[] { 3, 10, 25 }, earned),
+                BuildBadge("quick-responder", "Quick Responder", "Xử lý yêu cầu tham gia thay vì để chờ.", "bolt", stats.HandledJoinRequests, new[] { 5, 20, 50 }, earned),
+                BuildBadge("community-builder", "Community Builder", "Đã chơi cùng nhiều người khác nhau.", "groups", stats.UniquePartners, new[] { 5, 15, 40 }, earned)
             };
 
             return badges;

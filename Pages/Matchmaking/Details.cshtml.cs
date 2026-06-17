@@ -4,17 +4,23 @@ using System.Security.Claims;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using SportHub.Services.Interfaces;
+using SportHub.Services.Implementations;
 
 namespace SportHub.Pages.Matchmaking
 {
     public class DetailsModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly IMatchPaymentService _matchPaymentService;
         private readonly INotificationService _notificationService;
 
-        public DetailsModel(IMatchService matchService, INotificationService notificationService)
+        public DetailsModel(
+            IMatchService matchService,
+            IMatchPaymentService matchPaymentService,
+            INotificationService notificationService)
         {
             _matchService = matchService;
+            _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
         }
 
@@ -37,13 +43,15 @@ namespace SportHub.Pages.Matchmaking
 
             var isAccepted = myParticipant?.JoinStatus == "Accepted";
             var isPending  = myParticipant?.JoinStatus == "Pending";
+            var isApproved = myParticipant?.JoinStatus == "Approved";
             var isOwner    = currentUserId > 0 && match.CreatedByUserID == currentUserId;
 
             var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
+            var filledCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");
             var canJoin = currentUserId > 0
                           && myParticipant == null
                           && match.Status == "Open"
-                          && acceptedCount < match.MaxParticipants;
+                          && filledCount < match.MaxParticipants;
 
             var customCourtName    = match.CustomCourtName ?? ExtractCustomCourtName(match.Description);
             var customCourtAddress = match.CustomCourtAddress ?? ExtractCustomCourtAddress(match.Description);
@@ -65,6 +73,8 @@ namespace SportHub.Pages.Matchmaking
                         JoinedAt = p.JoinedAt
                     }).ToList()
                 : new();
+
+            var depositAmount = _matchPaymentService.CalculateHostDeposit(match.MaxParticipants);
 
             Item = new MatchDetailItem
             {
@@ -98,9 +108,10 @@ namespace SportHub.Pages.Matchmaking
                     }).ToList(),
                 PendingParticipants = pendingParticipants,
                 MaxParticipants    = match.MaxParticipants,
-                SpotsLeft          = Math.Max(0, match.MaxParticipants - acceptedCount),
+                SpotsLeft          = Math.Max(0, match.MaxParticipants - filledCount),
                 IsJoined           = isAccepted,
                 IsPending          = isPending,
+                IsApproved         = isApproved,
                 CanJoin            = canJoin,
                 IsOwner            = isOwner,
                 RequiresApproval   = match.RequiresApproval,
@@ -108,7 +119,16 @@ namespace SportHub.Pages.Matchmaking
                 HostName           = match.CreatedByUser?.FullName ?? "Host",
                 HostAvatar         = string.IsNullOrWhiteSpace(match.CreatedByUser?.AvatarUrl)
                     ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(match.CreatedByUser?.FullName ?? "H")}&background=E2E8F0&color=1E293B&size=64"
-                    : match.CreatedByUser!.AvatarUrl
+                    : match.CreatedByUser!.AvatarUrl,
+
+                // Payment state
+                MatchStatus            = match.Status,
+                ShowHostDepositPrompt  = isOwner && match.Status == "PendingDeposit",
+                HostDepositAmount      = depositAmount,
+                ShowPlayerFeePrompt    = isApproved && myParticipant?.PlayerFeeStatus == "AwaitingPayment",
+                PlayerFeeDeadline      = myParticipant?.PlayerFeeDeadline,
+                ShowRemainingFeePrompt = isOwner && match.RemainingFeeStatus == "Notified",
+                RemainingFeeAmount     = depositAmount
             };
 
             return Page();
@@ -126,13 +146,13 @@ namespace SportHub.Pages.Matchmaking
             var joined = await _matchService.JoinMatchAsync(id, userId);
             if (joined)
             {
-                TempData["SuccessMessage"] = "Yêu cầu đã gửi. Bạn đang chờ host duyệt (tối đa 2 giờ).";
+                TempData["SuccessMessage"] = "Yêu cầu đã gửi. Bạn đang chờ host duyệt (tối đa 1 giờ).";
                 var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
                 await _notificationService.CreateAsync(
                     match.CreatedByUserID,
                     "MatchJoin",
                     "Có người muốn tham gia trận",
-                    $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 2 giờ.",
+                    $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 1 giờ.",
                     $"/Matchmaking/Details?id={id}");
             }
             else
@@ -165,19 +185,21 @@ namespace SportHub.Pages.Matchmaking
             var approved = await _matchService.ApproveParticipantAsync(id, participantId, userId);
             if (approved)
             {
-                TempData["SuccessMessage"] = "Đã duyệt người chơi.";
-                // Notify the approved user
-                var participant = (await _matchService.GetMatchDetailsAsync(id))
-                    ?.Participants.FirstOrDefault(p => p.ParticipantID == participantId);
+                TempData["SuccessMessage"] = "Đã duyệt người chơi. Họ có 1 giờ để thanh toán phí 5,000 VND.";
+                // Reload to get updated participant (JoinStatus = Approved)
+                var updatedMatch = await _matchService.GetMatchDetailsAsync(id);
+                var participant = updatedMatch?.Participants.FirstOrDefault(p => p.ParticipantID == participantId);
                 if (participant != null)
                 {
-                    var match = await _matchService.GetMatchDetailsAsync(id);
+                    var deadlineStr = participant.PlayerFeeDeadline.HasValue
+                        ? participant.PlayerFeeDeadline.Value.ToLocalTime().ToString("HH:mm dd/MM")
+                        : "1 giờ tới";
                     await _notificationService.CreateAsync(
                         participant.UserID,
-                        "MatchApprove",
-                        "Yêu cầu tham gia được chấp thuận",
-                        $"Host đã duyệt bạn vào trận \"{match?.Title ?? match?.MatchType}\".",
-                        $"/Matchmaking/Details?id={id}");
+                        "MatchPaymentRequired",
+                        "Bạn được duyệt — Thanh toán phí tham gia",
+                        $"Host đã duyệt bạn vào trận \"{updatedMatch?.Title ?? updatedMatch?.MatchType}\". Thanh toán 5,000 VND trước {deadlineStr} để giữ chỗ.",
+                        $"/Matchmaking/Payment?matchId={id}&type=playerfee");
                 }
             }
             else
@@ -365,12 +387,22 @@ namespace SportHub.Pages.Matchmaking
             public int SpotsLeft { get; set; }
             public bool IsJoined { get; set; }
             public bool IsPending { get; set; }
+            public bool IsApproved { get; set; }
             public bool CanJoin { get; set; }
             public bool IsOwner { get; set; }
             public bool RequiresApproval { get; set; }
             public int HostId { get; set; }
             public string HostName { get; set; } = string.Empty;
             public string HostAvatar { get; set; } = string.Empty;
+
+            // Payment state
+            public string MatchStatus { get; set; } = string.Empty;
+            public bool ShowHostDepositPrompt { get; set; }
+            public decimal HostDepositAmount { get; set; }
+            public bool ShowPlayerFeePrompt { get; set; }
+            public DateTime? PlayerFeeDeadline { get; set; }
+            public bool ShowRemainingFeePrompt { get; set; }
+            public decimal RemainingFeeAmount { get; set; }
         }
 
         public class ParticipantItem

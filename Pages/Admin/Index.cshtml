@@ -1,0 +1,101 @@
+@page
+@model SportHub.Pages.Admin.AdminIndexModel
+@{
+    ViewData["Title"] = "Admin — Dashboard";
+    var s = Model.Stats;
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-black text-slate-900 dark:text-white">Admin Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-1">Tổng quan hệ thống SportHub</p>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    <!-- Revenue cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tổng doanh thu</p>
+            <p class="text-2xl font-black text-primary">@s.TotalRevenue.ToString("N0") ₫</p>
+            <p class="text-xs text-slate-400 mt-1">@s.TotalConfirmedPayments giao dịch</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Hôm nay</p>
+            <p class="text-2xl font-black text-emerald-600">@s.TodayRevenue.ToString("N0") ₫</p>
+            <p class="text-xs text-slate-400 mt-1">Đã xác nhận</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tháng này</p>
+            <p class="text-2xl font-black text-blue-600">@s.ThisMonthRevenue.ToString("N0") ₫</p>
+            <p class="text-xs text-slate-400 mt-1">@DateTime.Now.ToString("MM/yyyy")</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800 p-5 shadow-sm bg-amber-50 dark:bg-amber-900/10">
+            <p class="text-xs text-amber-600 uppercase tracking-wider mb-1">Chờ xác nhận</p>
+            <p class="text-2xl font-black text-amber-600">@s.PendingPaymentsCount</p>
+            <a asp-page="/Admin/MatchPayments" class="text-xs text-amber-500 hover:underline mt-1 block">Xem ngay →</a>
+        </div>
+    </div>
+
+    <!-- System stats -->
+    <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4">
+            <div class="size-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">group</span>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-900 dark:text-white">@s.TotalUsers</p>
+                <p class="text-sm text-slate-500">Người dùng</p>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4">
+            <div class="size-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <span class="material-symbols-outlined text-emerald-600">sports</span>
+            </div>
+            <div>
+                <p class="text-2xl font-black text-slate-900 dark:text-white">@s.ActiveMatchesCount</p>
+                <p class="text-sm text-slate-500">Trận đang mở</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">receipt_long</span>
+                Giao dịch gần đây
+            </h2>
+            <a asp-page="/Admin/Transactions" class="text-sm text-primary hover:underline font-medium">Xem tất cả →</a>
+        </div>
+        @if (!s.RecentTransactions.Any())
+        {
+            <div class="p-10 text-center text-slate-400 text-sm">Chưa có giao dịch nào.</div>
+        }
+        else
+        {
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach (var tx in s.RecentTransactions)
+                {
+                    var typeColor = tx.PaymentType switch {
+                        "HostDeposit"   => "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400",
+                        "PlayerFee"     => "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400",
+                        "HostRemaining" => "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400",
+                        _               => "bg-slate-50 dark:bg-slate-800 text-slate-600"
+                    };
+                    <div class="flex items-center gap-3 px-5 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-bold @typeColor flex-shrink-0">@tx.TypeLabel</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">@tx.MatchTitle</p>
+                            <p class="text-xs text-slate-500">@tx.PayerName</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-sm font-bold text-primary">+@tx.Amount.ToString("N0") ₫</p>
+                            <p class="text-xs text-slate-400">@tx.ConfirmedAt.ToLocalTime().ToString("HH:mm dd/MM")</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

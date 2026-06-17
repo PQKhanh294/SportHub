@@ -1,0 +1,129 @@
+@page
+@model SportHub.Pages.Admin.TransactionsModel
+@{
+    ViewData["Title"] = "Admin — Lịch sử giao dịch";
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-black text-slate-900 dark:text-white">Lịch sử giao dịch</h1>
+        <p class="text-sm text-slate-500 mt-1">Toàn bộ khoản tiền đã xác nhận</p>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-3 gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tổng doanh thu</p>
+            <p class="text-2xl font-black text-primary">@Model.TotalRevenue.ToString("N0") ₫</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tháng này</p>
+            <p class="text-2xl font-black text-blue-600">@Model.ThisMonthRevenue.ToString("N0") ₫</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Hôm nay</p>
+            <p class="text-2xl font-black text-emerald-600">@Model.TodayRevenue.ToString("N0") ₫</p>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="flex gap-2 flex-wrap">
+        <a asp-page="/Admin/Transactions"
+           class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterType) ? "bg-primary text-white border-primary" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-primary")">
+            Tất cả (@Model.Transactions.Count)
+        </a>
+        <a asp-page="/Admin/Transactions" asp-route-filterType="HostDeposit"
+           class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors @(Model.FilterType == "HostDeposit" ? "bg-blue-500 text-white border-blue-500" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-primary")">
+            Đặt cọc host
+        </a>
+        <a asp-page="/Admin/Transactions" asp-route-filterType="PlayerFee"
+           class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors @(Model.FilterType == "PlayerFee" ? "bg-emerald-500 text-white border-emerald-500" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-primary")">
+            Phí player
+        </a>
+        <a asp-page="/Admin/Transactions" asp-route-filterType="HostRemaining"
+           class="px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors @(Model.FilterType == "HostRemaining" ? "bg-amber-500 text-white border-amber-500" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-primary")">
+            Phí còn lại
+        </a>
+    </div>
+
+    <!-- Transaction table -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        @if (!Model.Transactions.Any())
+        {
+            <div class="p-10 text-center">
+                <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">receipt_long</span>
+                <p class="text-slate-500 font-semibold">Chưa có giao dịch nào.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800 text-xs text-slate-500 uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 text-left">#</th>
+                            <th class="px-4 py-3 text-left">Loại</th>
+                            <th class="px-4 py-3 text-left">Trận đấu</th>
+                            <th class="px-4 py-3 text-left">Người thanh toán</th>
+                            <th class="px-4 py-3 text-right">Số tiền</th>
+                            <th class="px-4 py-3 text-left">Thời gian</th>
+                            <th class="px-4 py-3 text-center">Biên lai</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        @foreach (var tx in Model.Transactions)
+                        {
+                            var typeColor = tx.PaymentType switch {
+                                "HostDeposit"   => "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400",
+                                "PlayerFee"     => "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400",
+                                "HostRemaining" => "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400",
+                                _               => "bg-slate-50 text-slate-600"
+                            };
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td class="px-4 py-3 text-slate-400 font-mono text-xs">#@tx.PaymentId</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold @typeColor">@tx.TypeLabel</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a asp-page="/Matchmaking/Details" asp-route-id="@tx.MatchId"
+                                       class="font-semibold text-slate-900 dark:text-white hover:text-primary transition-colors">
+                                        @tx.MatchTitle
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@tx.PayerName</td>
+                                <td class="px-4 py-3 text-right font-bold text-primary">+@tx.Amount.ToString("N0") ₫</td>
+                                <td class="px-4 py-3 text-slate-500 text-xs">@tx.ConfirmedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</td>
+                                <td class="px-4 py-3 text-center">
+                                    @if (!string.IsNullOrWhiteSpace(tx.ReceiptUrl))
+                                    {
+                                        <a href="@tx.ReceiptUrl" target="_blank"
+                                           class="text-primary hover:text-primary/80 transition-colors">
+                                            <span class="material-symbols-outlined text-base">open_in_new</span>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-slate-300 text-xs">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="bg-slate-50 dark:bg-slate-800 border-t-2 border-slate-200 dark:border-slate-700">
+                        <tr>
+                            <td colspan="4" class="px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300">
+                                Tổng (@Model.Transactions.Count giao dịch)
+                            </td>
+                            <td class="px-4 py-3 text-right font-black text-primary text-base">
+                                +@Model.Transactions.Sum(t => t.Amount).ToString("N0") ₫
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>

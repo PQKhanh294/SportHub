@@ -15,10 +15,12 @@ namespace SportHub.Services
     public class GeocodingService : IGeocodingService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string? _goongApiKey;
 
-        public GeocodingService(IHttpClientFactory httpClientFactory)
+        public GeocodingService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
+            _goongApiKey = configuration["Goong:ApiKey"];
         }
 
         public async Task<GeocodeResult?> ResolveAsync(string? address, CancellationToken cancellationToken = default)
@@ -45,16 +47,28 @@ namespace SportHub.Services
                     results.Add(item);
             }
 
-            var parsed = VietnameseAddressParser.TryParse(q);
-            if (parsed != null)
+            // Goong (primary — best accuracy for Vietnamese addresses)
+            if (!string.IsNullOrWhiteSpace(_goongApiKey) && _goongApiKey != "YOUR_GOONG_API_KEY_HERE")
             {
-                foreach (var item in await NominatimStructuredSearchAsync(parsed, limit, cancellationToken))
+                foreach (var item in await GoongGeocodeAsync(q, limit, cancellationToken))
                     Add(item);
             }
 
-            foreach (var item in await NominatimFreeTextSearchAsync(q, limit, cancellationToken))
-                Add(item);
+            // Nominatim fallback
+            if (results.Count < limit)
+            {
+                var parsed = VietnameseAddressParser.TryParse(q);
+                if (parsed != null)
+                {
+                    foreach (var item in await NominatimStructuredSearchAsync(parsed, limit, cancellationToken))
+                        Add(item);
+                }
 
+                foreach (var item in await NominatimFreeTextSearchAsync(q, limit, cancellationToken))
+                    Add(item);
+            }
+
+            // Photon last resort
             if (results.Count < limit)
             {
                 foreach (var item in await PhotonSearchAsync(q, limit, cancellationToken))
@@ -131,6 +145,55 @@ namespace SportHub.Services
                         ? BuildPhotonLabel(props)
                         : query;
                     list.Add(new GeocodeResult(lat, lon, name, "photon"));
+                }
+
+                return list;
+            }
+            catch
+            {
+                return Array.Empty<GeocodeResult>();
+            }
+        }
+
+        private async Task<IReadOnlyList<GeocodeResult>> GoongGeocodeAsync(
+            string query,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var url = $"https://rsapi.goong.io/geocode?address={Uri.EscapeDataString(query)}&api_key={_goongApiKey}";
+                var client = CreateClient();
+                var json = await client.GetStringAsync(url, cancellationToken);
+                using var doc = JsonDocument.Parse(json);
+
+                if (!doc.RootElement.TryGetProperty("status", out var status) ||
+                    status.GetString() != "OK")
+                    return Array.Empty<GeocodeResult>();
+
+                if (!doc.RootElement.TryGetProperty("results", out var results) ||
+                    results.ValueKind != JsonValueKind.Array)
+                    return Array.Empty<GeocodeResult>();
+
+                var list = new List<GeocodeResult>();
+                foreach (var el in results.EnumerateArray())
+                {
+                    if (!el.TryGetProperty("geometry", out var geom) ||
+                        !geom.TryGetProperty("location", out var loc))
+                        continue;
+
+                    if (!loc.TryGetProperty("lat", out var latEl) ||
+                        !loc.TryGetProperty("lng", out var lngEl))
+                        continue;
+
+                    var lat = latEl.GetDouble();
+                    var lon = lngEl.GetDouble();
+                    var displayName = el.TryGetProperty("formatted_address", out var fa)
+                        ? fa.GetString() ?? query
+                        : query;
+
+                    list.Add(new GeocodeResult(lat, lon, displayName, "goong"));
+                    if (list.Count >= limit) break;
                 }
 
                 return list;

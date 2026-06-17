@@ -1,0 +1,128 @@
+@page
+@model SportHub.Pages.Admin.MatchPaymentsModel
+@{
+    ViewData["Title"] = "Admin — Xác nhận thanh toán";
+    ViewData["AdminPage"] = "Payments";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white">Chờ xác nhận</h1>
+            <p class="text-sm text-slate-500 mt-1">Danh sách giao dịch đang chờ xác nhận biên lai</p>
+        </div>
+        <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-bold rounded-full">
+            @Model.Payments.Count chờ xác nhận
+        </span>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!Model.Payments.Any())
+    {
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-10 text-center">
+            <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">task_alt</span>
+            <p class="text-slate-500 font-semibold">Không có giao dịch nào đang chờ xác nhận.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var p in Model.Payments)
+            {
+                var typeColor = p.PaymentType switch
+                {
+                    "HostDeposit" => "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400",
+                    "PlayerFee" => "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400",
+                    "HostRemaining" => "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400",
+                    _ => "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                };
+                var typeLabel = p.PaymentType switch
+                {
+                    "HostDeposit" => "Đặt cọc host",
+                    "PlayerFee" => "Phí player",
+                    "HostRemaining" => "Phí còn lại",
+                    _ => p.PaymentType
+                };
+
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                    <div class="flex items-start gap-4">
+                        <!-- Payment info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-bold border @typeColor">@typeLabel</span>
+                                <span class="text-xs text-slate-400">#@p.PaymentId</span>
+                            </div>
+                            <p class="font-bold text-slate-900 dark:text-white">@p.MatchTitle</p>
+                            <p class="text-sm text-slate-500">Người thanh toán: <span class="font-semibold text-slate-700 dark:text-slate-300">@p.PayerName</span></p>
+                            <p class="text-sm text-slate-500 mt-1">
+                                Số tiền: <span class="font-bold text-primary">@p.Amount.ToString("N0") VND</span>
+                                <span class="ml-2 text-xs">• Gửi lúc @p.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                @if (p.ExpiresAt.HasValue)
+                                {
+                                    <span class="ml-2 text-xs text-amber-500">• Hạn @p.ExpiresAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                }
+                            </p>
+                        </div>
+
+                        <!-- Receipt preview -->
+                        @if (p.HasReceipt)
+                        {
+                            <a href="@p.ReceiptUrl" target="_blank"
+                               class="flex-shrink-0 block w-20 h-20 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-80 transition-opacity">
+                                @if (p.ReceiptUrl!.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center gap-1">
+                                        <span class="material-symbols-outlined text-2xl text-slate-400">picture_as_pdf</span>
+                                        <span class="text-xs text-slate-400">PDF</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="@p.ReceiptUrl" alt="Biên lai" class="w-full h-full object-cover" />
+                                }
+                            </a>
+                        }
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="mt-4 flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@p.MatchId"
+                           class="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-primary border border-slate-200 dark:border-slate-700 rounded-lg font-medium transition-colors">
+                            Xem trận
+                        </a>
+                        <div class="flex-1"></div>
+                        <form method="post" asp-page-handler="Reject">
+                            <input type="hidden" name="paymentId" value="@p.PaymentId" />
+                            <button type="submit"
+                                    class="px-4 py-1.5 text-sm bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-600 dark:text-slate-400 hover:text-rose-500 font-semibold rounded-lg transition-colors">
+                                Từ chối
+                            </button>
+                        </form>
+                        <form method="post" asp-page-handler="Confirm">
+                            <input type="hidden" name="paymentId" value="@p.PaymentId" />
+                            <button type="submit"
+                                    class="px-4 py-1.5 text-sm bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">check</span>
+                                Xác nhận
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
