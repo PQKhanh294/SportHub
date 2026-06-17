@@ -31,6 +31,7 @@ namespace SportHub.Data
         public DbSet<Match> Matches { get; set; } = null!;
         public DbSet<MatchParticipant> MatchParticipants { get; set; } = null!;
         public DbSet<MatchInteraction> MatchInteractions { get; set; } = null!;
+        public DbSet<MatchPayment> MatchPayments { get; set; } = null!;
 
         // Nhóm 5: Misc
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
@@ -68,6 +69,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Match>().ToTable("Matches");
             modelBuilder.Entity<MatchParticipant>().ToTable("MatchParticipants");
             modelBuilder.Entity<MatchInteraction>().ToTable("MatchInteractions");
+            modelBuilder.Entity<MatchPayment>().ToTable("MatchPayments");
             modelBuilder.Entity<Review>().ToTable("Reviews");
             modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
             modelBuilder.Entity<Notification>().ToTable("Notifications");
@@ -95,6 +97,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().HasKey(n => n.NotificationID);
             modelBuilder.Entity<UserBadge>().HasKey(b => b.BadgeID);
             modelBuilder.Entity<ChatBookingProposal>().HasKey(p => p.ProposalID);
+            modelBuilder.Entity<MatchPayment>().HasKey(mp => mp.MatchPaymentID);
 
             // Composite Key (N:N) - UserRole
             modelBuilder.Entity<UserRole>()
@@ -190,6 +193,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Booking>().Property(b => b.FinalAmount).HasPrecision(12, 2);
             modelBuilder.Entity<BookingSlot>().Property(bs => bs.UnitPrice).HasPrecision(12, 2);
             modelBuilder.Entity<Payment>().Property(p => p.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<MatchPayment>().Property(mp => mp.Amount).HasPrecision(12, 2);
             modelBuilder.Entity<ChatBookingProposal>().Property(p => p.EstimatedCost).HasPrecision(12, 2);
 
             // Check constraints quan trọng theo script SQL
@@ -219,13 +223,22 @@ namespace SportHub.Data
             modelBuilder.Entity<Match>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Matches_MatchType", "MatchType IN ('Singles','Doubles','Mixed')");
-                t.HasCheckConstraint("CK_Matches_Status", "Status IN ('Open','Full','InProgress','Completed','Cancelled')");
+                t.HasCheckConstraint("CK_Matches_Status", "Status IN ('Open','Full','InProgress','Completed','Cancelled','PendingDeposit')");
+                t.HasCheckConstraint("CK_Matches_DepositStatus", "DepositStatus IN ('NotPaid','Paid')");
+                t.HasCheckConstraint("CK_Matches_RemainingFeeStatus", "RemainingFeeStatus IN ('NotDue','Notified','Paid')");
             });
 
             modelBuilder.Entity<MatchParticipant>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_MatchParticipants_TeamSide", "TeamSide IS NULL OR TeamSide IN ('A','B')");
-                t.HasCheckConstraint("CK_MatchParticipants_JoinStatus", "JoinStatus IN ('Pending','Accepted','Declined','Cancelled')");
+                t.HasCheckConstraint("CK_MatchParticipants_JoinStatus", "JoinStatus IN ('Pending','Approved','Accepted','Declined','Cancelled')");
+                t.HasCheckConstraint("CK_MatchParticipants_PlayerFeeStatus", "PlayerFeeStatus IS NULL OR PlayerFeeStatus IN ('AwaitingPayment','Paid','Expired')");
+            });
+
+            modelBuilder.Entity<MatchPayment>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_MatchPayments_Type", "PaymentType IN ('HostDeposit','HostRemaining','PlayerFee')");
+                t.HasCheckConstraint("CK_MatchPayments_Status", "Status IN ('Pending','Confirmed','Expired','Refunded')");
             });
 
             modelBuilder.Entity<MatchInteraction>().ToTable(t =>
@@ -459,7 +472,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat')");
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed')");
             });
 
             modelBuilder.Entity<Notification>()
@@ -494,6 +507,23 @@ namespace SportHub.Data
                 .WithMany()
                 .HasForeignKey(p => p.CourtID)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // MatchPayment relations
+            modelBuilder.Entity<MatchPayment>()
+                .HasOne(mp => mp.Match)
+                .WithMany(m => m.MatchPayments)
+                .HasForeignKey(mp => mp.MatchID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MatchPayment>()
+                .HasOne(mp => mp.Payer)
+                .WithMany()
+                .HasForeignKey(mp => mp.PayerUserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<MatchPayment>()
+                .HasIndex(mp => new { mp.MatchID, mp.PaymentType, mp.Status });
+
         }
     }
 }

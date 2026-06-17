@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using SportHub.Data;
 using SportHub.Models.Entities;
+using SportHub.Services;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Pages.Matchmaking
@@ -16,12 +17,16 @@ namespace SportHub.Pages.Matchmaking
     public class CreateModel : PageModel
     {
         private readonly IMatchService _matchService;
+        private readonly IMatchPaymentService _matchPaymentService;
         private readonly ApplicationDbContext _context;
+        private readonly IGeocodingService _geocodingService;
 
-        public CreateModel(IMatchService matchService, ApplicationDbContext context)
+        public CreateModel(IMatchService matchService, IMatchPaymentService matchPaymentService, ApplicationDbContext context, IGeocodingService geocodingService)
         {
             _matchService = matchService;
+            _matchPaymentService = matchPaymentService;
             _context = context;
+            _geocodingService = geocodingService;
         }
 
         [BindProperty]
@@ -147,6 +152,21 @@ namespace SportHub.Pages.Matchmaking
                 return Page();
             }
 
+            // Sanitize coordinates — invalid values (e.g. browser autofill) crash decimal(10,8)/(11,8) columns
+            if (Input.Latitude is < -90 or > 90) Input.Latitude = null;
+            if (Input.Longitude is < -180 or > 180) Input.Longitude = null;
+
+            // Server-side geocoding fallback: if JS didn't capture coords before submit, geocode the address now
+            if ((Input.Latitude == null || Input.Longitude == null) && !string.IsNullOrWhiteSpace(Input.CourtAddress))
+            {
+                var geo = await _geocodingService.ResolveAsync(Input.CourtAddress);
+                if (geo != null)
+                {
+                    Input.Latitude  = (decimal)geo.Lat;
+                    Input.Longitude = (decimal)geo.Lon;
+                }
+            }
+
             var userId = GetCurrentUserId();
             if (userId <= 0)
             {
@@ -174,8 +194,9 @@ namespace SportHub.Pages.Matchmaking
             };
 
             var matchId = await _matchService.CreateMatchAsync(match, userId);
-            TempData["SuccessMessage"] = "Match created successfully.";
-            return RedirectToPage("/Matchmaking/Details", new { id = matchId });
+            await _matchPaymentService.CreateHostDepositAsync(matchId, userId);
+            TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} VND để đăng trận.";
+            return RedirectToPage("/Matchmaking/Payment", new { matchId, type = "deposit" });
         }
 
         private async Task LoadSelectionsAsync()

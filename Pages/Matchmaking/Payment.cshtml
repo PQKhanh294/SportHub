@@ -1,0 +1,180 @@
+@page
+@model SportHub.Pages.Matchmaking.PaymentModel
+@{
+    ViewData["Title"] = "Thanh toán";
+    var item = Model.Item;
+}
+
+@if (item == null)
+{
+    <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
+        <p class="text-slate-500">Không tìm thấy thông tin thanh toán.</p>
+        <a asp-page="/Matchmaking/Index" class="mt-4 inline-block text-primary font-bold hover:underline">← Quay lại</a>
+    </section>
+}
+else
+{
+<div class="max-w-lg mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">payments</span>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider">@item.TypeLabel</p>
+                <h1 class="text-xl font-black text-slate-900 dark:text-white">@item.MatchTitle</h1>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+            <span class="text-slate-600 dark:text-slate-300 font-medium">Số tiền cần chuyển</span>
+            <span class="text-2xl font-black text-primary">@item.Amount.ToString("N0") VND</span>
+        </div>
+
+        @if (item.Deadline.HasValue)
+        {
+            var deadline = item.Deadline.Value.ToLocalTime();
+            var remaining = deadline - DateTime.Now;
+            var urgent = remaining.TotalMinutes < 15;
+            <div class="mt-3 flex items-center gap-2 p-3 rounded-lg @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800")">
+                <span class="material-symbols-outlined text-sm @(urgent ? "text-rose-500" : "text-amber-500")">timer</span>
+                <span class="text-sm @(urgent ? "text-rose-700 dark:text-rose-400" : "text-amber-700 dark:text-amber-400") font-medium">
+                    Hạn thanh toán: @deadline.ToString("HH:mm dd/MM/yyyy")
+                    @if (remaining.TotalMinutes > 0)
+                    {
+                        <span class="font-bold"> (còn @((int)remaining.TotalMinutes) phút)</span>
+                    }
+                    else
+                    {
+                        <span class="font-bold text-rose-600"> (đã hết hạn)</span>
+                    }
+                </span>
+            </div>
+        }
+    </div>
+
+    <!-- QR Code -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm text-center">
+        <h2 class="font-bold text-lg mb-4 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-primary">qr_code_2</span>
+            Quét mã QR để chuyển khoản
+        </h2>
+
+        <div class="flex justify-center mb-4">
+            <div class="p-3 bg-white rounded-2xl shadow-md border border-slate-100">
+                <img src="@item.QrUrl"
+                     alt="VietQR"
+                     class="w-52 h-52 object-contain"
+                     onerror="this.style.display='none';document.getElementById('qr-fallback').style.display='flex'" />
+                <div id="qr-fallback" class="w-52 h-52 hidden flex-col items-center justify-center text-slate-400 text-sm gap-2">
+                    <span class="material-symbols-outlined text-4xl">qr_code</span>
+                    <span>Không tải được mã QR</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-2 text-sm">
+            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <span class="text-slate-500">Ngân hàng</span>
+                <span class="font-bold text-slate-900 dark:text-white">@item.BankId (Vietcombank)</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <span class="text-slate-500">Số tài khoản</span>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold font-mono text-slate-900 dark:text-white" id="accountNo">@item.AccountNumber</span>
+                    <button onclick="copyAccountNo()" class="text-primary hover:text-primary/80">
+                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <span class="text-slate-500">Tên tài khoản</span>
+                <span class="font-bold text-slate-900 dark:text-white">@item.AccountName</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <span class="text-slate-500">Số tiền</span>
+                <span class="font-bold text-primary">@item.Amount.ToString("N0") VND</span>
+            </div>
+        </div>
+
+        <p class="mt-4 text-xs text-slate-400">
+            Sau khi chuyển khoản, tải biên lai lên bên dưới để hệ thống xác nhận.
+        </p>
+    </div>
+
+    <!-- Upload Receipt -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+        <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">upload_file</span>
+            Tải lên biên lai chuyển khoản
+        </h2>
+
+        @if (item.AlreadySubmitted)
+        {
+            <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-500">check_circle</span>
+                <div class="flex-1">
+                    <p class="font-bold text-emerald-700 dark:text-emerald-400">Biên lai đã được tải lên</p>
+                    <p class="text-xs text-emerald-600">Đang chờ admin xác nhận. Bạn có thể cập nhật biên lai nếu cần.</p>
+                </div>
+                <a href="@item.ExistingReceiptUrl" target="_blank"
+                   class="text-xs text-primary hover:underline font-medium">Xem biên lai</a>
+            </div>
+        }
+
+        <form method="post" asp-page-handler="UploadReceipt" enctype="multipart/form-data">
+            <input type="hidden" name="matchId" value="@item.MatchId" />
+            <input type="hidden" name="type" value="@item.PaymentType" />
+
+            <div id="drop-zone"
+                 class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                 onclick="document.getElementById('receiptFile').click()">
+                <span class="material-symbols-outlined text-4xl text-slate-300 mb-2 block">add_photo_alternate</span>
+                <p class="font-semibold text-slate-600 dark:text-slate-300">Nhấn để chọn biên lai</p>
+                <p class="text-xs text-slate-400 mt-1">JPG, PNG, WebP hoặc PDF — tối đa 5MB</p>
+                <p id="file-chosen" class="text-sm text-primary font-medium mt-2 hidden"></p>
+            </div>
+            <input type="file" id="receiptFile" name="receipt"
+                   accept=".jpg,.jpeg,.png,.webp,.pdf"
+                   class="hidden"
+                   onchange="onFileChosen(this)" />
+
+            <button type="submit"
+                    class="mt-4 w-full py-3 px-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">send</span>
+                @(item.AlreadySubmitted ? "Cập nhật biên lai" : "Gửi biên lai")
+            </button>
+        </form>
+    </div>
+
+    <!-- Back link -->
+    <a asp-page="/Matchmaking/Details" asp-route-id="@item.MatchId"
+       class="w-full py-2 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        Quay lại chi tiết trận
+    </a>
+
+</div>
+}
+
+@section Scripts {
+    <script>
+        function onFileChosen(input) {
+            const label = document.getElementById('file-chosen');
+            if (input.files && input.files[0]) {
+                label.textContent = input.files[0].name;
+                label.classList.remove('hidden');
+            }
+        }
+        function copyAccountNo() {
+            const text = document.getElementById('accountNo').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.currentTarget;
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm text-emerald-500">check</span>';
+                setTimeout(() => btn.innerHTML = '<span class="material-symbols-outlined text-sm">content_copy</span>', 1500);
+            });
+        }
+    </script>
+}

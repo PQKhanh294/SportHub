@@ -27,7 +27,13 @@
 
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Mật khẩu</label>
-                    <input asp-for="Input.Password" type="password" class="w-full h-12 px-4 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nhập mật khẩu của bạn" />
+                    <div class="relative">
+                        <input asp-for="Input.Password" id="passwordInput" type="password" class="w-full h-12 px-4 pr-12 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nhập mật khẩu của bạn" />
+                        <button type="button" onclick="togglePassword()"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span id="eyeIcon" class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
                     <span asp-validation-for="Input.Password" class="text-xs text-red-500"></span>
                 </div>
 
@@ -41,3 +47,15 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        }
+    </script>
+}

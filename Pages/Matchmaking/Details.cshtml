@@ -197,8 +197,71 @@ else
                     <span class="material-symbols-outlined text-amber-500">hourglass_top</span>
                     <div>
                         <p class="font-bold text-amber-700 dark:text-amber-400">Đang chờ duyệt</p>
-                        <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ duyệt trong 2 giờ. Quá hạn yêu cầu tự hủy.</p>
+                        <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ duyệt trong 1 giờ. Quá hạn yêu cầu tự hủy.</p>
                     </div>
+                </div>
+            }
+            else if (item.IsApproved)
+            {
+                var feeDeadline = item.PlayerFeeDeadline?.ToLocalTime();
+                var minsLeft = feeDeadline.HasValue ? (int)(feeDeadline.Value - DateTime.Now).TotalMinutes : 0;
+                var urgent = minsLeft < 15 && minsLeft >= 0;
+                <div class="mb-5 p-4 @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800") rounded-xl">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined @(urgent ? "text-rose-500" : "text-amber-500")">payment</span>
+                        <div>
+                            <p class="font-bold @(urgent ? "text-rose-700 dark:text-rose-400" : "text-amber-700 dark:text-amber-400")">Được duyệt — Chờ thanh toán</p>
+                            <p class="text-xs @(urgent ? "text-rose-600 dark:text-rose-500" : "text-amber-600 dark:text-amber-500")">
+                                Thanh toán 5,000 VND trước
+                                @(feeDeadline.HasValue ? feeDeadline.Value.ToString("HH:mm dd/MM") : "hết hạn")
+                                @if (minsLeft > 0) { <span class="font-bold"> (còn @minsLeft phút)</span> }
+                                else { <span class="font-bold text-rose-600"> (đã hết hạn)</span> }
+                            </p>
+                        </div>
+                    </div>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="playerfee"
+                       class="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Thanh toán 5,000 VND ngay
+                    </a>
+                </div>
+            }
+
+            <!-- Host deposit prompt -->
+            @if (item.ShowHostDepositPrompt)
+            {
+                <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-amber-500">lock</span>
+                        <p class="font-bold text-amber-700 dark:text-amber-400">Trận chưa được đăng</p>
+                    </div>
+                    <p class="text-xs text-amber-600 dark:text-amber-500 mb-3">
+                        Đặt cọc <span class="font-bold">@item.HostDepositAmount.ToString("N0") VND</span> để trận được đăng công khai.
+                    </p>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="deposit"
+                       class="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Đặt cọc ngay
+                    </a>
+                </div>
+            }
+
+            <!-- Host remaining fee prompt -->
+            @if (item.ShowRemainingFeePrompt)
+            {
+                <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-300 dark:border-rose-700 rounded-xl">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-rose-500">payments</span>
+                        <p class="font-bold text-rose-700 dark:text-rose-400">Trận đã bắt đầu</p>
+                    </div>
+                    <p class="text-xs text-rose-600 dark:text-rose-500 mb-3">
+                        Hoàn thành phí dịch vụ còn lại <span class="font-bold">@item.RemainingFeeAmount.ToString("N0") VND</span>.
+                    </p>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="remaining"
+                       class="w-full py-2.5 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Thanh toán phí còn lại
+                    </a>
                 </div>
             }
 
@@ -214,7 +277,7 @@ else
                     </button>
                     <p class="text-xs text-slate-500 text-center mt-2">
                         <span class="material-symbols-outlined text-xs align-middle">info</span>
-                        Host duyệt xong bạn mới vào trận. Yêu cầu hết hạn sau 2 giờ nếu chưa duyệt.
+                        Host duyệt xong bạn mới vào trận. Yêu cầu hết hạn sau 1 giờ nếu chưa duyệt.
                     </p>
                 </form>
             }

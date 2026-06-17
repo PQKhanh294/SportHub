@@ -135,10 +135,10 @@
 
             <!-- Logo -->
             <div class="flex items-center gap-2">
-                <div class="text-primary">
-                    <span class="material-symbols-outlined text-3xl">sports_tennis</span>
-                </div>
-                <a asp-page="/Index" class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sport Hub</a>
+                <a asp-page="/Index" class="flex items-center gap-2">
+                    <img src="/images/logo sporthub.png" alt="Sport Hub" class="h-9 w-9 object-contain" />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sport Hub</span>
+                </a>
             </div>
 
             <!-- Navigation Links (Desktop) -->
@@ -163,6 +163,14 @@
                    class="@(ViewData["ActivePage"]?.ToString() == "Settings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
                     @navSettings
                 </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-page="/Admin/Index"
+                       class="@(ViewData["ActivePage"]?.ToString() == "Admin" ? "text-amber-600 font-semibold border-b-2 border-amber-500 pb-1" : "text-amber-600 dark:text-amber-400 hover:text-amber-700") text-sm font-medium transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+                        Admin
+                    </a>
+                }
             </nav>
 
             <!-- User Actions -->
@@ -252,6 +260,13 @@
                 }
                 <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navProfile</a>
                 <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navSettings</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-page="/Admin/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+                        Admin
+                    </a>
+                }
             </nav>
         </div>
 
@@ -291,9 +306,7 @@
 
             <!-- Logo -->
             <div class="flex items-center gap-2">
-                <div class="text-primary">
-                    <span class="material-symbols-outlined text-3xl">sports_tennis</span>
-                </div>
+                <img src="/images/logo sporthub.png" alt="Sport Hub" class="h-9 w-9 object-contain" />
                 <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sport Hub</span>
             </div>
 
