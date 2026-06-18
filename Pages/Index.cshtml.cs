@@ -11,6 +11,7 @@ namespace SportHub.Pages
         private readonly IMatchService _matchService;
         private readonly IUserService _userService;
         private readonly ICourtService _courtService;
+        private readonly IMatchReviewService _reviewService;
 
         public List<MatchCardViewModel> RecommendedMatches { get; set; } = new();
         public List<PlayerCardViewModel> SuggestedPlayers { get; set; } = new();
@@ -20,12 +21,14 @@ namespace SportHub.Pages
             ILogger<IndexModel> logger,
             IMatchService matchService,
             IUserService userService,
-            ICourtService courtService)
+            ICourtService courtService,
+            IMatchReviewService reviewService)
         {
             _logger = logger;
             _matchService = matchService;
             _userService = userService;
             _courtService = courtService;
+            _reviewService = reviewService;
         }
 
         public async Task OnGetAsync()
@@ -42,6 +45,8 @@ namespace SportHub.Pages
         private async Task LoadRecommendedMatchesAsync()
         {
             var matches = await _matchService.GetRecommendedMatchesAsync(6);
+            var hostIds = matches.Select(m => m.CreatedByUserID).Distinct();
+            var ratings = await _reviewService.GetBatchHostRatingsAsync(hostIds);
 
             RecommendedMatches = matches.Select(m => new MatchCardViewModel
             {
@@ -65,7 +70,10 @@ namespace SportHub.Pages
                         ? "https://lh3.googleusercontent.com/aida-public/AB6AXuBJltQB4lJgS6elN1iftfCyl_n5HBEP0j_xJkKu8o8SUu28nW-ZpKxhvmTE5KvRTwL06e1t1hYxppuU14VoLYRyrB7-Khb8Iy7AVm4zWPRFRqv9uusxNIXrIciMsOBnbaRk3XB3t4g7Jb1THJtTTp_I1VcyPYXo_gHWpr-tj95_hcTr9OHAD7S1w26jBmsoEijoqrSvhaA_0uXVETsD7iDV2UWhjKppEjq0kQ89mvU1yke0NQsJMfzIqwDtzzd2xjTr0n_GHfwCkeE"
                         : p.User.AvatarUrl!)
                     .Take(4)
-                    .ToList()
+                    .ToList(),
+                HostId = m.CreatedByUserID,
+                HostRatingAvg = ratings.ContainsKey(m.CreatedByUserID) ? ratings[m.CreatedByUserID].Avg : null,
+                HostRatingCount = ratings.ContainsKey(m.CreatedByUserID) ? ratings[m.CreatedByUserID].Count : 0
             }).ToList();
         }
 

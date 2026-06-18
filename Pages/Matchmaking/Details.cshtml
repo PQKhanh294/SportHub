@@ -375,6 +375,108 @@ else
     </script>
 }
 
+@if (item != null)
+{
+    <!-- Review section -->
+    <div class="lg:col-span-12 mt-2">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400">star</span>
+                        Đánh giá trận đấu
+                    </h2>
+                    @if (Model.HostRating != null && Model.HostRating.HasEnoughReviews)
+                    {
+                        <p class="text-sm text-slate-500 mt-0.5">
+                            Host <span class="font-semibold text-slate-700 dark:text-slate-300">@item.HostName</span>
+                            đạt <span class="font-bold text-amber-500">⭐ @Model.HostRating.OverallAverage.ToString("F1")</span>
+                            <span class="text-xs">(@Model.HostRating.ReviewCount đánh giá)</span>
+                        </p>
+                    }
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    @if (Model.CanReviewAsPlayer)
+                    {
+                        <a asp-page="/Matchmaking/Review" asp-route-matchId="@item.MatchId" asp-route-mode="player"
+                           class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold rounded-xl text-sm flex items-center gap-1 transition-colors">
+                            <span class="material-symbols-outlined text-sm">star_rate</span>
+                            Đánh giá trận này
+                        </a>
+                    }
+                    @if (Model.CanReviewAsHost)
+                    {
+                        <a asp-page="/Matchmaking/Review" asp-route-matchId="@item.MatchId" asp-route-mode="host"
+                           class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-sm flex items-center gap-1 transition-colors">
+                            <span class="material-symbols-outlined text-sm">rate_review</span>
+                            Đánh giá người chơi
+                        </a>
+                    }
+                </div>
+            </div>
+
+            @if (!Model.PublicReviews.Any())
+            {
+                <p class="text-sm text-slate-400 text-center py-4">Chưa có đánh giá nào cho trận này.</p>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    @foreach (var review in Model.PublicReviews)
+                    {
+                        <div class="flex gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                            <img src="@(review.ReviewerAvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(review.ReviewerName)}&background=E2E8F0&color=1E293B&size=64")"
+                                 alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
+                                    <span class="text-xs text-slate-400">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <!-- Stars display -->
+                                <div class="flex items-center gap-0.5 mb-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-base @(i <= (int)Math.Round(review.AverageScore) ? "text-amber-400" : "text-slate-300")"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    }
+                                    <span class="text-xs font-bold text-amber-500 ml-1">@review.AverageScore.ToString("F1")</span>
+                                </div>
+                                <!-- Criteria breakdown -->
+                                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mb-2">
+                                    @if (review.ScoreOrganization.HasValue)
+                                    {
+                                        <span>Tổ chức: <span class="font-semibold text-slate-700 dark:text-slate-300">@review.ScoreOrganization/5</span></span>
+                                    }
+                                    @if (review.ScoreEquipment.HasValue)
+                                    {
+                                        <span>Thiết bị: <span class="font-semibold text-slate-700 dark:text-slate-300">@review.ScoreEquipment/5</span></span>
+                                    }
+                                    @if (review.ScoreAtmosphere.HasValue)
+                                    {
+                                        <span>Không khí: <span class="font-semibold text-slate-700 dark:text-slate-300">@review.ScoreAtmosphere/5</span></span>
+                                    }
+                                    @if (review.ScoreHost.HasValue)
+                                    {
+                                        <span>Host: <span class="font-semibold text-slate-700 dark:text-slate-300">@review.ScoreHost/5</span></span>
+                                    }
+                                    @if (review.ScoreValueForMoney.HasValue)
+                                    {
+                                        <span>Giá trị: <span class="font-semibold text-slate-700 dark:text-slate-300">@review.ScoreValueForMoney/5</span></span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                {
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">@review.Comment</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
 @if (item != null && item.Latitude.HasValue && item.Longitude.HasValue)
 {
     @section Scripts {

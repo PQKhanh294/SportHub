@@ -1,5 +1,52 @@
 namespace SportHub.Models.Entities
 {
+    public class MatchReview
+    {
+        public int MatchReviewID { get; set; }
+
+        public int MatchID { get; set; }
+        public Match Match { get; set; } = null!;
+
+        public int ReviewerUserID { get; set; }
+        public User ReviewerUser { get; set; } = null!;
+
+        // For PlayerToMatch: reviewed = host. For HostToPlayer: reviewed = specific player
+        public int ReviewedUserID { get; set; }
+        public User ReviewedUser { get; set; } = null!;
+
+        // "PlayerToMatch" or "HostToPlayer"
+        public string ReviewType { get; set; } = string.Empty;
+
+        // Player → Match criteria (1-5, used when ReviewType = "PlayerToMatch")
+        public byte? ScoreOrganization { get; set; }
+        public byte? ScoreEquipment { get; set; }
+        public byte? ScoreAtmosphere { get; set; }
+        public byte? ScoreHost { get; set; }
+        public byte? ScoreValueForMoney { get; set; }
+
+        // Host → Player criteria (1-5, used when ReviewType = "HostToPlayer")
+        public byte? ScorePunctuality { get; set; }
+        public byte? ScoreSportsmanship { get; set; }
+        public byte? ScoreSkillAccuracy { get; set; }
+
+        public string? Comment { get; set; }
+        public bool IsVisible { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public decimal AverageScore
+        {
+            get
+            {
+                IEnumerable<byte?> raw = ReviewType == "PlayerToMatch"
+                    ? new[] { ScoreOrganization, ScoreEquipment, ScoreAtmosphere, ScoreHost, ScoreValueForMoney }
+                    : new[] { ScorePunctuality, ScoreSportsmanship, ScoreSkillAccuracy };
+                var scores = raw.Where(s => s.HasValue).Select(s => (decimal)s!.Value).ToList();
+                return scores.Count == 0 ? 0m : scores.Average();
+            }
+        }
+    }
+
+
     public class Match
     {
         public int MatchID { get; set; }
@@ -44,6 +91,7 @@ namespace SportHub.Models.Entities
 
         public ICollection<MatchParticipant> Participants { get; set; } = new List<MatchParticipant>();
         public ICollection<MatchPayment> MatchPayments { get; set; } = new List<MatchPayment>();
+        public ICollection<MatchReview> Reviews { get; set; } = new List<MatchReview>();
     }
 
     public class MatchParticipant

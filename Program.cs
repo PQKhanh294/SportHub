@@ -45,6 +45,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.INotificationService, SportHub.Services.Implementations.NotificationService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IMatchPaymentService, SportHub.Services.Implementations.MatchPaymentService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IMatchReviewService, SportHub.Services.Implementations.MatchReviewService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 
 var app = builder.Build();

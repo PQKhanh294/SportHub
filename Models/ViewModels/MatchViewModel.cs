@@ -36,6 +36,12 @@ namespace SportHub.Models.ViewModels
         public string Status { get; set; } = "Open";
         public bool IsOpen => Status == "Open" && SlotsLeft > 0;
 
+        // Host rating (from PlayerToMatch reviews)
+        public decimal? HostRatingAvg { get; set; }
+        public int HostRatingCount { get; set; }
+        public bool ShowHostRating => HostRatingCount >= 3 && HostRatingAvg.HasValue;
+        public int HostId { get; set; }
+
         // Badge màu theo category
         public string BadgeCssClass => MatchCategory switch
         {

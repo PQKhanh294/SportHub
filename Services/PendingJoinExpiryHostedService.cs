@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SportHub.Data;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Services
@@ -7,6 +9,7 @@ namespace SportHub.Services
     /// 1. Hủy yêu cầu Pending quá 1 giờ chưa được host duyệt
     /// 2. Hủy chỗ Approved quá hạn 1 giờ chưa thanh toán phí 5K
     /// 3. Thông báo host hoàn thành 50% phí còn lại khi trận bắt đầu
+    /// 4. Tự động chuyển trận sang Completed khi đã qua giờ kết thúc + gửi nhắc đánh giá
     /// </summary>
     public class PendingJoinExpiryHostedService : BackgroundService
     {
@@ -22,6 +25,58 @@ namespace SportHub.Services
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+        }
+
+        private async Task AutoCompleteMatchesAsync(IServiceScope scope, INotificationService notificationService, CancellationToken ct)
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var nowUtc = DateTime.UtcNow;
+            // Vietnam is UTC+7; match end time stored as local time, so we compare with nowUtc + 7h
+            var nowLocal = nowUtc.AddHours(7);
+            var todayDate = DateOnly.FromDateTime(nowLocal);
+
+            var endedMatches = await db.Matches
+                .Include(m => m.Participants)
+                .Where(m => (m.Status == "Open" || m.Status == "Full" || m.Status == "InProgress")
+                    && (m.MatchDate < todayDate.ToDateTime(TimeOnly.MinValue)
+                        || (m.MatchDate == todayDate.ToDateTime(TimeOnly.MinValue) && m.EndTime <= nowLocal.TimeOfDay)))
+                .ToListAsync(ct);
+
+            foreach (var match in endedMatches)
+            {
+                match.Status = "Completed";
+
+                var acceptedPlayers = match.Participants.Where(p => p.JoinStatus == "Accepted").ToList();
+                var matchTitle = match.Title ?? match.MatchType;
+
+                // Notify host to rate players
+                if (acceptedPlayers.Count > 0)
+                {
+                    await notificationService.CreateAsync(
+                        match.CreatedByUserID,
+                        "MatchReviewReminder",
+                        "Trận đã kết thúc — Đánh giá người chơi",
+                        $"Trận \"{matchTitle}\" đã kết thúc. Hãy đánh giá {acceptedPlayers.Count} người chơi trong vòng 7 ngày.",
+                        $"/Matchmaking/Review?matchId={match.MatchID}&mode=host");
+                }
+
+                // Notify accepted players to rate the match
+                foreach (var participant in acceptedPlayers)
+                {
+                    await notificationService.CreateAsync(
+                        participant.UserID,
+                        "MatchReviewReminder",
+                        "Trận đã kết thúc — Chia sẻ đánh giá",
+                        $"Trận \"{matchTitle}\" đã kết thúc. Hãy chia sẻ đánh giá trong vòng 7 ngày!",
+                        $"/Matchmaking/Review?matchId={match.MatchID}&mode=player");
+                }
+            }
+
+            if (endedMatches.Count > 0)
+            {
+                await db.SaveChangesAsync(ct);
+                _logger.LogInformation("Auto-completed {Count} match(es) and sent review reminders.", endedMatches.Count);
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -79,6 +134,9 @@ namespace SportHub.Services
                     }
                     if (remainingFeeMatches.Count > 0)
                         _logger.LogInformation("Sent {Count} remaining fee notification(s).", remainingFeeMatches.Count);
+
+                    // 4. Auto-complete matches that have ended + send review reminders
+                    await AutoCompleteMatchesAsync(scope, notificationService, stoppingToken);
                 }
                 catch (Exception ex)
                 {

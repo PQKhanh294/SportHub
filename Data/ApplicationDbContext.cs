@@ -32,6 +32,7 @@ namespace SportHub.Data
         public DbSet<MatchParticipant> MatchParticipants { get; set; } = null!;
         public DbSet<MatchInteraction> MatchInteractions { get; set; } = null!;
         public DbSet<MatchPayment> MatchPayments { get; set; } = null!;
+        public DbSet<MatchReview> MatchReviews { get; set; } = null!;
 
         // Nhóm 5: Misc
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
@@ -70,6 +71,7 @@ namespace SportHub.Data
             modelBuilder.Entity<MatchParticipant>().ToTable("MatchParticipants");
             modelBuilder.Entity<MatchInteraction>().ToTable("MatchInteractions");
             modelBuilder.Entity<MatchPayment>().ToTable("MatchPayments");
+            modelBuilder.Entity<MatchReview>().ToTable("MatchReviews");
             modelBuilder.Entity<Review>().ToTable("Reviews");
             modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
             modelBuilder.Entity<Notification>().ToTable("Notifications");
@@ -98,6 +100,7 @@ namespace SportHub.Data
             modelBuilder.Entity<UserBadge>().HasKey(b => b.BadgeID);
             modelBuilder.Entity<ChatBookingProposal>().HasKey(p => p.ProposalID);
             modelBuilder.Entity<MatchPayment>().HasKey(mp => mp.MatchPaymentID);
+            modelBuilder.Entity<MatchReview>().HasKey(mr => mr.MatchReviewID);
 
             // Composite Key (N:N) - UserRole
             modelBuilder.Entity<UserRole>()
@@ -469,12 +472,6 @@ namespace SportHub.Data
                 .HasForeignKey(n => n.UserID)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Notification>().ToTable(t =>
-            {
-                t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed')");
-            });
-
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => new { n.UserID, n.IsRead });
 
@@ -523,6 +520,49 @@ namespace SportHub.Data
 
             modelBuilder.Entity<MatchPayment>()
                 .HasIndex(mp => new { mp.MatchID, mp.PaymentType, mp.Status });
+
+            // MatchReview relations
+            modelBuilder.Entity<MatchReview>()
+                .HasOne(mr => mr.Match)
+                .WithMany(m => m.Reviews)
+                .HasForeignKey(mr => mr.MatchID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MatchReview>()
+                .HasOne(mr => mr.ReviewerUser)
+                .WithMany()
+                .HasForeignKey(mr => mr.ReviewerUserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<MatchReview>()
+                .HasOne(mr => mr.ReviewedUser)
+                .WithMany()
+                .HasForeignKey(mr => mr.ReviewedUserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<MatchReview>()
+                .HasIndex(mr => new { mr.MatchID, mr.ReviewerUserID, mr.ReviewedUserID, mr.ReviewType })
+                .IsUnique();
+
+            modelBuilder.Entity<MatchReview>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_MatchReviews_Type", "ReviewType IN ('PlayerToMatch','HostToPlayer')");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreOrg",   "ScoreOrganization  IS NULL OR ScoreOrganization  BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreEquip", "ScoreEquipment     IS NULL OR ScoreEquipment     BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreAtmos", "ScoreAtmosphere    IS NULL OR ScoreAtmosphere    BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreHost",  "ScoreHost          IS NULL OR ScoreHost          BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreValue", "ScoreValueForMoney IS NULL OR ScoreValueForMoney BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScorePunct", "ScorePunctuality   IS NULL OR ScorePunctuality   BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreSport", "ScoreSportsmanship IS NULL OR ScoreSportsmanship BETWEEN 1 AND 5");
+                t.HasCheckConstraint("CK_MatchReviews_ScoreSkill", "ScoreSkillAccuracy IS NULL OR ScoreSkillAccuracy BETWEEN 1 AND 5");
+            });
+
+            // Notification type update: add MatchReviewReminder
+            modelBuilder.Entity<Notification>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Notifications_Type",
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder')");
+            });
 
         }
     }

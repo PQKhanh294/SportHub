@@ -15,17 +15,22 @@ namespace SportHub.Pages.Profile
         private readonly IUserService _userService;
         private readonly ApplicationDbContext _context;
         private readonly IBadgeService _badgeService;
+        private readonly IMatchReviewService _reviewService;
 
-        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService)
+        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService)
         {
             _userService = userService;
             _context = context;
             _badgeService = badgeService;
+            _reviewService = reviewService;
         }
 
         public ProfileViewModel Profile { get; set; } = new();
         public List<UserSportProfileItem> SportProfiles { get; set; } = new();
         public List<BadgeProgressItem> Badges { get; set; } = new();
+        public UserRatingSummary HostRatingSummary { get; set; } = new();
+        public UserRatingSummary PlayerRatingSummary { get; set; } = new();
+        public List<MatchReviewHistoryItem> ReceivedReviews { get; set; } = new();
 
         public class UserSportProfileItem
         {
@@ -93,6 +98,10 @@ namespace SportHub.Pages.Profile
 
             await _badgeService.SyncEarnedBadgesAsync(userId);
             Badges = await _badgeService.GetBadgeProgressAsync(userId);
+
+            HostRatingSummary = await _reviewService.GetHostRatingSummaryAsync(userId);
+            PlayerRatingSummary = await _reviewService.GetPlayerRatingSummaryAsync(userId);
+            ReceivedReviews = await _reviewService.GetReceivedReviewsAsync(userId);
 
             return Page();
         }
