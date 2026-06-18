@@ -27,7 +27,8 @@ namespace SportHub.Services.Implementations
                 BuildBadge("reliable-teammate", "Reliable Teammate", "Giữ lịch hẹn tốt, ít hủy/no-show.", "verified", stats.ReliabilityScore, new[] { 80, 90, 95 }, earned),
                 BuildBadge("friendly-host", "Friendly Host", "Tạo trận và kéo được người chơi tham gia.", "diversity_3", stats.HostedMatchesWithPlayers, new[] { 3, 10, 25 }, earned),
                 BuildBadge("quick-responder", "Quick Responder", "Xử lý yêu cầu tham gia thay vì để chờ.", "bolt", stats.HandledJoinRequests, new[] { 5, 20, 50 }, earned),
-                BuildBadge("community-builder", "Community Builder", "Đã chơi cùng nhiều người khác nhau.", "groups", stats.UniquePartners, new[] { 5, 15, 40 }, earned)
+                BuildBadge("community-builder", "Community Builder", "Đã chơi cùng nhiều người khác nhau.", "groups", stats.UniquePartners, new[] { 5, 15, 40 }, earned),
+                BuildBadge("top-rated-host", "Top Rated Host", "Nhận đánh giá cao (≥4.0 sao) từ người chơi.", "star_rate", stats.HighRatingReviews, new[] { 5, 10, 20 }, earned)
             };
 
             return badges;
@@ -144,7 +145,13 @@ namespace SportHub.Services.Implementations
                     .Distinct()
                     .CountAsync();
 
-            return new UserBadgeStats(morningMatches, reliabilityScore, hostedMatchesWithPlayers, handledJoinRequests, uniquePartners);
+            // High-rating reviews: PlayerToMatch reviews where average >= 4.0
+            var hostReviews = await _context.MatchReviews
+                .Where(r => r.ReviewedUserID == userId && r.ReviewType == "PlayerToMatch" && r.IsVisible)
+                .ToListAsync();
+            var highRatingReviews = hostReviews.Count(r => r.AverageScore >= 4.0m);
+
+            return new UserBadgeStats(morningMatches, reliabilityScore, hostedMatchesWithPlayers, handledJoinRequests, uniquePartners, highRatingReviews);
         }
 
         private record UserBadgeStats(
@@ -152,6 +159,7 @@ namespace SportHub.Services.Implementations
             int ReliabilityScore,
             int HostedMatchesWithPlayers,
             int HandledJoinRequests,
-            int UniquePartners);
+            int UniquePartners,
+            int HighRatingReviews);
     }
 }

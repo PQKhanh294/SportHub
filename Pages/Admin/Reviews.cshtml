@@ -1,0 +1,129 @@
+@page
+@model SportHub.Pages.Admin.ReviewsModel
+@{
+    ViewData["Title"] = "Admin — Quản lý đánh giá";
+    ViewData["AdminPage"] = "Reviews";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white">Đánh giá người dùng</h1>
+            <p class="text-sm text-slate-500 mt-1">Tổng: @Model.Reviews.Count đánh giá</p>
+        </div>
+        <div class="flex gap-2">
+            <a asp-page="/Admin/Reviews" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 @(string.IsNullOrEmpty(Model.FilterType) ? "bg-primary text-white" : "text-slate-600 dark:text-slate-400")">Tất cả</a>
+            <a asp-page="/Admin/Reviews" asp-route-filterType="PlayerToMatch" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 @(Model.FilterType == "PlayerToMatch" ? "bg-primary text-white" : "text-slate-600 dark:text-slate-400")">Player → Host</a>
+            <a asp-page="/Admin/Reviews" asp-route-filterType="HostToPlayer" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 @(Model.FilterType == "HostToPlayer" ? "bg-primary text-white" : "text-slate-600 dark:text-slate-400")">Host → Player</a>
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (!Model.Reviews.Any())
+    {
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-10 text-center">
+            <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">rate_review</span>
+            <p class="text-slate-500 font-semibold">Chưa có đánh giá nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">#</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Người đánh giá</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Đối tượng</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Trận</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Loại</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Điểm</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Nhận xét</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Trạng thái</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-400">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @foreach (var r in Model.Reviews)
+                    {
+                        var typeLabel = r.ReviewType == "PlayerToMatch" ? "Player→Host" : "Host→Player";
+                        var typeCss = r.ReviewType == "PlayerToMatch"
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400";
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 @(!r.IsVisible ? "opacity-50" : "")">
+                            <td class="px-4 py-3 text-slate-400 text-xs">@r.ReviewId</td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <img src="@(r.ReviewerAvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(r.ReviewerName)}&size=32&background=E2E8F0&color=1E293B")"
+                                         class="w-7 h-7 rounded-full object-cover" alt="" />
+                                    <span class="font-medium text-slate-800 dark:text-slate-200">@r.ReviewerName</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-700 dark:text-slate-300 font-medium">@r.ReviewedName</td>
+                            <td class="px-4 py-3">
+                                <a asp-page="/Matchmaking/Details" asp-route-id="@r.MatchId"
+                                   class="text-primary hover:underline text-xs">
+                                    @r.MatchTitle
+                                </a>
+                                <div class="text-xs text-slate-400">@r.MatchDate.ToString("dd/MM/yyyy")</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full @typeCss">@typeLabel</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-0.5">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(r.AverageScore) ? "text-amber-400" : "text-slate-300")"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    }
+                                    <span class="text-xs font-bold text-amber-500 ml-1">@r.AverageScore.ToString("F1")</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 max-w-xs">
+                                @if (!string.IsNullOrWhiteSpace(r.Comment))
+                                {
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">@r.Comment</p>
+                                }
+                                else
+                                {
+                                    <span class="text-xs text-slate-300">—</span>
+                                }
+                            </td>
+                            <td class="px-4 py-3">
+                                @if (r.IsVisible)
+                                {
+                                    <span class="text-xs font-semibold text-emerald-600">Hiển thị</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs font-semibold text-slate-400">Đã ẩn</span>
+                                }
+                            </td>
+                            <td class="px-4 py-3">
+                                <form method="post" asp-page-handler="ToggleVisibility">
+                                    <input type="hidden" name="reviewId" value="@r.ReviewId" />
+                                    <input type="hidden" name="isVisible" value="@(!r.IsVisible).ToString().ToLower()" />
+                                    <button type="submit"
+                                            class="text-xs px-3 py-1 rounded-lg border @(r.IsVisible ? "border-rose-200 text-rose-500 hover:bg-rose-50" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50") font-semibold transition-colors">
+                                        @(r.IsVisible ? "Ẩn" : "Hiện")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using SportHub.Services.Interfaces;
-using SportHub.Services.Implementations;
 
 namespace SportHub.Pages.Matchmaking
 {
@@ -13,18 +12,25 @@ namespace SportHub.Pages.Matchmaking
         private readonly IMatchService _matchService;
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly INotificationService _notificationService;
+        private readonly IMatchReviewService _reviewService;
 
         public DetailsModel(
             IMatchService matchService,
             IMatchPaymentService matchPaymentService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IMatchReviewService reviewService)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
+            _reviewService = reviewService;
         }
 
         public MatchDetailItem? Item { get; set; }
+        public bool CanReviewAsPlayer { get; set; }
+        public bool CanReviewAsHost { get; set; }
+        public UserRatingSummary? HostRating { get; set; }
+        public List<MatchReviewHistoryItem> PublicReviews { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -121,7 +127,7 @@ namespace SportHub.Pages.Matchmaking
                     ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(match.CreatedByUser?.FullName ?? "H")}&background=E2E8F0&color=1E293B&size=64"
                     : match.CreatedByUser!.AvatarUrl,
 
-                // Payment state
+                // Review state
                 MatchStatus            = match.Status,
                 ShowHostDepositPrompt  = isOwner && match.Status == "PendingDeposit",
                 HostDepositAmount      = depositAmount,
@@ -130,6 +136,17 @@ namespace SportHub.Pages.Matchmaking
                 ShowRemainingFeePrompt = isOwner && match.RemainingFeeStatus == "Notified",
                 RemainingFeeAmount     = depositAmount
             };
+
+            // Review data
+            if (currentUserId > 0)
+            {
+                CanReviewAsPlayer = await _reviewService.CanSubmitPlayerReviewAsync(id.Value, currentUserId);
+                CanReviewAsHost = isOwner && (await _reviewService.GetPlayersToRateAsync(id.Value, currentUserId)).Any(p => !p.AlreadyRated);
+            }
+            HostRating = await _reviewService.GetHostRatingSummaryAsync(match.CreatedByUserID);
+            PublicReviews = await _reviewService.GetReceivedReviewsAsync(match.CreatedByUserID);
+            // Only show reviews from this match
+            PublicReviews = PublicReviews.Where(r => r.MatchId == id.Value && r.ReviewType == "PlayerToMatch").ToList();
 
             return Page();
         }

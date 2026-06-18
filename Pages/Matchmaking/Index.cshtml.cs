@@ -16,17 +16,20 @@ namespace SportHub.Pages.Matchmaking
         private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
         private readonly IGeocodingService _geocoding;
+        private readonly IMatchReviewService _reviewService;
 
         public IndexModel(
             IMatchService matchService,
             INotificationService notificationService,
             ApplicationDbContext context,
-            IGeocodingService geocoding)
+            IGeocodingService geocoding,
+            IMatchReviewService reviewService)
         {
             _matchService = matchService;
             _notificationService = notificationService;
             _context = context;
             _geocoding = geocoding;
+            _reviewService = reviewService;
         }
 
         [TempData]
@@ -205,6 +208,9 @@ namespace SportHub.Pages.Matchmaking
                     .ToList();
             }
 
+            var hostIds = matches.Select(m => m.CreatedByUserID).Distinct();
+            var hostRatings = await _reviewService.GetBatchHostRatingsAsync(hostIds);
+
             Matches = matches.Select(m => {
                 var acceptedCount = m.Participants.Count(p => p.JoinStatus == "Accepted");
                 var myParticipation = currentUserId > 0
@@ -242,7 +248,9 @@ namespace SportHub.Pages.Matchmaking
                                 ? m.CreatedByUser.AvatarUrl 
                                 : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(m.CreatedByUser?.FullName ?? "Host")}&background=random&size=128",
                     Latitude = m.CustomLatitude ?? ExtractCustomLatitude(m.Description) ?? m.Court?.Venue?.Latitude,
-                    Longitude = m.CustomLongitude ?? ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude
+                    Longitude = m.CustomLongitude ?? ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude,
+                    HostRatingAvg = hostRatings.ContainsKey(m.CreatedByUserID) ? hostRatings[m.CreatedByUserID].Avg : null,
+                    HostRatingCount = hostRatings.ContainsKey(m.CreatedByUserID) ? hostRatings[m.CreatedByUserID].Count : 0
                 };
             }).ToList();
 
@@ -701,6 +709,9 @@ namespace SportHub.Pages.Matchmaking
             public decimal? Longitude { get; set; }
             public double? DistanceKm { get; set; }
             public string? DistanceDisplay { get; set; }
+            public decimal? HostRatingAvg { get; set; }
+            public int HostRatingCount { get; set; }
+            public bool ShowHostRating => HostRatingCount >= 3 && HostRatingAvg.HasValue;
         }
 
         public class JoinedMatchItem

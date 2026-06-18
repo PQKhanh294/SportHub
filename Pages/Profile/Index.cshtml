@@ -135,4 +135,123 @@
             </div>
         </div>
     </div>
+
+    <!-- Rating Summary & Review History -->
+    <div class="mt-8 space-y-6">
+        <!-- Rating Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- As Host -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+                <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-primary">diversity_3</span>
+                    Khi là Host
+                </h3>
+                @if (!Model.HostRatingSummary.HasEnoughReviews)
+                {
+                    <p class="text-sm text-slate-400">Chưa đủ đánh giá (cần ≥ 3)</p>
+                }
+                else
+                {
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-4xl font-black text-amber-500">@Model.HostRatingSummary.OverallAverage.ToString("F1")</span>
+                        <div>
+                            <div class="flex items-center gap-0.5">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined text-base @(i <= (int)Math.Round(Model.HostRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-300")"
+                                          style="font-variation-settings:'FILL' 1">star</span>
+                                }
+                            </div>
+                            <p class="text-xs text-slate-400">@Model.HostRatingSummary.ReviewCount đánh giá</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1 text-xs text-slate-500">
+                        @if (Model.HostRatingSummary.AvgOrganization.HasValue)
+                        { <div class="flex justify-between"><span>Tổ chức</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgOrganization.Value.ToString("F1")</span></div> }
+                        @if (Model.HostRatingSummary.AvgEquipment.HasValue)
+                        { <div class="flex justify-between"><span>Thiết bị</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgEquipment.Value.ToString("F1")</span></div> }
+                        @if (Model.HostRatingSummary.AvgAtmosphere.HasValue)
+                        { <div class="flex justify-between"><span>Không khí</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgAtmosphere.Value.ToString("F1")</span></div> }
+                        @if (Model.HostRatingSummary.AvgHost.HasValue)
+                        { <div class="flex justify-between"><span>Host</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgHost.Value.ToString("F1")</span></div> }
+                    </div>
+                }
+            </div>
+
+            <!-- As Player -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+                <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-primary">sports_tennis</span>
+                    Khi là Người chơi
+                </h3>
+                @if (!Model.PlayerRatingSummary.HasEnoughReviews)
+                {
+                    <p class="text-sm text-slate-400">Chưa đủ đánh giá (cần ≥ 3)</p>
+                }
+                else
+                {
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-4xl font-black text-amber-500">@Model.PlayerRatingSummary.OverallAverage.ToString("F1")</span>
+                        <div>
+                            <div class="flex items-center gap-0.5">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined text-base @(i <= (int)Math.Round(Model.PlayerRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-300")"
+                                          style="font-variation-settings:'FILL' 1">star</span>
+                                }
+                            </div>
+                            <p class="text-xs text-slate-400">@Model.PlayerRatingSummary.ReviewCount đánh giá</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1 text-xs text-slate-500">
+                        @if (Model.PlayerRatingSummary.AvgPunctuality.HasValue)
+                        { <div class="flex justify-between"><span>Đúng giờ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgPunctuality.Value.ToString("F1")</span></div> }
+                        @if (Model.PlayerRatingSummary.AvgSportsmanship.HasValue)
+                        { <div class="flex justify-between"><span>Tinh thần</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSportsmanship.Value.ToString("F1")</span></div> }
+                        @if (Model.PlayerRatingSummary.AvgSkillAccuracy.HasValue)
+                        { <div class="flex justify-between"><span>Trình độ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSkillAccuracy.Value.ToString("F1")</span></div> }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Review History -->
+        @if (Model.ReceivedReviews.Any())
+        {
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+                <h3 class="font-bold text-slate-900 dark:text-white mb-4">Lịch sử đánh giá nhận được</h3>
+                <div class="space-y-4 max-h-96 overflow-y-auto pr-1">
+                    @foreach (var review in Model.ReceivedReviews)
+                    {
+                        var typeLabel = review.ReviewType == "PlayerToMatch" ? "Người chơi → Host" : "Host → Người chơi";
+                        var typeBg = review.ReviewType == "PlayerToMatch" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400";
+                        <div class="flex gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                            <img src="@(review.ReviewerAvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(review.ReviewerName)}&background=E2E8F0&color=1E293B&size=64")"
+                                 alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full @typeBg">@typeLabel</span>
+                                    <span class="text-xs text-slate-400">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-1">@review.MatchTitle • @review.MatchDate.ToString("dd/MM/yyyy")</p>
+                                <div class="flex items-center gap-0.5 mb-1">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(review.AverageScore) ? "text-amber-400" : "text-slate-300")"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    }
+                                    <span class="text-xs font-bold text-amber-500 ml-1">@review.AverageScore.ToString("F1")</span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                {
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 italic">"@review.Comment"</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 </section>
