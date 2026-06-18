@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -110,7 +110,12 @@ CREATE TABLE [Notifications] (
     [IsRead] bit NOT NULL,
     [CreatedAt] datetime2 NOT NULL,
     CONSTRAINT [PK_Notifications] PRIMARY KEY ([NotificationID]),
-    CONSTRAINT [CK_Notifications_Type] CHECK (Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat')),
+    CONSTRAINT [CK_Notifications_Type] CHECK (Type IN (
+        'MatchJoin','MatchApprove','MatchReject','MatchJoinExpired',
+        'BookingConfirmed','BookingCancelled','System','Chat',
+        'MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed',
+        'MatchCompleted','MatchReviewReminder'
+    )),
     CONSTRAINT [FK_Notifications_Users_UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 GO
@@ -143,6 +148,23 @@ CREATE TABLE [UserSportProfiles] (
     CONSTRAINT [CK_USP_StrokeStrength] CHECK (StrokeStrength IS NULL OR StrokeStrength IN ('Smash','Drop','Drive','AllRound')),
     CONSTRAINT [FK_UserSportProfiles_Sports_SportID] FOREIGN KEY ([SportID]) REFERENCES [Sports] ([SportID]),
     CONSTRAINT [FK_UserSportProfiles_Users_UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
+);
+GO
+
+CREATE TABLE [UserBadges] (
+    [BadgeID] int NOT NULL IDENTITY,
+    [UserID] int NOT NULL,
+    [BadgeKey] nvarchar(450) NOT NULL,
+    [BadgeName] nvarchar(max) NOT NULL,
+    [Level] nvarchar(max) NOT NULL,
+    [ProgressValue] int NOT NULL,
+    [TargetValue] int NOT NULL,
+    [Description] nvarchar(max) NOT NULL,
+    [EarnedAt] datetime2 NOT NULL,
+    [UpdatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_UserBadges] PRIMARY KEY ([BadgeID]),
+    CONSTRAINT [CK_UserBadges_Level] CHECK (Level IN ('Bronze','Silver','Gold')),
+    CONSTRAINT [FK_UserBadges_Users_UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 GO
 
@@ -260,12 +282,21 @@ CREATE TABLE [Matches] (
     [MaxParticipants] tinyint NOT NULL,
     [Title] nvarchar(max) NULL,
     [Description] nvarchar(max) NULL,
+    [CustomCourtName] nvarchar(max) NULL,
+    [CustomCourtAddress] nvarchar(max) NULL,
+    [CustomPriceVnd] decimal(12,2) NULL,
+    [CustomLatitude] decimal(10,8) NULL,
+    [CustomLongitude] decimal(11,8) NULL,
     [Status] nvarchar(450) NOT NULL,
     [RequiresApproval] bit NOT NULL,
+    [DepositStatus] nvarchar(max) NOT NULL DEFAULT N'NotPaid',
+    [RemainingFeeStatus] nvarchar(max) NOT NULL DEFAULT N'NotDue',
     [CreatedAt] datetime2 NOT NULL,
     CONSTRAINT [PK_Matches] PRIMARY KEY ([MatchID]),
     CONSTRAINT [CK_Matches_MatchType] CHECK (MatchType IN ('Singles','Doubles','Mixed')),
-    CONSTRAINT [CK_Matches_Status] CHECK (Status IN ('Open','Full','InProgress','Completed','Cancelled')),
+    CONSTRAINT [CK_Matches_Status] CHECK (Status IN ('Open','Full','InProgress','Completed','Cancelled','PendingDeposit')),
+    CONSTRAINT [CK_Matches_DepositStatus] CHECK (DepositStatus IN ('NotPaid','Paid')),
+    CONSTRAINT [CK_Matches_RemainingFeeStatus] CHECK (RemainingFeeStatus IN ('NotDue','Notified','Paid')),
     CONSTRAINT [FK_Matches_Bookings_BookingID] FOREIGN KEY ([BookingID]) REFERENCES [Bookings] ([BookingID]),
     CONSTRAINT [FK_Matches_Courts_CourtID] FOREIGN KEY ([CourtID]) REFERENCES [Courts] ([CourtID]),
     CONSTRAINT [FK_Matches_Sports_SportID] FOREIGN KEY ([SportID]) REFERENCES [Sports] ([SportID]),
@@ -314,14 +345,111 @@ CREATE TABLE [MatchParticipants] (
     [UserID] int NOT NULL,
     [TeamSide] nvarchar(max) NULL,
     [JoinStatus] nvarchar(max) NOT NULL,
+    [PlayerFeeStatus] nvarchar(max) NULL,
+    [PlayerFeeDeadline] datetime2 NULL,
+    [PlayerFeeReceiptUrl] nvarchar(max) NULL,
     [JoinedAt] datetime2 NOT NULL,
     CONSTRAINT [PK_MatchParticipants] PRIMARY KEY ([ParticipantID]),
-    CONSTRAINT [CK_MatchParticipants_JoinStatus] CHECK (JoinStatus IN ('Pending','Accepted','Declined','Cancelled')),
+    CONSTRAINT [CK_MatchParticipants_JoinStatus] CHECK (JoinStatus IN ('Pending','Approved','Accepted','Declined','Cancelled')),
+    CONSTRAINT [CK_MatchParticipants_PlayerFeeStatus] CHECK (PlayerFeeStatus IS NULL OR PlayerFeeStatus IN ('AwaitingPayment','Paid','Expired')),
     CONSTRAINT [CK_MatchParticipants_TeamSide] CHECK (TeamSide IS NULL OR TeamSide IN ('A','B')),
     CONSTRAINT [FK_MatchParticipants_Matches_MatchID] FOREIGN KEY ([MatchID]) REFERENCES [Matches] ([MatchID]) ON DELETE CASCADE,
     CONSTRAINT [FK_MatchParticipants_Users_UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 GO
+
+CREATE TABLE [MatchInteractions] (
+    [InteractionID] int NOT NULL IDENTITY,
+    [MatchID] int NOT NULL,
+    [UserID] int NOT NULL,
+    [Action] nvarchar(450) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_MatchInteractions] PRIMARY KEY ([InteractionID]),
+    CONSTRAINT [CK_MatchInteractions_Action] CHECK (Action IN ('View','Skip','Request')),
+    CONSTRAINT [FK_MatchInteractions_Matches_MatchID] FOREIGN KEY ([MatchID]) REFERENCES [Matches] ([MatchID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_MatchInteractions_Users_UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
+);
+GO
+
+CREATE TABLE [MatchPayments] (
+    [MatchPaymentID] int NOT NULL IDENTITY,
+    [MatchID] int NOT NULL,
+    [PayerUserID] int NOT NULL,
+    [PaymentType] nvarchar(450) NOT NULL,
+    [Amount] decimal(12,2) NOT NULL,
+    [Status] nvarchar(450) NOT NULL,
+    [ReceiptUrl] nvarchar(max) NULL,
+    [TransactionRef] nvarchar(max) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [ExpiresAt] datetime2 NULL,
+    [ConfirmedAt] datetime2 NULL,
+    CONSTRAINT [PK_MatchPayments] PRIMARY KEY ([MatchPaymentID]),
+    CONSTRAINT [CK_MatchPayments_Status] CHECK (Status IN ('Pending','Confirmed','Expired','Refunded')),
+    CONSTRAINT [CK_MatchPayments_Type] CHECK (PaymentType IN ('HostDeposit','HostRemaining','PlayerFee')),
+    CONSTRAINT [FK_MatchPayments_Matches_MatchID] FOREIGN KEY ([MatchID]) REFERENCES [Matches] ([MatchID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_MatchPayments_Users_PayerUserID] FOREIGN KEY ([PayerUserID]) REFERENCES [Users] ([UserID])
+);
+GO
+
+CREATE TABLE [MatchReviews] (
+    [MatchReviewID] int NOT NULL IDENTITY,
+    [MatchID] int NOT NULL,
+    [ReviewerUserID] int NOT NULL,
+    [ReviewedUserID] int NOT NULL,
+    [ReviewType] nvarchar(450) NOT NULL,
+    [ScoreOrganization] tinyint NULL,
+    [ScoreEquipment] tinyint NULL,
+    [ScoreAtmosphere] tinyint NULL,
+    [ScoreHost] tinyint NULL,
+    [ScoreValueForMoney] tinyint NULL,
+    [ScorePunctuality] tinyint NULL,
+    [ScoreSportsmanship] tinyint NULL,
+    [ScoreSkillAccuracy] tinyint NULL,
+    [Comment] nvarchar(max) NULL,
+    [IsVisible] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_MatchReviews] PRIMARY KEY ([MatchReviewID]),
+    CONSTRAINT [CK_MatchReviews_Type] CHECK (ReviewType IN ('PlayerToMatch','HostToPlayer')),
+    CONSTRAINT [CK_MatchReviews_ScoreOrg]    CHECK (ScoreOrganization  IS NULL OR ScoreOrganization  BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreEquip]  CHECK (ScoreEquipment     IS NULL OR ScoreEquipment     BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreAtmos]  CHECK (ScoreAtmosphere    IS NULL OR ScoreAtmosphere    BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreHost]   CHECK (ScoreHost          IS NULL OR ScoreHost          BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreValue]  CHECK (ScoreValueForMoney IS NULL OR ScoreValueForMoney BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScorePunct]  CHECK (ScorePunctuality   IS NULL OR ScorePunctuality   BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreSport]  CHECK (ScoreSportsmanship IS NULL OR ScoreSportsmanship BETWEEN 1 AND 5),
+    CONSTRAINT [CK_MatchReviews_ScoreSkill]  CHECK (ScoreSkillAccuracy IS NULL OR ScoreSkillAccuracy BETWEEN 1 AND 5),
+    CONSTRAINT [FK_MatchReviews_Matches_MatchID] FOREIGN KEY ([MatchID]) REFERENCES [Matches] ([MatchID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_MatchReviews_Users_ReviewedUserID] FOREIGN KEY ([ReviewedUserID]) REFERENCES [Users] ([UserID]),
+    CONSTRAINT [FK_MatchReviews_Users_ReviewerUserID] FOREIGN KEY ([ReviewerUserID]) REFERENCES [Users] ([UserID])
+);
+GO
+
+CREATE TABLE [ChatBookingProposals] (
+    [ProposalID] int NOT NULL IDENTITY,
+    [MatchID] int NOT NULL,
+    [SenderID] int NOT NULL,
+    [ReceiverID] int NOT NULL,
+    [CourtID] int NULL,
+    [BookingDate] date NOT NULL,
+    [StartTime] time NOT NULL,
+    [EndTime] time NOT NULL,
+    [EstimatedCost] decimal(12,2) NULL,
+    [SplitMode] nvarchar(max) NOT NULL,
+    [Status] nvarchar(450) NOT NULL,
+    [Note] nvarchar(max) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [UpdatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_ChatBookingProposals] PRIMARY KEY ([ProposalID]),
+    CONSTRAINT [CK_ChatBookingProposals_SplitMode] CHECK (SplitMode IN ('Equal','HostPays')),
+    CONSTRAINT [CK_ChatBookingProposals_Status] CHECK (Status IN ('Waiting','Accepted','Rejected','Booked')),
+    CONSTRAINT [FK_ChatBookingProposals_Courts_CourtID] FOREIGN KEY ([CourtID]) REFERENCES [Courts] ([CourtID]),
+    CONSTRAINT [FK_ChatBookingProposals_Matches_MatchID] FOREIGN KEY ([MatchID]) REFERENCES [Matches] ([MatchID]),
+    CONSTRAINT [FK_ChatBookingProposals_Users_ReceiverID] FOREIGN KEY ([ReceiverID]) REFERENCES [Users] ([UserID]),
+    CONSTRAINT [FK_ChatBookingProposals_Users_SenderID] FOREIGN KEY ([SenderID]) REFERENCES [Users] ([UserID])
+);
+GO
+
+-- Indexes
 
 CREATE INDEX [IX_Bookings_CourtID_BookingDate_Status] ON [Bookings] ([CourtID], [BookingDate], [Status]);
 GO
@@ -333,6 +461,18 @@ CREATE UNIQUE INDEX [IX_BookingSlots_BookingID_SlotID] ON [BookingSlots] ([Booki
 GO
 
 CREATE INDEX [IX_BookingSlots_SlotID] ON [BookingSlots] ([SlotID]);
+GO
+
+CREATE INDEX [IX_ChatBookingProposals_CourtID] ON [ChatBookingProposals] ([CourtID]);
+GO
+
+CREATE INDEX [IX_ChatBookingProposals_MatchID_SenderID_ReceiverID_Status] ON [ChatBookingProposals] ([MatchID], [SenderID], [ReceiverID], [Status]);
+GO
+
+CREATE INDEX [IX_ChatBookingProposals_ReceiverID] ON [ChatBookingProposals] ([ReceiverID]);
+GO
+
+CREATE INDEX [IX_ChatBookingProposals_SenderID] ON [ChatBookingProposals] ([SenderID]);
 GO
 
 CREATE INDEX [IX_ChatMessages_ReceiverID] ON [ChatMessages] ([ReceiverID]);
@@ -365,6 +505,33 @@ GO
 CREATE INDEX [IX_Friendships_SenderID] ON [Friendships] ([SenderID]);
 GO
 
+CREATE INDEX [IX_MatchInteractions_MatchID_UserID_Action] ON [MatchInteractions] ([MatchID], [UserID], [Action]);
+GO
+
+CREATE INDEX [IX_MatchInteractions_UserID] ON [MatchInteractions] ([UserID]);
+GO
+
+CREATE INDEX [IX_MatchParticipants_UserID] ON [MatchParticipants] ([UserID]);
+GO
+
+CREATE UNIQUE INDEX [IX_MatchParticipants_MatchID_UserID] ON [MatchParticipants] ([MatchID], [UserID]);
+GO
+
+CREATE INDEX [IX_MatchPayments_MatchID_PaymentType_Status] ON [MatchPayments] ([MatchID], [PaymentType], [Status]);
+GO
+
+CREATE INDEX [IX_MatchPayments_PayerUserID] ON [MatchPayments] ([PayerUserID]);
+GO
+
+CREATE UNIQUE INDEX [IX_MatchReviews_MatchID_ReviewerUserID_ReviewedUserID_ReviewType] ON [MatchReviews] ([MatchID], [ReviewerUserID], [ReviewedUserID], [ReviewType]);
+GO
+
+CREATE INDEX [IX_MatchReviews_ReviewedUserID] ON [MatchReviews] ([ReviewedUserID]);
+GO
+
+CREATE INDEX [IX_MatchReviews_ReviewerUserID] ON [MatchReviews] ([ReviewerUserID]);
+GO
+
 CREATE INDEX [IX_Matches_BookingID] ON [Matches] ([BookingID]);
 GO
 
@@ -378,12 +545,6 @@ CREATE INDEX [IX_Matches_SportID] ON [Matches] ([SportID]);
 GO
 
 CREATE INDEX [IX_Matches_Status_MatchDate_SportID] ON [Matches] ([Status], [MatchDate], [SportID]);
-GO
-
-CREATE UNIQUE INDEX [IX_MatchParticipants_MatchID_UserID] ON [MatchParticipants] ([MatchID], [UserID]);
-GO
-
-CREATE INDEX [IX_MatchParticipants_UserID] ON [MatchParticipants] ([UserID]);
 GO
 
 CREATE INDEX [IX_Notifications_UserID_IsRead] ON [Notifications] ([UserID], [IsRead]);
@@ -416,6 +577,9 @@ GO
 CREATE UNIQUE INDEX [IX_TimeSlots_StartTime_EndTime] ON [TimeSlots] ([StartTime], [EndTime]);
 GO
 
+CREATE INDEX [IX_UserBadges_UserID_BadgeKey] ON [UserBadges] ([UserID], [BadgeKey]);
+GO
+
 CREATE INDEX [IX_UserRoles_RoleID] ON [UserRoles] ([RoleID]);
 GO
 
@@ -432,6 +596,17 @@ INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
 VALUES (N'20260602151944_InitialSchema', N'8.0.3');
 GO
 
-COMMIT;
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260610142509_SportHubUxEnhancements', N'8.0.3');
 GO
 
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260616224007_AddMatchPaymentFlow', N'8.0.3');
+GO
+
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20260617015221_AddMatchReviewSystem', N'8.0.3');
+GO
+
+COMMIT;
+GO
