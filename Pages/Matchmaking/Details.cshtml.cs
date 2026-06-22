@@ -74,7 +74,7 @@ namespace SportHub.Pages.Matchmaking
                         FullName      = p.User.FullName,
                         SkillLevel    = p.User.SkillLevel ?? "Unknown",
                         AvatarUrl     = string.IsNullOrWhiteSpace(p.User.AvatarUrl)
-                            ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(p.User.FullName)}&background=E2E8F0&color=1E293B&size=64"
+                            ? "/images/avatar-default.png"
                             : p.User.AvatarUrl,
                         JoinedAt = p.JoinedAt
                     }).ToList()
@@ -108,7 +108,7 @@ namespace SportHub.Pages.Matchmaking
                     {
                         FullName  = p.User.FullName,
                         AvatarUrl = string.IsNullOrWhiteSpace(p.User.AvatarUrl)
-                            ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(p.User.FullName)}&background=E2E8F0&color=1E293B&size=64"
+                            ? "/images/avatar-default.png"
                             : p.User.AvatarUrl,
                         SkillLevel = p.User.SkillLevel ?? "Unknown"
                     }).ToList(),
@@ -124,7 +124,7 @@ namespace SportHub.Pages.Matchmaking
                 HostId             = match.CreatedByUserID,
                 HostName           = match.CreatedByUser?.FullName ?? "Host",
                 HostAvatar         = string.IsNullOrWhiteSpace(match.CreatedByUser?.AvatarUrl)
-                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(match.CreatedByUser?.FullName ?? "H")}&background=E2E8F0&color=1E293B&size=64"
+                    ? "/images/avatar-default.png"
                     : match.CreatedByUser!.AvatarUrl,
 
                 // Review state

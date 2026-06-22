@@ -1,0 +1,213 @@
+@page
+@model SportHub.Pages.Admin.ReportedMessagesModel
+@{
+    ViewData["Title"] = "Tin nhắn bị báo cáo";
+}
+
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4">
+    <div class="max-w-5xl mx-auto">
+        <partial name="_AdminNav" />
+
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Tin nhắn bị báo cáo</h1>
+        </div>
+
+        @* Tabs *@
+        <div class="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
+            <a asp-page="/Admin/ReportedMessages" asp-route-tab="pending"
+               class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors @(Model.Tab == "pending" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
+                Chờ xử lý
+                @if (Model.TotalPending > 0)
+                {
+                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500 text-white">@Model.TotalPending</span>
+                }
+            </a>
+            <a asp-page="/Admin/ReportedMessages" asp-route-tab="processed"
+               class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors @(Model.Tab == "processed" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
+                Đã xử lý
+                @if (Model.TotalProcessed > 0)
+                {
+                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-400 text-white">@Model.TotalProcessed</span>
+                }
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        @if (!Model.Reports.Any())
+        {
+            <div class="text-center py-16 text-slate-400">
+                <span class="material-symbols-outlined text-5xl mb-3 block">verified</span>
+                <p class="text-lg font-medium">Không có báo cáo nào đang chờ xử lý</p>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-4">
+                @foreach (var report in Model.Reports)
+                {
+                    var scoreColor = report.AiViolationScore >= 7 ? "red" :
+                                     report.AiViolationScore >= 4 ? "amber" : "green";
+                    var scoreText = report.AiViolationScore >= 7 ? "text-red-700 bg-red-50 border-red-200" :
+                                    report.AiViolationScore >= 4 ? "text-amber-700 bg-amber-50 border-amber-200" :
+                                    "text-green-700 bg-green-50 border-green-200";
+                    var recLabel = report.AiRecommendation switch
+                    {
+                        "dismiss" => "Bỏ qua",
+                        "warn" => "Cảnh cáo",
+                        "ban_1day" => "Ban 1 ngày",
+                        "ban_7days" => "Ban 7 ngày",
+                        "ban_30days" => "Ban 30 ngày",
+                        "ban_permanent" => "Ban vĩnh viễn",
+                        _ => report.AiRecommendation
+                    };
+
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                        <!-- Header -->
+                        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-slate-400 text-lg">flag</span>
+                                <div>
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                        Người báo cáo: @report.Reporter?.FullName
+                                    </span>
+                                    <span class="text-xs text-slate-400 ml-2">
+                                        @report.CreatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border @scoreText">
+                                AI Score: @report.AiViolationScore/10
+                            </span>
+                        </div>
+
+                        <div class="px-5 py-4 space-y-4">
+                            <!-- Message content -->
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-xs text-slate-400 font-medium">Nội dung tin nhắn (từ @report.Message?.Sender?.FullName → @report.Message?.Receiver?.FullName):</p>
+                                    @if (report.Message?.IsDeleted == true)
+                                    {
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500">Đã xóa bởi người dùng — nội dung được giữ lại</span>
+                                    }
+                                </div>
+                                @if (report.Message?.MessageType == "Image")
+                                {
+                                    <img src="@report.Message.ImageUrl" class="max-h-32 rounded-lg object-cover" alt="Ảnh" />
+                                }
+                                else
+                                {
+                                    <p class="text-sm text-slate-800 dark:text-slate-100 font-medium @(report.Message?.IsDeleted == true ? "line-through opacity-60" : "")">@report.Message?.Content</p>
+                                }
+                            </div>
+
+                            <!-- Reason -->
+                            @if (!string.IsNullOrWhiteSpace(report.Reason))
+                            {
+                                <div>
+                                    <p class="text-xs text-slate-400 mb-1">Lý do báo cáo:</p>
+                                    <p class="text-sm text-slate-700 dark:text-slate-300">@report.Reason</p>
+                                </div>
+                            }
+
+                            <!-- AI Analysis -->
+                            <div class="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-950 dark:to-blue-950 rounded-xl p-4 border border-violet-100 dark:border-violet-900">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="material-symbols-outlined text-violet-500 text-base">psychology</span>
+                                    <span class="text-xs font-bold text-violet-700 dark:text-violet-300">Phân tích AI</span>
+                                    <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-bold @scoreText border">
+                                        @recLabel
+                                    </span>
+                                </div>
+                                <!-- Score bar -->
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-2">
+                                    <div class="h-2 rounded-full transition-all @(report.AiViolationScore >= 7 ? "bg-red-500" : report.AiViolationScore >= 4 ? "bg-amber-400" : "bg-green-500")"
+                                         style="width: @(report.AiViolationScore * 10)%"></div>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-400">@report.AiAnalysis</p>
+                            </div>
+
+                            @if (Model.Tab == "pending")
+                            {
+                                <!-- Actions — chỉ hiện ở tab Chờ xử lý -->
+                                <div class="flex flex-wrap gap-2 pt-2">
+                                    <form method="post" asp-page-handler="Dismiss" class="inline">
+                                        <input type="hidden" name="reportId" value="@report.ReportID" />
+                                        <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors">
+                                            Bỏ qua
+                                        </button>
+                                    </form>
+                                    @foreach (var (label, banType) in new[] {
+                                        ("Ban 1 ngày", "1day"),
+                                        ("Ban 7 ngày", "7days"),
+                                        ("Ban 30 ngày", "30days"),
+                                        ("Ban vĩnh viễn", "permanent")
+                                    })
+                                    {
+                                        <form method="post" asp-page-handler="Ban" class="inline"
+                                              onsubmit="return confirm('Ban người dùng @report.Message?.Sender?.FullName - @label?')">
+                                            <input type="hidden" name="reportId" value="@report.ReportID" />
+                                            <input type="hidden" name="targetUserId" value="@report.Message?.SenderID" />
+                                            <input type="hidden" name="banType" value="@banType" />
+                                            <input type="hidden" name="reason" value="@report.AiAnalysis" />
+                                            <button type="submit"
+                                                    class="px-4 py-2 text-sm font-semibold rounded-xl @(banType == "permanent" ? "bg-red-600 hover:bg-red-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white") transition-colors">
+                                                @label
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Kết quả xử lý — tab Đã xử lý -->
+                                <div class="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold @(report.Status == "Reviewed" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-slate-100 text-slate-600 border border-slate-200")">
+                                        @(report.Status == "Reviewed" ? "Đã xử lý ban" : "Đã bỏ qua")
+                                    </span>
+                                    <span class="text-xs text-slate-400">
+                                        Admin: <span class="font-semibold text-slate-600 dark:text-slate-300">@(report.ReviewedByAdmin?.FullName ?? "—")</span>
+                                    </span>
+                                    @if (report.ReviewedAt.HasValue)
+                                    {
+                                        <span class="text-xs text-slate-400">lúc @report.ReviewedAt.Value.AddHours(7).ToString("dd/MM/yyyy HH:mm")</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(report.AdminNote))
+                                    {
+                                        <span class="text-xs text-slate-500 italic">· @report.AdminNote</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if ((Model.Tab == "processed" ? Model.TotalProcessed : Model.TotalPending) > 20)
+            {
+                int totalPages2 = (int)Math.Ceiling((Model.Tab == "processed" ? Model.TotalProcessed : Model.TotalPending) / 20.0);
+                <div class="flex justify-center gap-2 mt-6">
+                    @for (int p = 1; p <= totalPages2; p++)
+                    {
+                        <a asp-page="/Admin/ReportedMessages" asp-route-page="@p" asp-route-tab="@Model.Tab"
+                           class="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors @(p == Model.Page ? "bg-primary text-white border-primary" : "bg-white dark:bg-slate-900 border-slate-200 text-slate-600 hover:text-primary")">
+                            @p
+                        </a>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>

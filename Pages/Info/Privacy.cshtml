@@ -1,0 +1,72 @@
+@page
+@model SportHub.Pages.Info.PrivacyModel
+@{
+    ViewData["Title"] = "Chính sách bảo mật";
+}
+
+<div class="max-w-3xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Chính sách bảo mật</h1>
+    <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Cập nhật lần cuối: Tháng 6, 2026</p>
+
+    <div class="prose prose-slate dark:prose-invert max-w-none space-y-6 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+
+        <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">info</span>
+                1. Thông tin chúng tôi thu thập
+            </h2>
+            <p>Khi bạn đăng ký và sử dụng SportHub, chúng tôi thu thập:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+                <li>Thông tin cơ bản: họ tên, email, số điện thoại, ngày sinh, giới tính</li>
+                <li>Thông tin thể thao: môn yêu thích, trình độ, địa chỉ mặc định</li>
+                <li>Dữ liệu hoạt động: trận đấu tham gia, đánh giá, tin nhắn</li>
+                <li>Dữ liệu vị trí (chỉ khi bạn cho phép): tọa độ GPS để ghép trận gần nhà</li>
+            </ul>
+        </section>
+
+        <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-500 text-lg">verified_user</span>
+                2. Chúng tôi sử dụng thông tin như thế nào
+            </h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Ghép trận dựa trên trình độ, môn thể thao và vị trí địa lý</li>
+                <li>Gợi ý đồng đội phù hợp với hồ sơ của bạn</li>
+                <li>Gửi thông báo liên quan đến trận đấu và hoạt động cộng đồng</li>
+                <li>Cải thiện chất lượng dịch vụ và trải nghiệm người dùng</li>
+            </ul>
+        </section>
+
+        <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-violet-500 text-lg">share</span>
+                3. Chia sẻ thông tin
+            </h2>
+            <p>Chúng tôi <strong>không bán</strong> thông tin cá nhân của bạn. Thông tin chỉ được chia sẻ trong phạm vi:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+                <li>Hiển thị hồ sơ công khai cho các thành viên khác (tên, môn thể thao, trình độ)</li>
+                <li>Yêu cầu pháp lý từ cơ quan có thẩm quyền</li>
+            </ul>
+        </section>
+
+        <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-lg">lock</span>
+                4. Bảo mật dữ liệu
+            </h2>
+            <p>Mật khẩu được mã hóa một chiều (không thể giải mã ngược). Mọi kết nối đều sử dụng HTTPS. Dữ liệu được lưu trên máy chủ an toàn với quyền truy cập giới hạn.</p>
+        </section>
+
+        <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-rose-500 text-lg">manage_accounts</span>
+                5. Quyền của bạn
+            </h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Xem và chỉnh sửa thông tin cá nhân bất cứ lúc nào</li>
+                <li>Yêu cầu xóa tài khoản bằng cách liên hệ đội ngũ hỗ trợ</li>
+                <li>Tắt thông báo trong phần cài đặt tài khoản</li>
+            </ul>
+        </section>
+    </div>
+</div>

@@ -23,6 +23,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4">
+                @* Light *@
                 <form method="post" asp-page-handler="SetTheme">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="theme" value="light" />
@@ -32,24 +33,52 @@
                         </div>
                         <span class="font-bold">@Localizer["LightMode"]</span>
                         @if (Model.CurrentTheme == "light")
-                        {
-                            <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span>
-                        }
+                        { <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span> }
                     </button>
                 </form>
 
+                @* Dark Level 1 *@
                 <form method="post" asp-page-handler="SetTheme">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="theme" value="dark" />
                     <button type="submit" class="w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 @(Model.CurrentTheme == "dark" ? "border-primary bg-primary/5 ring-4 ring-primary/10" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
-                        <div class="size-12 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center border border-slate-700">
+                        <div class="size-12 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center border border-slate-700">
                             <span class="material-symbols-outlined">dark_mode</span>
                         </div>
-                        <span class="font-bold">@Localizer["DarkMode"]</span>
+                        <span class="font-bold">Tối</span>
+                        <span class="text-xs text-slate-500">#111621</span>
                         @if (Model.CurrentTheme == "dark")
-                        {
-                            <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span>
-                        }
+                        { <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span> }
+                    </button>
+                </form>
+
+                @* Dark Level 2 *@
+                <form method="post" asp-page-handler="SetTheme">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="theme" value="dark-2" />
+                    <button type="submit" class="w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 @(Model.CurrentTheme == "dark-2" ? "border-primary bg-primary/5 ring-4 ring-primary/10" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
+                        <div class="size-12 rounded-full flex items-center justify-center border border-slate-700" style="background-color:#090e1a;color:#94a3b8">
+                            <span class="material-symbols-outlined">nights_stay</span>
+                        </div>
+                        <span class="font-bold">Tối hơn</span>
+                        <span class="text-xs text-slate-500">#06090f</span>
+                        @if (Model.CurrentTheme == "dark-2")
+                        { <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span> }
+                    </button>
+                </form>
+
+                @* Dark Level 3 AMOLED *@
+                <form method="post" asp-page-handler="SetTheme">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="theme" value="dark-3" />
+                    <button type="submit" class="w-full p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 @(Model.CurrentTheme == "dark-3" ? "border-primary bg-primary/5 ring-4 ring-primary/10" : "border-slate-100 dark:border-slate-800 hover:border-slate-200")">
+                        <div class="size-12 rounded-full flex items-center justify-center border border-slate-700" style="background-color:#000;color:#64748b">
+                            <span class="material-symbols-outlined">brightness_2</span>
+                        </div>
+                        <span class="font-bold">Đen AMOLED</span>
+                        <span class="text-xs text-slate-500">#000000</span>
+                        @if (Model.CurrentTheme == "dark-3")
+                        { <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">@Localizer["Active"]</span> }
                     </button>
                 </form>
             </div>

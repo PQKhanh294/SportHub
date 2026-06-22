@@ -156,5 +156,32 @@ namespace SportHub.Models.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ExpiresAt { get; set; }
         public DateTime? ConfirmedAt { get; set; }
+        public DateTime? ReminderSentAt { get; set; }
+    }
+
+    public class WalletTransaction
+    {
+        public int WalletTransactionID { get; set; }
+        public int UserID { get; set; }
+        public User User { get; set; } = null!;
+        public decimal Amount { get; set; } // positive = credit, negative = debit
+        public string Type { get; set; } = string.Empty; // Refund, Deduction, AdminCredit, TopUp, MatchPayment
+        public string Description { get; set; } = string.Empty;
+        public int? RelatedMatchID { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class WalletTopUpRequest
+    {
+        public int WalletTopUpID { get; set; }
+        public int UserID { get; set; }
+        public User User { get; set; } = null!;
+        public decimal Amount { get; set; }
+        public string TransactionRef { get; set; } = string.Empty; // TOPUP-{userId}-{yyyyMMddHHmmss}
+        public string Status { get; set; } = "Pending";            // Pending | Confirmed | Expired
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime ExpiresAt { get; set; }
+        public DateTime? ConfirmedAt { get; set; }
+        public decimal? ActualAmount { get; set; }                 // số tiền thực nhận từ SePay
     }
 }

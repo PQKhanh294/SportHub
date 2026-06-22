@@ -2,8 +2,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
+using SportHub.Hubs;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Pages.Admin
@@ -13,15 +15,18 @@ namespace SportHub.Pages.Admin
     {
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly INotificationService _notificationService;
+        private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ApplicationDbContext _context;
 
         public MatchPaymentsModel(
             IMatchPaymentService matchPaymentService,
             INotificationService notificationService,
+            IHubContext<NotificationHub> hubContext,
             ApplicationDbContext context)
         {
             _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
+            _hubContext = hubContext;
             _context = context;
         }
 
@@ -36,6 +41,13 @@ namespace SportHub.Pages.Admin
             if (!await IsAdminAsync()) return Forbid();
             Payments = await _matchPaymentService.GetPendingPaymentsAsync();
             return Page();
+        }
+
+        public async Task<IActionResult> OnGetCountsAsync()
+        {
+            if (!await IsAdminAsync()) return new JsonResult(new { pendingPayments = 0 });
+            var count = (await _matchPaymentService.GetPendingPaymentsAsync()).Count;
+            return new JsonResult(new { pendingPayments = count });
         }
 
         public async Task<IActionResult> OnPostConfirmAsync(int paymentId)
@@ -102,6 +114,10 @@ namespace SportHub.Pages.Admin
                     break;
             }
 
+            var countAfterConfirm = (await _matchPaymentService.GetPendingPaymentsAsync()).Count;
+            await _hubContext.Clients.Group("role:Admin")
+                .SendAsync("admin_counts_update", new { pendingPayments = countAfterConfirm });
+
             SuccessMessage = $"Đã xác nhận giao dịch #{paymentId}.";
             return RedirectToPage();
         }
@@ -135,6 +151,10 @@ namespace SportHub.Pages.Admin
             {
                 ErrorMessage = "Không thể từ chối giao dịch này.";
             }
+
+            var countAfterReject = (await _matchPaymentService.GetPendingPaymentsAsync()).Count;
+            await _hubContext.Clients.Group("role:Admin")
+                .SendAsync("admin_counts_update", new { pendingPayments = countAfterReject });
 
             return RedirectToPage();
         }

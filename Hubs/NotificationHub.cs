@@ -13,6 +13,8 @@ namespace SportHub.Hubs
             if (int.TryParse(userIdRaw, out var userId) && userId > 0)
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}");
+                if (Context.User!.IsInRole("Admin"))
+                    await Groups.AddToGroupAsync(Context.ConnectionId, "role:Admin");
             }
 
             await base.OnConnectedAsync();

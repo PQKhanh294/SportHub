@@ -33,6 +33,7 @@ namespace SportHub.Pages.Matchmaking
         public string MatchTitle { get; set; } = string.Empty;
         public string TargetUserName { get; set; } = string.Empty;
         public bool CanReview { get; set; }
+        public string? CannotReviewReason { get; set; }
         public List<PlayerToRateItem> PlayersToRate { get; set; } = new();
 
         [BindProperty] public PlayerReviewInputModel PlayerInput { get; set; } = new();
@@ -70,7 +71,13 @@ namespace SportHub.Pages.Matchmaking
 
             if (Mode == "player")
             {
+                // If user is the host, redirect to host-review mode instead of showing error
+                if (match.CreatedByUserID == userId)
+                    return RedirectToPage(new { matchId = MatchId, mode = "host" });
+
                 CanReview = await _reviewService.CanSubmitPlayerReviewAsync(MatchId, userId);
+                if (!CanReview)
+                    CannotReviewReason = await DiagnosePlayerReviewFailureAsync(MatchId, userId);
                 var hostUser = await _context.Users.FindAsync(match.CreatedByUserID);
                 TargetUserName = hostUser?.FullName ?? string.Empty;
                 PlayerInput.HasCost = match.CustomPriceVnd.HasValue && match.CustomPriceVnd > 0;
@@ -162,8 +169,8 @@ namespace SportHub.Pages.Matchmaking
             var participant = match.Participants.FirstOrDefault(p => p.UserID == userId);
             if (participant == null)
                 return "Bạn không có trong danh sách người tham gia trận này.";
-            if (participant.JoinStatus != "Accepted")
-                return $"Trạng thái tham gia của bạn là \"{participant.JoinStatus}\" (cần \"Accepted\" để đánh giá). Bạn cần hoàn tất thanh toán phí tham gia trước khi có thể đánh giá.";
+            if (participant.JoinStatus != "Accepted" && participant.JoinStatus != "Approved")
+                return $"Trạng thái tham gia của bạn là \"{participant.JoinStatus}\", không đủ điều kiện đánh giá.";
 
             var alreadyReviewed = await _context.MatchReviews.AnyAsync(r =>
                 r.MatchID == matchId && r.ReviewerUserID == userId && r.ReviewType == "PlayerToMatch");

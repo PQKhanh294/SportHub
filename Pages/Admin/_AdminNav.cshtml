@@ -16,6 +16,9 @@
        class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Payments" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
         <span class="material-symbols-outlined text-base">pending_actions</span>
         Chờ xác nhận
+        <span id="admin-badge-payments"
+              class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+        </span>
     </a>
     <a asp-page="/Admin/Users"
        class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Users" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
@@ -32,4 +35,49 @@
         <span class="material-symbols-outlined text-base">rate_review</span>
         Đánh giá
     </a>
+    <a asp-page="/Admin/ReportedMessages"
+       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "ReportedMessages" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+        <span class="material-symbols-outlined text-base">flag</span>
+        Báo cáo
+        <span id="admin-badge-reports"
+              class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+        </span>
+    </a>
 </nav>
+<script>
+    (function () {
+        function applyAdminCounts(data) {
+            var badge = document.getElementById('admin-badge-payments');
+            if (!badge) return;
+            var n = (data && data.pendingPayments) || 0;
+            if (n > 0) {
+                badge.textContent = n > 99 ? '99+' : n;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        fetch('/Admin/MatchPayments?handler=Counts')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d) applyAdminCounts(d); })
+            .catch(function () { });
+
+        // Load report badge
+        fetch('/Admin/ReportedMessages?handler=Counts')
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                if (!d) return;
+                var badge = document.getElementById('admin-badge-reports');
+                if (!badge) return;
+                var n = d.pendingReports || 0;
+                if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+            })
+            .catch(function () { });
+
+        window.addEventListener('sporthub:admin_counts', function (e) {
+            applyAdminCounts(e.detail);
+        });
+    })();
+</script>

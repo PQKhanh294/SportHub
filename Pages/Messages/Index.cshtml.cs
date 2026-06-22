@@ -38,6 +38,7 @@ namespace SportHub.Pages.Messages
         public List<SelectListItem> SharedMatchOptions { get; set; } = new();
         public List<SelectListItem> CourtOptions { get; set; } = new();
         public int CurrentUserId { get; set; }
+        public Dictionary<int, (ChatMessage? LastMsg, int UnreadCount)> ConversationSummaries { get; set; } = new();
 
         [BindProperty]
         public BookingProposalInput ProposalInput { get; set; } = new();
@@ -75,7 +76,13 @@ namespace SportHub.Pages.Messages
 
             CurrentUserId = currentUserId;
             Friends = await _friendshipService.GetFriendsAsync(currentUserId);
-            
+            ConversationSummaries = await _chatService.GetConversationSummariesAsync(currentUserId);
+
+            // Sort friends: those with messages first (newest last message at top)
+            Friends = Friends
+                .OrderByDescending(f => ConversationSummaries.TryGetValue(f.UserID, out var s) ? s.LastMsg?.CreatedAt : null)
+                .ToList();
+
             if (!Friends.Any())
             {
                 SuggestedFriends = await _userService.GetSuggestedPlayersAsync(currentUserId, 5);
