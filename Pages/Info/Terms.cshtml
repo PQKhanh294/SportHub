@@ -1,0 +1,65 @@
+@page
+@model SportHub.Pages.Info.TermsModel
+@{
+    ViewData["Title"] = "Điều khoản sử dụng";
+}
+
+<div class="max-w-3xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Điều khoản sử dụng</h1>
+    <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm">Cập nhật lần cuối: Tháng 6, 2026</p>
+
+    <div class="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">1. Chấp nhận điều khoản</h2>
+            <p>Bằng cách đăng ký và sử dụng SportHub, bạn đồng ý với toàn bộ các điều khoản dưới đây. Nếu không đồng ý, vui lòng không sử dụng dịch vụ.</p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">2. Tài khoản người dùng</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Mỗi người chỉ được phép tạo một tài khoản duy nhất</li>
+                <li>Bạn chịu trách nhiệm bảo mật thông tin đăng nhập của mình</li>
+                <li>Không được chia sẻ tài khoản cho người khác sử dụng</li>
+                <li>SportHub có quyền đình chỉ tài khoản vi phạm không cần thông báo trước</li>
+            </ul>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">3. Nội dung người dùng</h2>
+            <p>Bạn cam kết không đăng tải nội dung:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+                <li>Vi phạm pháp luật Việt Nam</li>
+                <li>Xúc phạm, phân biệt đối xử, bạo lực hoặc đe dọa người khác</li>
+                <li>Quảng cáo thương mại không được phép</li>
+                <li>Thông tin sai lệch hoặc gây hiểu nhầm</li>
+            </ul>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">4. Thanh toán và hoàn tiền</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Phí tổ chức trận và phí tham gia được thanh toán qua ví SportHub</li>
+                <li>Hoàn tiền được xử lý trong vòng 24 giờ nếu trận bị hủy trước 2 giờ</li>
+                <li>Không hoàn tiền nếu hủy trong vòng 2 giờ trước trận (trừ trường hợp bất khả kháng)</li>
+            </ul>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">5. Giới hạn trách nhiệm</h2>
+            <p>SportHub là nền tảng kết nối, không chịu trách nhiệm về:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+                <li>Chấn thương hoặc tai nạn xảy ra trong quá trình thi đấu</li>
+                <li>Tranh chấp giữa các thành viên</li>
+                <li>Chất lượng sân thể thao của bên thứ ba</li>
+            </ul>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">6. Thay đổi điều khoản</h2>
+            <p>SportHub có quyền thay đổi các điều khoản này bất kỳ lúc nào. Thông báo sẽ được gửi qua email hoặc hiển thị trực tiếp trên ứng dụng ít nhất 7 ngày trước khi áp dụng.</p>
+        </div>
+    </div>
+
+    <p class="mt-8 text-xs text-slate-400 text-center">Nếu có thắc mắc, hãy liên hệ chúng tôi qua tính năng <a asp-page="/Users/Index" class="text-primary hover:underline">Cộng đồng</a>.</p>
+</div>

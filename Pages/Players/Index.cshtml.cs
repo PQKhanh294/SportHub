@@ -28,7 +28,7 @@ namespace SportHub.Pages.Players
                 FullName = u.FullName,
                 SkillLevel = u.SkillLevel ?? "Intermediate",
                 AvatarUrl = string.IsNullOrWhiteSpace(u.AvatarUrl)
-                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(u.FullName)}&background=E2E8F0&color=1E293B&size=128"
+                    ? "/images/avatar-default.png"
                     : u.AvatarUrl,
                 TotalMatches = u.UserID % 30 + 5
             }).ToList();

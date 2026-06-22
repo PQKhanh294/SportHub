@@ -244,9 +244,9 @@ namespace SportHub.Pages.Matchmaking
                     IsPendingByCurrentUser = isPending,
                     IsOwnedByCurrentUser = currentUserId > 0 && m.CreatedByUserID == currentUserId,
                     CanJoin = currentUserId > 0 && myParticipation == null && m.Status == "Open" && acceptedCount < m.MaxParticipants,
-                    HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl) 
-                                ? m.CreatedByUser.AvatarUrl 
-                                : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(m.CreatedByUser?.FullName ?? "Host")}&background=random&size=128",
+                    HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl)
+                                ? m.CreatedByUser.AvatarUrl
+                                : "/images/avatar-default.png",
                     Latitude = m.CustomLatitude ?? ExtractCustomLatitude(m.Description) ?? m.Court?.Venue?.Latitude,
                     Longitude = m.CustomLongitude ?? ExtractCustomLongitude(m.Description) ?? m.Court?.Venue?.Longitude,
                     HostRatingAvg = hostRatings.ContainsKey(m.CreatedByUserID) ? hostRatings[m.CreatedByUserID].Avg : null,

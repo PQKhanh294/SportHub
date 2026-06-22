@@ -1,0 +1,78 @@
+@page
+@model SportHub.Pages.Info.AboutModel
+@{
+    ViewData["Title"] = "Về chúng tôi";
+}
+
+<div class="max-w-3xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Về SportHub</h1>
+    <p class="text-slate-500 dark:text-slate-400 mb-10 text-sm">Câu chuyện phía sau biểu tượng và sứ mệnh của chúng tôi</p>
+
+    <!-- Logo Section -->
+    <div class="flex items-center gap-8 mb-10 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="shrink-0">
+            <img src="/images/logo.png" alt="SportHub Logo" class="w-24 h-24 object-contain" />
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Ý nghĩa logo SportHub</h2>
+            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <li class="flex items-start gap-2">
+                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">1</span>
+                    <span><strong>Hình tròn</strong> — sự đoàn kết và không giới hạn, cộng đồng thể thao không phân biệt trình độ.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">2</span>
+                    <span><strong>4 mảnh ghép</strong> — bốn yếu tố cốt lõi: Người chơi, Trận đấu, Sân thể thao và Cộng đồng.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">3</span>
+                    <span><strong>Ngôi sao</strong> — mục tiêu vươn đến đỉnh cao thể thao, dù bạn là người mới hay vận động viên chuyên nghiệp.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">4</span>
+                    <span><strong>Đường cong năng động</strong> — sự linh hoạt và chuyển động không ngừng, phản ánh tinh thần thể thao sống động.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Mission -->
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Sứ mệnh của chúng tôi</h2>
+        <p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+            SportHub ra đời với mục tiêu đơn giản: <strong>kết nối người yêu thể thao với nhau</strong>.
+            Dù bạn đang tìm một đồng đội cầu lông, một đối thủ tennis ngang tầm, hay một nhóm bóng đá cuối tuần —
+            SportHub là nơi bạn tìm được họ dễ dàng.
+        </p>
+        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+            Chúng tôi tin rằng thể thao không chỉ là tập luyện, mà còn là nơi kết bạn, xây dựng tinh thần đồng đội
+            và tạo ra những kỷ niệm đáng nhớ. Mỗi trận đấu trên SportHub là một cơ hội mới.
+        </p>
+    </div>
+
+    <!-- Values -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="p-5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
+            <span class="material-symbols-outlined text-primary text-3xl mb-2 block">people</span>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Cộng đồng</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Xây dựng mạng lưới bạn chơi thể thao trên khắp mọi nơi.</p>
+        </div>
+        <div class="p-5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
+            <span class="material-symbols-outlined text-emerald-600 text-3xl mb-2 block">emoji_events</span>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Phát triển</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Theo dõi tiến bộ và nâng cao trình độ qua từng trận đấu.</p>
+        </div>
+        <div class="p-5 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900">
+            <span class="material-symbols-outlined text-violet-600 text-3xl mb-2 block">location_on</span>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Kết nối</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Tìm đồng đội gần bạn nhất, đặt sân và bắt đầu ngay hôm nay.</p>
+        </div>
+    </div>
+
+    <div class="text-center pt-4">
+        <a asp-page="/Matchmaking/Index" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined">sports</span>
+            Tìm trận ngay
+        </a>
+    </div>
+</div>

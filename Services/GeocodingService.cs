@@ -162,45 +162,58 @@ namespace SportHub.Services
         {
             try
             {
-                var url = $"https://rsapi.goong.io/geocode?address={Uri.EscapeDataString(query)}&api_key={_goongApiKey}";
+                // Step 1: AutoComplete (accurate for Vietnamese house numbers)
+                var autocompleteUrl = $"https://rsapi.goong.io/Place/AutoComplete?input={Uri.EscapeDataString(query)}&api_key={_goongApiKey}&limit={limit}";
                 var client = CreateClient();
-                var json = await client.GetStringAsync(url, cancellationToken);
-                using var doc = JsonDocument.Parse(json);
+                var acJson = await client.GetStringAsync(autocompleteUrl, cancellationToken);
+                using var acDoc = JsonDocument.Parse(acJson);
 
-                if (!doc.RootElement.TryGetProperty("status", out var status) ||
-                    status.GetString() != "OK")
+                if (!acDoc.RootElement.TryGetProperty("predictions", out var predictions) ||
+                    predictions.ValueKind != JsonValueKind.Array)
                     return Array.Empty<GeocodeResult>();
 
-                if (!doc.RootElement.TryGetProperty("results", out var results) ||
-                    results.ValueKind != JsonValueKind.Array)
-                    return Array.Empty<GeocodeResult>();
-
-                var list = new List<GeocodeResult>();
-                foreach (var el in results.EnumerateArray())
+                // Collect place_id + description from AutoComplete
+                var places = new List<(string PlaceId, string Description)>();
+                foreach (var pred in predictions.EnumerateArray())
                 {
-                    if (!el.TryGetProperty("geometry", out var geom) ||
-                        !geom.TryGetProperty("location", out var loc))
-                        continue;
-
-                    if (!loc.TryGetProperty("lat", out var latEl) ||
-                        !loc.TryGetProperty("lng", out var lngEl))
-                        continue;
-
-                    var lat = latEl.GetDouble();
-                    var lon = lngEl.GetDouble();
-                    var displayName = el.TryGetProperty("formatted_address", out var fa)
-                        ? fa.GetString() ?? query
-                        : query;
-
-                    list.Add(new GeocodeResult(lat, lon, displayName, "goong"));
-                    if (list.Count >= limit) break;
+                    if (!pred.TryGetProperty("place_id", out var pid)) continue;
+                    var description = pred.TryGetProperty("description", out var desc)
+                        ? desc.GetString() ?? query : query;
+                    places.Add((pid.GetString() ?? "", description));
+                    if (places.Count >= limit) break;
                 }
 
-                return list;
+                if (places.Count == 0) return Array.Empty<GeocodeResult>();
+
+                // Step 2: Fetch Place Detail for each to get coordinates (in parallel)
+                var detailTasks = places.Select(p => FetchGoongPlaceDetailAsync(p.PlaceId, p.Description, client, cancellationToken));
+                var details = await Task.WhenAll(detailTasks);
+                return details.Where(r => r != null).Select(r => r!).ToList();
             }
             catch
             {
                 return Array.Empty<GeocodeResult>();
+            }
+        }
+
+        private async Task<GeocodeResult?> FetchGoongPlaceDetailAsync(string placeId, string description, HttpClient client, CancellationToken ct)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(placeId)) return null;
+                var url = $"https://rsapi.goong.io/Place/Detail?place_id={Uri.EscapeDataString(placeId)}&api_key={_goongApiKey}";
+                var json = await client.GetStringAsync(url, ct);
+                using var doc = JsonDocument.Parse(json);
+                if (!doc.RootElement.TryGetProperty("result", out var result)) return null;
+                if (!result.TryGetProperty("geometry", out var geom)) return null;
+                if (!geom.TryGetProperty("location", out var loc)) return null;
+                var lat = loc.GetProperty("lat").GetDouble();
+                var lon = loc.GetProperty("lng").GetDouble();
+                return new GeocodeResult(lat, lon, description, "goong");
+            }
+            catch
+            {
+                return null;
             }
         }
 

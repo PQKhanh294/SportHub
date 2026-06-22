@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using SportHub.Data;
+using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace SportHub.Hubs
 {
@@ -12,23 +17,26 @@ namespace SportHub.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
-        private readonly INotificationService _notificationService;
-        
-        // Cần lưu connectionId của user đang online để gửi trực tiếp (1-1)
-        private static readonly ConcurrentDictionary<string, string> UserConnections = new();
+        private readonly ApplicationDbContext _context;
 
-        public ChatHub(IChatService chatService, INotificationService notificationService)
+        public ChatHub(IChatService chatService, ApplicationDbContext context)
         {
             _chatService = chatService;
-            _notificationService = notificationService;
+            _context = context;
         }
 
         public override async Task OnConnectedAsync()
         {
-            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(userId))
+            var userIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userIdStr))
             {
-                UserConnections[userId] = Context.ConnectionId;
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"chat:{userIdStr}");
+                if (int.TryParse(userIdStr, out var uid))
+                {
+                    var user = await _context.Users.FindAsync(uid);
+                    if (user?.IsBanned == true && (user.BanEndAt == null || user.BanEndAt > DateTime.UtcNow))
+                    { Context.Abort(); return; }
+                }
             }
             await base.OnConnectedAsync();
         }
@@ -37,54 +45,153 @@ namespace SportHub.Hubs
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userId))
-            {
-                UserConnections.TryRemove(userId, out _);
-            }
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"chat:{userId}");
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task SendMessage(int receiverId, string content)
+        public async Task SendMessage(int receiverId, string content, int? replyToMessageId = null)
         {
             var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(senderIdStr, out int senderId))
-            {
-                // Lưu vào database
-                var msg = await _chatService.SendMessageAsync(senderId, receiverId, content);
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
 
-                // Nếu receiver đang online thì bắn socket sang
-                if (UserConnections.TryGetValue(receiverId.ToString(), out string receiverConnectionId))
-                {
-                    await Clients.Client(receiverConnectionId).SendAsync("ReceiveMessage", new
-                    {
-                        MessageID = msg.MessageID,
-                        SenderID = msg.SenderID,
-                        ReceiverID = msg.ReceiverID,
-                        Content = msg.Content,
-                        CreatedAt = msg.CreatedAt.ToString("o"),
-                        SenderName = msg.Sender.FullName
-                    });
-                }
+            var msg = await _chatService.SendMessageAsync(senderId, receiverId, content, "Text",
+                replyToMessageId: replyToMessageId);
+            var payload = BuildPayload(msg);
 
-                // Gửi thông báo hệ thống và lưu vào DB
-                await _notificationService.CreateAsync(
-                    userId: receiverId,
-                    type: "Chat",
-                    title: msg.Sender.FullName,
-                    message: msg.Content,
-                    linkUrl: $"/Messages/Index?userId={msg.SenderID}"
-                );
-                
-                // Đồng thời gửi lại cho sender để hiện thị lên UI (nếu mở nhiều tab)
-                await Clients.Caller.SendAsync("MessageSent", new
-                {
-                    MessageID = msg.MessageID,
-                    SenderID = msg.SenderID,
-                    ReceiverID = msg.ReceiverID,
-                    Content = msg.Content,
-                    CreatedAt = msg.CreatedAt.ToString("o"),
-                    SenderName = msg.Sender.FullName
-                });
-            }
+            await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+
         }
+
+        public async Task SendImage(int receiverId, string imageUrl)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+            if (string.IsNullOrWhiteSpace(imageUrl)) return;
+
+            var msg = await _chatService.SendMessageAsync(senderId, receiverId, "[Ảnh]", "Image", imageUrl);
+            var payload = BuildPayload(msg);
+
+            await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+        }
+
+        public async Task SendMatchCard(int receiverId, int matchId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+
+            var match = await _context.Matches
+                .Include(m => m.Participants)
+                .Include(m => m.Sport)
+                .FirstOrDefaultAsync(m => m.MatchID == matchId);
+            if (match == null) return;
+
+            var participantCount = match.Participants.Count(p => p.JoinStatus == "Accepted");
+            var matchCardData = new
+            {
+                id = match.MatchID,
+                title = match.Title ?? match.MatchType,
+                type = match.MatchType,
+                sport = match.Sport?.SportName ?? "",
+                date = match.MatchDate.ToString("dd/MM/yyyy"),
+                time = match.StartTime.ToString(@"hh\:mm"),
+                venue = match.CustomCourtName ?? match.CustomCourtAddress ?? "",
+                price = match.CustomPriceVnd.HasValue ? $"{match.CustomPriceVnd.Value:N0} VND" : "Thỏa thuận",
+                participants = participantCount,
+                max = match.MaxParticipants,
+                skill = match.SkillRequired ?? "Mọi cấp độ",
+                status = match.Status
+            };
+
+            var matchCardJson = JsonSerializer.Serialize(matchCardData);
+            var msg = await _chatService.SendMessageAsync(senderId, receiverId, "[Thẻ trận đấu]", "MatchCard", null, matchCardJson);
+            var payload = BuildPayload(msg);
+
+            await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+        }
+
+        // ---- Phase 2 Hub methods ----
+
+        public async Task TypingStart(int receiverId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+            await Clients.Group($"chat:{receiverId}").SendAsync("UserTyping", senderId);
+        }
+
+        public async Task TypingStop(int receiverId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+            await Clients.Group($"chat:{receiverId}").SendAsync("UserStoppedTyping", senderId);
+        }
+
+        public async Task ReactToMessage(int messageId, int receiverId, string reactionType)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+
+            var (rtype, added) = await _chatService.ToggleReactionAsync(messageId, senderId, reactionType);
+            var reactions = await _chatService.GetMessageReactionsAsync(messageId);
+
+            var payload = new { messageId, reactions, reactorId = senderId, reactionType = rtype, added };
+            await Clients.Group($"chat:{receiverId}").SendAsync("ReactionUpdated", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("ReactionUpdated", payload);
+        }
+
+        public async Task DeleteMessage(int messageId, int receiverId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+
+            await _chatService.DeleteMessageAsync(messageId, senderId);
+
+            var payload = new { messageId };
+            await Clients.Group($"chat:{receiverId}").SendAsync("MessageDeleted", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessageDeleted", payload);
+        }
+
+        public async Task PinMessage(int messageId, int receiverId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+
+            var isPinned = await _chatService.TogglePinMessageAsync(messageId, senderId, receiverId);
+            var msg = await _context.ChatMessages.FindAsync(messageId);
+
+            var payload = new { messageId, isPinned, previewText = msg?.Content ?? "" };
+            await Clients.Group($"chat:{receiverId}").SendAsync("MessagePinned", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessagePinned", payload);
+        }
+
+        public async Task ForwardMessage(int originalMessageId, int receiverId)
+        {
+            var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(senderIdStr, out int senderId)) return;
+
+            var msg = await _chatService.ForwardMessageAsync(originalMessageId, senderId, receiverId);
+            var payload = BuildPayload(msg);
+            await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
+            await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+        }
+
+        private static object BuildPayload(ChatMessage msg) => new
+        {
+            messageID = msg.MessageID,
+            senderID = msg.SenderID,
+            receiverID = msg.ReceiverID,
+            content = msg.Content,
+            createdAt = msg.CreatedAt.ToString("o"),
+            senderName = msg.Sender?.FullName ?? "",
+            messageType = msg.MessageType,
+            imageUrl = msg.ImageUrl,
+            matchCardJson = msg.MatchCardJson,
+            replyToMessageID = msg.ReplyToMessageID,
+            replyPreview = msg.ReplyToMessage != null
+                ? new { id = msg.ReplyToMessage.MessageID, content = msg.ReplyToMessage.Content }
+                : null
+        };
     }
 }

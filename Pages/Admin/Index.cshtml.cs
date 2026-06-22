@@ -21,6 +21,8 @@ namespace SportHub.Pages.Admin
         }
 
         public AdminDashboardStats Stats { get; set; } = new();
+        public List<SportHub.Services.Interfaces.DailyRevenue> DailyRevenue { get; set; } = new();
+        public List<SportHub.Services.Interfaces.UnpaidRemainingFee> UnpaidFees { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -42,6 +44,9 @@ namespace SportHub.Pages.Admin
                 ActiveMatchesCount     = await _context.Matches.CountAsync(m => m.Status == "Open" || m.Status == "Full"),
                 RecentTransactions     = recentTx.Take(8).ToList()
             };
+
+            DailyRevenue = await _matchPaymentService.GetDailyRevenueAsync(7);
+            UnpaidFees   = await _matchPaymentService.GetUnpaidRemainingFeesAsync();
 
             return Page();
         }

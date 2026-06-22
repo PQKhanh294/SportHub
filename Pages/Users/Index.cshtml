@@ -76,8 +76,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach (var user in Model.Users)
             {
-                var avatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl) 
-                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(user.FullName)}&background=E2E8F0&color=1E293B" 
+                var avatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
+                    ? "/images/avatar-default.png"
                     : user.AvatarUrl;
 
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow group flex flex-col relative overflow-hidden">
@@ -126,7 +126,7 @@
                         else if (user.RelationStatus == "Sent")
                         {
                             <button disabled class="w-full py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 font-semibold rounded-xl flex items-center justify-center gap-2 text-sm cursor-not-allowed border border-amber-200 dark:border-amber-800/50">
-                                <span class="material-symbols-outlined text-[18px]">hourglass_empty</span>
+                                <span class="material-symbols-outlined text-[18px]">schedule</span>
                                 Đã gửi lời mời
                             </button>
                         }

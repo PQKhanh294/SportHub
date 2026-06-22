@@ -11,6 +11,7 @@ namespace SportHub.Services.Interfaces
         Task CreateAsync(int userId, string type, string title, string message, string? linkUrl = null);
         Task<List<Notification>> GetUserNotificationsAsync(int userId, int limit = 30);
         Task<int> GetUnreadCountAsync(int userId);
+        Task<int> GetUnreadChatCountAsync(int userId);
         Task MarkAllReadAsync(int userId);
         Task MarkReadAsync(int notificationId, int userId);
     }
@@ -71,6 +72,12 @@ namespace SportHub.Services.Implementations
         {
             return await _context.Notifications
                 .CountAsync(n => n.UserID == userId && !n.IsRead);
+        }
+
+        public async Task<int> GetUnreadChatCountAsync(int userId)
+        {
+            return await _context.ChatMessages
+                .CountAsync(m => m.ReceiverID == userId && !m.IsRead);
         }
 
         public async Task MarkAllReadAsync(int userId)

@@ -37,13 +37,13 @@ namespace SportHub.Services.Implementations
             var hasEnded = match.Status == "Completed" || MatchHasEnded(match);
             if (!hasEnded || !WithinReviewWindow(match)) return false;
 
+            // Accept "Approved" (host-approved, fee not yet platform-confirmed) and "Accepted" (fee confirmed)
             var isParticipant = match.Participants.Any(p =>
-                p.UserID == reviewerUserId && p.JoinStatus == "Accepted");
-            // Host can also write PlayerToMatch review if they want to review the match itself
-            // Actually PlayerToMatch is player reviewing the match/host — so only non-host players
+                p.UserID == reviewerUserId &&
+                (p.JoinStatus == "Accepted" || p.JoinStatus == "Approved"));
             var isHost = match.CreatedByUserID == reviewerUserId;
             if (!isParticipant && !isHost) return false;
-            if (isHost) return false; // host doesn't review own match
+            if (isHost) return false; // host reviews players via mode=host, not own match
 
             var alreadyReviewed = await _context.MatchReviews.AnyAsync(r =>
                 r.MatchID == matchId &&
@@ -263,7 +263,8 @@ namespace SportHub.Services.Implementations
                 .Include(m => m.Participants)
                 .Where(m => m.Status != "Cancelled" && m.MatchDate >= DateOnly.FromDateTime(sevenDaysAgo).ToDateTime(TimeOnly.MinValue).Date
                     && (m.CreatedByUserID == userId ||
-                        m.Participants.Any(p => p.UserID == userId && p.JoinStatus == "Accepted")))
+                        m.Participants.Any(p => p.UserID == userId &&
+                            (p.JoinStatus == "Accepted" || p.JoinStatus == "Approved"))))
                 .ToListAsync();
 
             var existingReviews = await _context.MatchReviews
@@ -278,7 +279,8 @@ namespace SportHub.Services.Implementations
                 if (!MatchHasEnded(match) || !WithinReviewWindow(match)) continue;
 
                 var isHost = match.CreatedByUserID == userId;
-                var isPlayer = match.Participants.Any(p => p.UserID == userId && p.JoinStatus == "Accepted");
+                var isPlayer = match.Participants.Any(p => p.UserID == userId &&
+                    (p.JoinStatus == "Accepted" || p.JoinStatus == "Approved"));
 
                 var canRateAsPlayer = isPlayer && !isHost &&
                     !existingReviews.Any(r => r.MatchID == match.MatchID && r.ReviewType == "PlayerToMatch");

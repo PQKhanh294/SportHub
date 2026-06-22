@@ -190,10 +190,32 @@ namespace SportHub.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MatchCardJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ReceiverID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReplyToMessageID")
                         .HasColumnType("int");
 
                     b.Property<int>("SenderID")
@@ -202,6 +224,8 @@ namespace SportHub.Migrations
                     b.HasKey("MessageID");
 
                     b.HasIndex("ReceiverID");
+
+                    b.HasIndex("ReplyToMessageID");
 
                     b.HasIndex("SenderID");
 
@@ -651,6 +675,9 @@ namespace SportHub.Migrations
                     b.Property<string>("ReceiptUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -757,6 +784,95 @@ namespace SportHub.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SportHub.Models.Entities.MessageReaction", b =>
+                {
+                    b.Property<int>("ReactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReactionID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MessageID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReactionID");
+
+                    b.HasIndex("UserID");
+
+                    b.HasIndex("MessageID", "UserID", "ReactionType")
+                        .IsUnique();
+
+                    b.ToTable("MessageReactions", (string)null);
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.MessageReport", b =>
+                {
+                    b.Property<int>("ReportID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportID"));
+
+                    b.Property<string>("AdminNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AiAnalysis")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AiRecommendation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AiViolationScore")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MessageID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReporterID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReviewedByAdminID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ReportID");
+
+                    b.HasIndex("MessageID");
+
+                    b.HasIndex("ReporterID");
+
+                    b.HasIndex("ReviewedByAdminID");
+
+                    b.ToTable("MessageReports", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MessageReports_Status", "Status IN ('Pending','Reviewed','Dismissed')");
+                        });
+                });
+
             modelBuilder.Entity("SportHub.Models.Entities.Notification", b =>
                 {
                     b.Property<int>("NotificationID")
@@ -795,7 +911,7 @@ namespace SportHub.Migrations
 
                     b.ToTable("Notifications", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Notifications_Type", "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder')");
+                            t.HasCheckConstraint("CK_Notifications_Type", "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder','RemainingFeeReminder','WalletCredit')");
                         });
                 });
 
@@ -1023,6 +1139,9 @@ namespace SportHub.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("BanEndAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1057,8 +1176,14 @@ namespace SportHub.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
+
+                    b.Property<int>("LoginCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -1072,6 +1197,12 @@ namespace SportHub.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("WalletBalance")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)")
+                        .HasDefaultValue(0m);
 
                     b.HasKey("UserID");
 
@@ -1132,6 +1263,51 @@ namespace SportHub.Migrations
                         {
                             t.HasCheckConstraint("CK_UserBadges_Level", "Level IN ('Bronze','Silver','Gold')");
                         });
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.UserBan", b =>
+                {
+                    b.Property<int>("BanID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BanID"));
+
+                    b.Property<string>("BanType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("BannedByAdminID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ReportID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("BanID");
+
+                    b.HasIndex("BannedByAdminID");
+
+                    b.HasIndex("ReportID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("UserBans", (string)null);
                 });
 
             modelBuilder.Entity("SportHub.Models.Entities.UserRole", b =>
@@ -1203,6 +1379,94 @@ namespace SportHub.Migrations
                             t.HasCheckConstraint("CK_USP_SelfRated", "SelfRatedLevel IS NULL OR SelfRatedLevel BETWEEN 1 AND 5");
 
                             t.HasCheckConstraint("CK_USP_StrokeStrength", "StrokeStrength IS NULL OR StrokeStrength IN ('Smash','Drop','Drive','AllRound')");
+                        });
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.WalletTopUpRequest", b =>
+                {
+                    b.Property<int>("WalletTopUpID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletTopUpID"));
+
+                    b.Property<decimal?>("ActualAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TransactionRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("WalletTopUpID");
+
+                    b.HasIndex("TransactionRef")
+                        .IsUnique();
+
+                    b.HasIndex("UserID", "Status");
+
+                    b.ToTable("WalletTopUpRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WalletTopUpRequests_Status", "Status IN ('Pending','Confirmed','Expired')");
+                        });
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.WalletTransaction", b =>
+                {
+                    b.Property<int>("WalletTransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletTransactionID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RelatedMatchID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("WalletTransactionID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("WalletTransactions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WalletTransactions_Type", "Type IN ('Refund','Deduction','AdminCredit','TopUp','MatchPayment')");
                         });
                 });
 
@@ -1286,6 +1550,11 @@ namespace SportHub.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("SportHub.Models.Entities.ChatMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("ReplyToMessageID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("SportHub.Models.Entities.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderID")
@@ -1293,6 +1562,8 @@ namespace SportHub.Migrations
                         .IsRequired();
 
                     b.Navigation("Receiver");
+
+                    b.Navigation("ReplyToMessage");
 
                     b.Navigation("Sender");
                 });
@@ -1485,6 +1756,51 @@ namespace SportHub.Migrations
                     b.Navigation("ReviewerUser");
                 });
 
+            modelBuilder.Entity("SportHub.Models.Entities.MessageReaction", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.ChatMessage", "Message")
+                        .WithMany("Reactions")
+                        .HasForeignKey("MessageID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SportHub.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.MessageReport", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.ChatMessage", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SportHub.Models.Entities.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SportHub.Models.Entities.User", "ReviewedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByAdminID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Message");
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("ReviewedByAdmin");
+                });
+
             modelBuilder.Entity("SportHub.Models.Entities.Notification", b =>
                 {
                     b.HasOne("SportHub.Models.Entities.User", "User")
@@ -1564,6 +1880,32 @@ namespace SportHub.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SportHub.Models.Entities.UserBan", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.User", "BannedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("BannedByAdminID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SportHub.Models.Entities.MessageReport", "Report")
+                        .WithMany()
+                        .HasForeignKey("ReportID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SportHub.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("BannedByAdmin");
+
+                    b.Navigation("Report");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SportHub.Models.Entities.UserRole", b =>
                 {
                     b.HasOne("SportHub.Models.Entities.Role", "Role")
@@ -1602,11 +1944,38 @@ namespace SportHub.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SportHub.Models.Entities.WalletTopUpRequest", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.WalletTransaction", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SportHub.Models.Entities.Booking", b =>
                 {
                     b.Navigation("BookingSlots");
 
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.ChatMessage", b =>
+                {
+                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("SportHub.Models.Entities.Court", b =>

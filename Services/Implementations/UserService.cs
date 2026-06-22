@@ -64,12 +64,48 @@ namespace SportHub.Services.Implementations
 
         public async Task<List<User>> GetSuggestedPlayersAsync(int currentUserId, int limit = 4)
         {
-            // Dummy logic: lấy user có rating cao
-            return await _context.Users
+            var me = currentUserId > 0
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserID == currentUserId)
+                : null;
+
+            var candidates = await _context.Users
+                .AsNoTracking()
                 .Where(u => u.UserID != currentUserId && u.IsActive)
-                .OrderByDescending(u => u.SkillLevel)
-                .Take(limit)
+                .Select(u => new
+                {
+                    u.UserID, u.FullName, u.AvatarUrl, u.SkillLevel, u.FavoriteSport,
+                    u.DefaultAddress, u.PhoneNumber, u.DefaultLatitude, u.DefaultLongitude,
+                    MatchCount = _context.MatchParticipants.Count(mp => mp.UserID == u.UserID)
+                })
                 .ToListAsync();
+
+            return candidates
+                .Select(u => new
+                {
+                    Data = u,
+                    Score =
+                        (me?.FavoriteSport != null && me.FavoriteSport == u.FavoriteSport ? 3 : 0) +
+                        (me?.SkillLevel != null && me.SkillLevel == u.SkillLevel ? 2 : 0) +
+                        (!string.IsNullOrEmpty(u.DefaultAddress) ? 1 : 0) +
+                        (!string.IsNullOrEmpty(u.PhoneNumber) ? 1 : 0)
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Data.MatchCount)
+                .Take(limit)
+                .Select(x => new User
+                {
+                    UserID = x.Data.UserID,
+                    FullName = x.Data.FullName,
+                    AvatarUrl = x.Data.AvatarUrl,
+                    SkillLevel = x.Data.SkillLevel,
+                    FavoriteSport = x.Data.FavoriteSport,
+                    DefaultAddress = x.Data.DefaultAddress,
+                    PhoneNumber = x.Data.PhoneNumber,
+                    DefaultLatitude = x.Data.DefaultLatitude,
+                    DefaultLongitude = x.Data.DefaultLongitude,
+                    IsActive = true
+                })
+                .ToList();
         }
 
         public async Task<List<User>> SearchUsersAsync(int currentUserId, string? keyword, string? skillLevel, string? sport, string? sortBy)
@@ -170,6 +206,27 @@ namespace SportHub.Services.Implementations
             user.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task IncrementLoginCountAsync(int userId)
+        {
+            await _context.Users
+                .Where(u => u.UserID == userId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.LoginCount, u => u.LoginCount + 1)
+                    .SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
+        }
+
+        public async Task<bool> IsProfileCompleteAsync(int userId)
+        {
+            var u = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserID == userId);
+            if (u == null) return true;
+            return !string.IsNullOrWhiteSpace(u.PhoneNumber)
+                && !string.IsNullOrWhiteSpace(u.SkillLevel)
+                && !string.IsNullOrWhiteSpace(u.FavoriteSport)
+                && !string.IsNullOrWhiteSpace(u.DefaultAddress);
         }
     }
 }
