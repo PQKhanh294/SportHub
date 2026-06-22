@@ -46,7 +46,13 @@ builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.INotificationService, SportHub.Services.Implementations.NotificationService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IMatchPaymentService, SportHub.Services.Implementations.MatchPaymentService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IMatchReviewService, SportHub.Services.Implementations.MatchReviewService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IWalletService, SportHub.Services.Implementations.WalletService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IAiChatService, SportHub.Services.Implementations.AiChatService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IMessageReportService, SportHub.Services.Implementations.MessageReportService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IUserBanService, SportHub.Services.Implementations.UserBanService>();
+builder.Services.AddScoped<SportHub.Services.Implementations.ChatModerationService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -84,9 +90,36 @@ app.UseAuthorization();
 
 // Map Razor Pages
 app.MapRazorPages();
+app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<SportHub.Hubs.ChatHub>("/hubs/chat");
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+app.MapGet("/geo/search", async (string q, int limit, IGeocodingService geo) =>
+{
+    var results = await geo.SearchAsync(q, Math.Clamp(limit, 1, 10));
+    return Results.Json(results.Select(r => new { lat = r.Lat, lon = r.Lon, name = r.DisplayName }));
+});
+
+app.MapGet("/geo/reverse", async (double lat, double lon, IHttpClientFactory clientFactory) =>
+{
+    try
+    {
+        var http = clientFactory.CreateClient();
+        http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "SportHub/1.0");
+        var latStr = lat.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var lonStr = lon.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var url = $"https://nominatim.openstreetmap.org/reverse?lat={latStr}&lon={lonStr}&format=json&accept-language=vi";
+        var res = await http.GetStringAsync(url);
+        var doc = System.Text.Json.JsonDocument.Parse(res);
+        var displayName = doc.RootElement.TryGetProperty("display_name", out var dn) ? dn.GetString() : null;
+        return Results.Json(new { address = displayName });
+    }
+    catch
+    {
+        return Results.Json(new { address = (string?)null });
+    }
+});
 
 app.Lifetime.ApplicationStarted.Register(() =>
 {

@@ -14,11 +14,13 @@ namespace SportHub.Pages.Admin
     {
         private readonly IUserService _userService;
         private readonly ApplicationDbContext _context;
+        private readonly IWalletService _walletService;
 
-        public AdminUsersModel(IUserService userService, ApplicationDbContext context)
+        public AdminUsersModel(IUserService userService, ApplicationDbContext context, IWalletService walletService)
         {
             _userService = userService;
             _context = context;
+            _walletService = walletService;
         }
 
         public List<User> Users { get; set; } = new();
@@ -59,6 +61,19 @@ namespace SportHub.Pages.Admin
                 ? (!currentActive ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.")
                 : "Không tìm thấy người dùng.";
 
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostCreditWalletAsync(int userId, decimal amount, string description)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            if (amount <= 0)
+            {
+                ErrorMessage = "Số tiền phải lớn hơn 0.";
+                return RedirectToPage();
+            }
+            await _walletService.CreditAsync(userId, amount, string.IsNullOrWhiteSpace(description) ? "Admin hoàn tiền thủ công" : description);
+            SuccessMessage = $"Đã cộng {amount:N0} ₫ vào ví người dùng #{userId}.";
             return RedirectToPage();
         }
 

@@ -28,6 +28,26 @@ namespace SportHub.Services.Interfaces
         public int PendingPaymentsCount { get; set; }
     }
 
+    public class DailyRevenue
+    {
+        public DateTime Date { get; set; }
+        public decimal HostDepositTotal { get; set; }
+        public decimal PlayerFeeTotal { get; set; }
+        public decimal HostRemainingTotal { get; set; }
+        public decimal Total => HostDepositTotal + PlayerFeeTotal + HostRemainingTotal;
+    }
+
+    public class UnpaidRemainingFee
+    {
+        public int MatchId { get; set; }
+        public string MatchTitle { get; set; } = string.Empty;
+        public string HostName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public DateTime MatchDate { get; set; }
+        public DateTime? PaymentCreatedAt { get; set; }
+        public bool IsOverdue => PaymentCreatedAt.HasValue && (DateTime.UtcNow - PaymentCreatedAt.Value).TotalHours > 48;
+    }
+
     public class TransactionHistoryItem
     {
         public int PaymentId { get; set; }
@@ -65,5 +85,7 @@ namespace SportHub.Services.Interfaces
         Task<List<TransactionHistoryItem>> GetTransactionHistoryAsync();
         Task<List<ExpiredPlayerFee>> ExpirePlayerFeesAsync(CancellationToken ct = default);
         Task<List<(int MatchId, int HostUserId, string MatchTitle, decimal RemainingAmount)>> NotifyRemainingFeeAsync(CancellationToken ct = default);
+        Task<List<DailyRevenue>> GetDailyRevenueAsync(int days = 7);
+        Task<List<UnpaidRemainingFee>> GetUnpaidRemainingFeesAsync();
     }
 }

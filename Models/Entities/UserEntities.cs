@@ -17,6 +17,10 @@ namespace SportHub.Models.Entities
         public decimal? DefaultLongitude { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsVerified { get; set; } = false;
+        public bool IsBanned { get; set; } = false;
+        public DateTime? BanEndAt { get; set; }
+        public decimal WalletBalance { get; set; } = 0m;
+        public int LoginCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

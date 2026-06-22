@@ -35,3 +35,37 @@ body {
 .dot-available { background-color: #10b981; }
 .dot-limited   { background-color: #f59e0b; }
 .dot-full      { background-color: #ef4444; }
+
+/* =============================================
+   SPORT THEME UTILITIES
+   ============================================= */
+
+/* Section heading with orange left accent */
+.sport-section-heading {
+    border-left: 3px solid #f97316;
+    padding-left: 0.75rem;
+}
+
+/* Sport category badges */
+.badge-badminton { background-color: #f97316; color: white; }
+.badge-football  { background-color: #16a34a; color: white; }
+.badge-tennis    { background-color: #dc2626; color: white; }
+.badge-pingpong  { background-color: #7c3aed; color: white; }
+
+/* Stats counter number style */
+.stat-number {
+    font-family: 'Barlow Condensed', 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 1.75rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+/* Sport card left hover accent */
+.sport-card {
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sport-card:hover {
+    border-left-color: #f97316;
+}

@@ -1,5 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using SportHub.Data;
+using SportHub.Models.Entities;
 using SportHub.Models.ViewModels;
 using SportHub.Services.Interfaces;
 
@@ -12,23 +15,32 @@ namespace SportHub.Pages
         private readonly IUserService _userService;
         private readonly ICourtService _courtService;
         private readonly IMatchReviewService _reviewService;
+        private readonly ApplicationDbContext _context;
 
         public List<MatchCardViewModel> RecommendedMatches { get; set; } = new();
         public List<PlayerCardViewModel> SuggestedPlayers { get; set; } = new();
         public List<CourtCardViewModel> NearbyCourts { get; set; } = new();
+
+        // Stats thực từ DB
+        public int TotalUsers { get; set; }
+        public int MatchesThisWeek { get; set; }
+        public int TotalVenues { get; set; }
+        public double? AvgRating { get; set; }
 
         public IndexModel(
             ILogger<IndexModel> logger,
             IMatchService matchService,
             IUserService userService,
             ICourtService courtService,
-            IMatchReviewService reviewService)
+            IMatchReviewService reviewService,
+            ApplicationDbContext context)
         {
             _logger = logger;
             _matchService = matchService;
             _userService = userService;
             _courtService = courtService;
             _reviewService = reviewService;
+            _context = context;
         }
 
         public async Task OnGetAsync()
@@ -40,6 +52,37 @@ namespace SportHub.Pages
             await LoadRecommendedMatchesAsync();
             await LoadSuggestedPlayersAsync(currentUserId);
             await LoadNearbyCourtsAsync();
+            await LoadStatsAsync();
+        }
+
+        private async Task LoadStatsAsync()
+        {
+            var now = DateTime.UtcNow;
+            var weekAgo = now.AddDays(-7);
+
+            TotalUsers = await _context.Users.CountAsync(u => u.IsActive);
+            MatchesThisWeek = await _context.Matches
+                .CountAsync(m => m.MatchDate >= weekAgo);
+            TotalVenues = await _context.CourtVenues.CountAsync(v => v.IsActive);
+            // AverageScore là computed property — cần chọn các cột thô và tính phía client
+            var reviewScores = await _context.MatchReviews
+                .Select(r => new {
+                    r.ReviewType,
+                    r.ScoreOrganization, r.ScoreEquipment, r.ScoreAtmosphere, r.ScoreHost, r.ScoreValueForMoney,
+                    r.ScorePunctuality, r.ScoreSportsmanship, r.ScoreSkillAccuracy
+                })
+                .ToListAsync();
+            if (reviewScores.Count > 0)
+            {
+                var allAvgs = reviewScores.Select(r => (double)new MatchReview {
+                    ReviewType = r.ReviewType,
+                    ScoreOrganization = r.ScoreOrganization, ScoreEquipment = r.ScoreEquipment,
+                    ScoreAtmosphere = r.ScoreAtmosphere, ScoreHost = r.ScoreHost, ScoreValueForMoney = r.ScoreValueForMoney,
+                    ScorePunctuality = r.ScorePunctuality, ScoreSportsmanship = r.ScoreSportsmanship,
+                    ScoreSkillAccuracy = r.ScoreSkillAccuracy
+                }.AverageScore).Where(v => v > 0).ToList();
+                AvgRating = allAvgs.Count > 0 ? Math.Round(allAvgs.Average(), 1) : null;
+            }
         }
 
         private async Task LoadRecommendedMatchesAsync()
@@ -67,7 +110,7 @@ namespace SportHub.Pages
                 CurrentParticipants = m.Participants.Count,
                 ParticipantAvatars = m.Participants
                     .Select(p => string.IsNullOrWhiteSpace(p.User.AvatarUrl)
-                        ? "https://lh3.googleusercontent.com/aida-public/AB6AXuBJltQB4lJgS6elN1iftfCyl_n5HBEP0j_xJkKu8o8SUu28nW-ZpKxhvmTE5KvRTwL06e1t1hYxppuU14VoLYRyrB7-Khb8Iy7AVm4zWPRFRqv9uusxNIXrIciMsOBnbaRk3XB3t4g7Jb1THJtTTp_I1VcyPYXo_gHWpr-tj95_hcTr9OHAD7S1w26jBmsoEijoqrSvhaA_0uXVETsD7iDV2UWhjKppEjq0kQ89mvU1yke0NQsJMfzIqwDtzzd2xjTr0n_GHfwCkeE"
+                        ? "/images/avatar-default.png"
                         : p.User.AvatarUrl!)
                     .Take(4)
                     .ToList(),
@@ -81,17 +124,46 @@ namespace SportHub.Pages
         {
             var users = await _userService.GetSuggestedPlayersAsync(currentUserId, 4);
 
-            var sportFallback = new[] { "Tennis", "Badminton", "Pickleball" };
-            SuggestedPlayers = users.Select((u, idx) => new PlayerCardViewModel
+            // Lấy số trận và rating thực từ DB
+            var userIds = users.Select(u => u.UserID).ToList();
+            var matchCounts = await _context.MatchParticipants
+                .Where(mp => userIds.Contains(mp.UserID))
+                .GroupBy(mp => mp.UserID)
+                .Select(g => new { UserId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.UserId, x => x.Count);
+
+            // AverageScore là computed property — lấy raw scores rồi tính client-side
+            var rawReviews = await _context.MatchReviews
+                .Where(r => userIds.Contains(r.ReviewedUserID))
+                .Select(r => new {
+                    r.ReviewedUserID, r.ReviewType,
+                    r.ScoreOrganization, r.ScoreEquipment, r.ScoreAtmosphere, r.ScoreHost, r.ScoreValueForMoney,
+                    r.ScorePunctuality, r.ScoreSportsmanship, r.ScoreSkillAccuracy
+                })
+                .ToListAsync();
+            var ratings = rawReviews
+                .GroupBy(r => r.ReviewedUserID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(r => (double)new MatchReview {
+                        ReviewType = r.ReviewType,
+                        ScoreOrganization = r.ScoreOrganization, ScoreEquipment = r.ScoreEquipment,
+                        ScoreAtmosphere = r.ScoreAtmosphere, ScoreHost = r.ScoreHost, ScoreValueForMoney = r.ScoreValueForMoney,
+                        ScorePunctuality = r.ScorePunctuality, ScoreSportsmanship = r.ScoreSportsmanship,
+                        ScoreSkillAccuracy = r.ScoreSkillAccuracy
+                    }.AverageScore).Where(v => v > 0).DefaultIfEmpty(0).Average()
+                );
+
+            SuggestedPlayers = users.Select(u => new PlayerCardViewModel
             {
                 UserID = u.UserID,
                 FullName = u.FullName,
-                SkillLevel = u.SkillLevel ?? "Intermediate",
-                FavoriteSport = sportFallback[idx % sportFallback.Length],
-                AverageRating = 4.5,
-                TotalMatches = 10 + (u.UserID % 30),
+                SkillLevel = string.IsNullOrWhiteSpace(u.SkillLevel) ? "Chưa cập nhật" : u.SkillLevel,
+                FavoriteSport = string.IsNullOrWhiteSpace(u.FavoriteSport) ? "Chưa cập nhật" : u.FavoriteSport,
+                AverageRating = ratings.TryGetValue(u.UserID, out var avg) ? avg : 0,
+                TotalMatches = matchCounts.TryGetValue(u.UserID, out var cnt) ? cnt : 0,
                 AvatarUrl = string.IsNullOrWhiteSpace(u.AvatarUrl)
-                    ? "https://lh3.googleusercontent.com/aida-public/AB6AXuANCPA1RsIoRkhzqqh-JRBEY5jifMop0t_XlHA99NH2WTa1vOcXXGJyT4ojWhc5eqon5c3CBeB_BXEEs1GmCOwGkza4AOTFOrUCnFdoRz0cr5O3qZYj_T-XkUOJ9_2ktWjlgVPkfGvmo242d93BG4-fYYnqTki_EQzyDWIxHw90-I5KPodkgOFcr2OuJ2zvJOTEjJHmL77YOUq7VFAtHrdgDUmNLJgjYhyAI9QbZaj_urfOXxuGCEk28JCU4Ft1f6VYEm4E1BFSOHI"
+                    ? "/images/avatar-default.png"
                     : u.AvatarUrl,
                 AlreadyConnected = false
             }).ToList();

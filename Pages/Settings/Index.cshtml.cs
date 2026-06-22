@@ -21,12 +21,15 @@ namespace SportHub.Pages.Settings
             CurrentLanguage = feature?.RequestCulture.Culture.Name ?? "vi-VN";
         }
 
+        private static readonly HashSet<string> ValidThemes = new() { "light", "dark", "dark-2", "dark-3" };
+
         public IActionResult OnPostSetTheme(string theme)
         {
-            Response.Cookies.Append("theme", theme, new CookieOptions 
-            { 
+            if (!ValidThemes.Contains(theme)) theme = "light";
+            Response.Cookies.Append("theme", theme, new CookieOptions
+            {
                 Expires = DateTimeOffset.UtcNow.AddYears(1),
-                Path = "/" 
+                Path = "/"
             });
             return RedirectToPage();
         }

@@ -64,7 +64,7 @@
                             <td class="px-4 py-3 text-slate-400 text-xs">@r.ReviewId</td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-2">
-                                    <img src="@(r.ReviewerAvatarUrl ?? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(r.ReviewerName)}&size=32&background=E2E8F0&color=1E293B")"
+                                    <img src="@(r.ReviewerAvatarUrl ?? "/images/avatar-default.png")"
                                          class="w-7 h-7 rounded-full object-cover" alt="" />
                                     <span class="font-medium text-slate-800 dark:text-slate-200">@r.ReviewerName</span>
                                 </div>
