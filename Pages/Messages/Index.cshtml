@@ -5,25 +5,25 @@
 }
 
 <div class="max-w-6xl mx-auto h-[calc(100vh-140px)] min-h-[600px] flex bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
-    
+
     <!-- Cột trái: Danh sách bạn bè -->
     <div class="w-full md:w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col @(Model.ActiveChatUser != null ? "hidden md:flex" : "flex")">
         <div class="p-4 border-b border-slate-200 dark:border-slate-800">
             <h2 class="text-xl font-black">Đoạn chat</h2>
             <div class="mt-4 relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" placeholder="Tìm kiếm bạn bè..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                <input type="text" id="friend-search" placeholder="Tìm kiếm bạn bè..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" oninput="filterFriends(this.value)" />
             </div>
         </div>
-        
-        <div class="flex-1 overflow-y-auto p-2">
+
+        <div class="flex-1 overflow-y-auto p-2" id="friends-list">
             @if (!Model.Friends.Any())
             {
                 <div class="text-center p-4 mt-4 text-slate-500">
                     <p class="mb-4">Bạn chưa có bạn bè nào.</p>
                     <a href="/Users/Index" class="inline-block px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors">Tìm bạn cộng đồng</a>
                 </div>
-                
+
                 @if (Model.SuggestedFriends.Any())
                 {
                     <div class="mt-8 px-4">
@@ -32,7 +32,7 @@
                             @foreach (var suggestion in Model.SuggestedFriends)
                             {
                                 <a href="/Users/Profile/@suggestion.UserID" class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
-                                    <img src="@(string.IsNullOrEmpty(suggestion.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(suggestion.FullName)}&background=E2E8F0&color=1E293B" : suggestion.AvatarUrl)" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                                    <img src="@(string.IsNullOrEmpty(suggestion.AvatarUrl) ? "/images/avatar-default.png" : suggestion.AvatarUrl)" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                                     <div class="flex-1 min-w-0">
                                         <p class="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">@suggestion.FullName</p>
                                         <p class="text-[10px] text-slate-500">Trình độ: @(suggestion.SkillLevel ?? "Chưa rõ")</p>
@@ -48,20 +48,83 @@
             {
                 @foreach (var friend in Model.Friends)
                 {
-                    <a href="/Messages?userId=@friend.UserID" class="flex items-center gap-3 p-3 rounded-2xl transition-colors @(Model.ActiveChatUser?.UserID == friend.UserID ? "bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50")">
-                        <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden flex items-center justify-center font-bold text-slate-500">
-                            @if (string.IsNullOrEmpty(friend.AvatarUrl))
+                    var hasSummary = Model.ConversationSummaries.TryGetValue(friend.UserID, out var summary);
+                    var lastMsg = hasSummary ? summary.LastMsg : null;
+                    var unreadCount = hasSummary ? summary.UnreadCount : 0;
+                    var isActive = Model.ActiveChatUser?.UserID == friend.UserID;
+
+                    string previewText = "";
+                    string statusLabel = "";
+                    string statusClass = "";
+                    if (lastMsg != null)
+                    {
+                        previewText = lastMsg.MessageType == "Image" ? "Đã gửi một ảnh"
+                            : lastMsg.MessageType == "MatchCard" ? "Đã chia sẻ thẻ trận"
+                            : (lastMsg.Content.Length > 35 ? lastMsg.Content[..35] + "…" : lastMsg.Content);
+
+                        bool theySentLast = lastMsg.SenderID == friend.UserID;
+                        bool iSentLast = lastMsg.SenderID == Model.CurrentUserId;
+
+                        if (theySentLast && unreadCount > 0)
+                        {
+                            statusLabel = "· Chưa trả lời";
+                            statusClass = "text-blue-500 font-semibold";
+                        }
+                        else if (iSentLast && lastMsg.IsRead == false)
+                        {
+                            statusLabel = "· Chờ phản hồi";
+                            statusClass = "text-slate-400";
+                        }
+                    }
+
+                    <a href="/Messages?userId=@friend.UserID"
+                       class="friend-row flex items-center gap-3 p-3 rounded-2xl transition-colors @(isActive ? "bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50")"
+                       data-name="@friend.FullName.ToLower()">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center font-bold text-slate-500">
+                                @if (string.IsNullOrEmpty(friend.AvatarUrl))
+                                {
+                                    @friend.FullName[0]
+                                }
+                                else
+                                {
+                                    <img src="@friend.AvatarUrl" class="w-full h-full object-cover" />
+                                }
+                            </div>
+                            @if (unreadCount > 0)
                             {
-                                @friend.FullName[0]
+                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold leading-none"
+                                      id="unread-badge-@friend.UserID">
+                                    @(unreadCount > 9 ? "9+" : unreadCount.ToString())
+                                </span>
                             }
                             else
                             {
-                                <img src="@friend.AvatarUrl" class="w-full h-full object-cover" />
+                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[9px] rounded-full items-center justify-center font-bold leading-none hidden"
+                                      id="unread-badge-@friend.UserID">0</span>
                             }
                         </div>
                         <div class="flex-1 min-w-0">
                             <h4 class="font-bold text-slate-900 dark:text-white truncate">@friend.FullName</h4>
+                            @if (!string.IsNullOrEmpty(previewText))
+                            {
+                                <div class="flex items-center gap-1 mt-0.5">
+                                    <p class="text-xs text-slate-400 truncate" id="preview-@friend.UserID">@previewText</p>
+                                    @if (!string.IsNullOrEmpty(statusLabel))
+                                    {
+                                        <span class="text-[10px] @statusClass shrink-0">@statusLabel</span>
+                                    }
+                                </div>
+                            }
                         </div>
+                        @if (lastMsg != null)
+                        {
+                            <span class="text-[10px] text-slate-400 shrink-0">
+                                @(lastMsg.CreatedAt.Date == DateTime.Today
+                                    ? lastMsg.CreatedAt.ToString("HH:mm")
+                                    : lastMsg.CreatedAt.ToString("dd/MM"))
+                            </span>
+                        }
                     </a>
                 }
             }
@@ -100,9 +163,55 @@
                         <h3 class="font-bold text-lg">@Model.ActiveChatUser.FullName</h3>
                     </a>
                 </div>
+                <div class="flex items-center gap-1">
+                    <button id="btn-search-conv" title="Tìm trong đoạn chat" onclick="toggleSearchPanel()"
+                            class="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-[18px] text-slate-500">search</span>
+                    </button>
+                    <button id="btn-media-gallery" title="Ảnh đã chia sẻ" onclick="toggleMediaGallery()"
+                            class="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-[18px] text-slate-500">photo_library</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Khung tin nhắn -->
+            <!-- Pinned message banner -->
+            <div id="pinned-banner" class="hidden px-4 py-2 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-900 flex items-center gap-2 cursor-pointer"
+                 onclick="scrollToPinnedMsg()">
+                <span class="material-symbols-outlined text-amber-500 text-sm">push_pin</span>
+                <p id="pinned-text" class="text-xs text-slate-700 dark:text-slate-200 truncate flex-1"></p>
+                <button onclick="event.stopPropagation(); unpinMessage()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors text-slate-500">
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                </button>
+            </div>
+
+            <!-- Search panel -->
+            <div id="search-panel" class="hidden px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <input id="conv-search-input" type="text" placeholder="Tìm tin nhắn..."
+                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+                           oninput="searchInConversation(this.value)" />
+                    <button onclick="toggleSearchPanel()" class="text-slate-400 hover:text-slate-600">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                <div id="search-results" class="mt-2 max-h-48 overflow-y-auto space-y-1"></div>
+            </div>
+
+            <!-- Media gallery panel -->
+            <div id="media-gallery-panel" class="hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                <div class="px-4 py-2 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ảnh đã chia sẻ</p>
+                    <button onclick="toggleMediaGallery()" class="text-slate-400">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                <div id="media-grid" class="grid grid-cols-4 gap-1 p-2 max-h-40 overflow-y-auto">
+                    <div class="col-span-4 text-center text-xs text-slate-400 py-4" id="media-loading">Đang tải...</div>
+                </div>
+            </div>
+
+            <!-- Booking proposal panel -->
             @if (Model.SharedMatchOptions.Any())
             {
                 <div class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
@@ -110,7 +219,7 @@
                         <summary class="cursor-pointer flex items-center justify-between gap-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                             <span class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary">event_available</span>
-                                Äá» xuáº¥t Ä‘áº·t sÃ¢n cho tráº­n Ä‘Ã£ match
+                                Đề xuất đặt sân cho trận đã match
                             </span>
                             <span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
                         </summary>
@@ -118,20 +227,20 @@
                             <input type="hidden" asp-for="ProposalInput.ReceiverId" value="@Model.ActiveChatUser.UserID" />
                             <select asp-for="ProposalInput.MatchId" asp-items="Model.SharedMatchOptions" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm"></select>
                             <select asp-for="ProposalInput.CourtId" asp-items="Model.CourtOptions" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm">
-                                <option value="">ChÆ°a chá»n sÃ¢n</option>
+                                <option value="">Chưa chọn sân</option>
                             </select>
                             <input asp-for="ProposalInput.BookingDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <input asp-for="ProposalInput.EstimatedCost" type="number" min="0" step="10000" placeholder="GiÃ¡ dá»± kiáº¿n" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <input asp-for="ProposalInput.EstimatedCost" type="number" min="0" step="10000" placeholder="Giá dự kiến" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
                             <input asp-for="ProposalInput.StartTime" type="time" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
                             <input asp-for="ProposalInput.EndTime" type="time" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
                             <select asp-for="ProposalInput.SplitMode" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm">
-                                <option value="Equal">Chia Ä‘á»u</option>
-                                <option value="HostPays">Host tráº£</option>
+                                <option value="Equal">Chia đều</option>
+                                <option value="HostPays">Host trả</option>
                             </select>
-                            <input asp-for="ProposalInput.Note" placeholder="Ghi chÃº ngáº¯n" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <input asp-for="ProposalInput.Note" placeholder="Ghi chú ngắn" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
                             <button type="submit" class="rounded-xl bg-primary text-white font-bold text-sm px-4 py-2 hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
                                 <span class="material-symbols-outlined text-base">send</span>
-                                Gá»­i
+                                Gửi
                             </button>
                         </form>
                     </details>
@@ -150,17 +259,17 @@
                                     <p class="font-black text-sm truncate">@(proposal.Match.Title ?? proposal.Match.MatchType)</p>
                                     <span class="text-[10px] font-bold px-2 py-1 rounded-full @(proposal.Status == "Accepted" ? "bg-emerald-100 text-emerald-700" : proposal.Status == "Rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")">@proposal.Status</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-1">@proposal.BookingDate.ToString("dd/MM/yyyy") â€¢ @proposal.StartTime.ToString(@"hh\:mm") - @proposal.EndTime.ToString(@"hh\:mm")</p>
-                                <p class="text-xs text-slate-500 truncate">@(proposal.Court?.Venue?.VenueName ?? "ChÆ°a chá»n sÃ¢n")</p>
-                                <p class="text-xs text-slate-500">@(proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} VND" : "ChÆ°a cÃ³ giÃ¡") â€¢ @(proposal.SplitMode == "HostPays" ? "Host tráº£" : "Chia Ä‘á»u")</p>
+                                <p class="text-xs text-slate-500 mt-1">@proposal.BookingDate.ToString("dd/MM/yyyy") • @proposal.StartTime.ToString(@"hh\:mm") - @proposal.EndTime.ToString(@"hh\:mm")</p>
+                                <p class="text-xs text-slate-500 truncate">@(proposal.Court?.Venue?.VenueName ?? "Chưa chọn sân")</p>
+                                <p class="text-xs text-slate-500">@(proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} VND" : "Chưa có giá") • @(proposal.SplitMode == "HostPays" ? "Host trả" : "Chia đều")</p>
                                 @if (isReceiver && proposal.Status == "Waiting")
                                 {
                                     <div class="flex gap-2 mt-3">
                                         <form method="post" asp-page-handler="RespondProposal" asp-route-proposalId="@proposal.ProposalID" asp-route-userId="@proposal.SenderID" asp-route-status="Accepted" class="flex-1">
-                                            <button type="submit" class="w-full rounded-lg bg-emerald-500 text-white text-xs font-bold py-2">Äá»“ng Ã½</button>
+                                            <button type="submit" class="w-full rounded-lg bg-emerald-500 text-white text-xs font-bold py-2">Đồng ý</button>
                                         </form>
                                         <form method="post" asp-page-handler="RespondProposal" asp-route-proposalId="@proposal.ProposalID" asp-route-userId="@proposal.SenderID" asp-route-status="Rejected" class="flex-1">
-                                            <button type="submit" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold py-2">Tá»« chá»‘i</button>
+                                            <button type="submit" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold py-2">Từ chối</button>
                                         </form>
                                     </div>
                                 }
@@ -170,24 +279,261 @@
                 </div>
             }
 
-            <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/30" id="chat-messages">
+            <!-- Chat messages area with drag-drop support -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/30" id="chat-messages"
+                 ondragover="event.preventDefault(); this.classList.add('ring-2','ring-primary/40');"
+                 ondragleave="this.classList.remove('ring-2','ring-primary/40');"
+                 ondrop="handleMsgAreaDrop(event)">
                 @foreach (var msg in Model.ChatHistory)
                 {
                     bool isMine = msg.SenderID == Model.CurrentUserId;
-                    <div class="flex @(isMine ? "justify-end" : "justify-start")">
-                        <div class="max-w-[70%] @(isMine ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white") px-4 py-2 rounded-2xl @(isMine ? "rounded-br-sm" : "rounded-bl-sm") shadow-sm">
-                            <p class="text-sm">@msg.Content</p>
-                            <p class="text-[10px] mt-1 opacity-70 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
+                    string prevContent = msg.IsDeleted ? "Tin nhắn đã bị xóa" : (msg.Content.Length > 60 ? msg.Content[..60] + "…" : msg.Content);
+
+                    <div class="flex @(isMine ? "justify-end" : "justify-start") items-end gap-1.5 group/msg" data-mid="@msg.MessageID">
+
+                    @if (isMine)
+                    {
+                        @* ── ACTIONS bên TRÁI bubble của tôi ── *@
+                        <div class="flex-shrink-0 relative self-center">
+                            <div class="msg-actions opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center gap-0.5 bg-white dark:bg-slate-800 shadow-md rounded-full px-1.5 py-1">
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center react-btn" data-mid="@msg.MessageID" title="Cảm xúc">😊</button>
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center reply-btn" data-mid="@msg.MessageID" data-content="@prevContent" title="Trả lời">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-500">reply</span>
+                                </button>
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center menu-btn" data-mid="@msg.MessageID" data-mine="true" title="Thêm">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-500">more_vert</span>
+                                </button>
+                            </div>
+                            <div class="reaction-picker hidden absolute bottom-full mb-2 right-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-full px-2 py-1.5 flex items-center gap-1" data-mid="@msg.MessageID">
+                                @foreach (var (emoji, rtype) in new[] { ("❤️","Heart"),("😆","Laugh"),("😮","Wow"),("😢","Sad"),("😠","Angry"),("👍","Like") })
+                                {
+                                    <button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="@msg.MessageID" data-type="@rtype">@emoji</button>
+                                }
+                            </div>
+                            <div class="msg-menu hidden absolute bottom-full mb-2 right-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
+                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
+                                    <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
+                                </button>
+                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
+                                    <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
+                                </button>
+                                @if (!msg.IsDeleted)
+                                {
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 delete-btn" data-mid="@msg.MessageID">
+                                        <span class="material-symbols-outlined text-[14px]">delete</span> Xóa
+                                    </button>
+                                }
+                            </div>
                         </div>
+
+                        @* ── BUBBLE COLUMN bên PHẢI ── *@
+                        <div class="bubble-col flex flex-col items-end max-w-[65%]">
+                            @if (msg.IsDeleted)
+                            {
+                                <div class="px-4 py-2 rounded-2xl rounded-br-sm bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
+                                    <p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>
+                                    <p class="text-[10px] mt-1 opacity-50 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else if (msg.MessageType == "Image" && !string.IsNullOrEmpty(msg.ImageUrl))
+                            {
+                                <div>
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                            <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    <img src="@msg.ImageUrl" class="rounded-2xl rounded-br-sm max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
+                                    <p class="text-[10px] mt-1 opacity-70 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else if (msg.MessageType == "MatchCard" && !string.IsNullOrEmpty(msg.MatchCardJson))
+                            {
+                                <div class="max-w-[280px]">
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                            <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    @Html.Raw(RenderMatchCard(msg.MatchCardJson, isMine))
+                                    <p class="text-[10px] mt-1 opacity-70 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-primary text-white px-4 py-2 rounded-2xl rounded-br-sm shadow-sm">
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-blue-100 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-white/60 truncate">
+                                            ↩ @(msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    <p class="text-sm">@msg.Content</p>
+                                    <p class="text-[10px] mt-1 opacity-70 text-right flex items-center justify-end gap-1">
+                                        @msg.CreatedAt.ToString("HH:mm")
+                                        <span class="read-receipt @(msg.IsRead ? "text-sky-300" : "opacity-70")" data-mid="@msg.MessageID">@(msg.IsRead ? "✓✓" : "✓")</span>
+                                    </p>
+                                </div>
+                            }
+                            <div class="reactions-bar flex flex-wrap gap-1 mt-1 justify-end" data-mid="@msg.MessageID"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        @* ── BUBBLE COLUMN bên TRÁI ── *@
+                        <div class="bubble-col flex flex-col items-start max-w-[65%]">
+                            @if (msg.IsDeleted)
+                            {
+                                <div class="px-4 py-2 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
+                                    <p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>
+                                    <p class="text-[10px] mt-1 opacity-50">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else if (msg.MessageType == "Image" && !string.IsNullOrEmpty(msg.ImageUrl))
+                            {
+                                <div>
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                            <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    <img src="@msg.ImageUrl" class="rounded-2xl rounded-bl-sm max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
+                                    <p class="text-[10px] mt-1 opacity-70">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else if (msg.MessageType == "MatchCard" && !string.IsNullOrEmpty(msg.MatchCardJson))
+                            {
+                                <div class="max-w-[280px]">
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                            <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    @Html.Raw(RenderMatchCard(msg.MatchCardJson, isMine))
+                                    <p class="text-[10px] mt-1 opacity-70">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2 rounded-2xl rounded-bl-sm shadow-sm">
+                                    @if (msg.ReplyToMessage != null)
+                                    {
+                                        <div class="text-[10px] text-slate-500 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-primary truncate">
+                                            ↩ @(msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content)
+                                        </div>
+                                    }
+                                    <p class="text-sm">@msg.Content</p>
+                                    <p class="text-[10px] mt-1 opacity-70">@msg.CreatedAt.ToString("HH:mm")</p>
+                                </div>
+                            }
+                            <div class="reactions-bar flex flex-wrap gap-1 mt-1" data-mid="@msg.MessageID"></div>
+                        </div>
+
+                        @* ── ACTIONS bên PHẢI bubble đối phương ── *@
+                        <div class="flex-shrink-0 relative self-center">
+                            <div class="msg-actions opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center gap-0.5 bg-white dark:bg-slate-800 shadow-md rounded-full px-1.5 py-1">
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center react-btn" data-mid="@msg.MessageID" title="Cảm xúc">😊</button>
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center reply-btn" data-mid="@msg.MessageID" data-content="@prevContent" title="Trả lời">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-500">reply</span>
+                                </button>
+                                <button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center menu-btn" data-mid="@msg.MessageID" data-mine="false" title="Thêm">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-500">more_vert</span>
+                                </button>
+                            </div>
+                            <div class="reaction-picker hidden absolute bottom-full mb-2 left-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-full px-2 py-1.5 flex items-center gap-1" data-mid="@msg.MessageID">
+                                @foreach (var (emoji, rtype) in new[] { ("❤️","Heart"),("😆","Laugh"),("😮","Wow"),("😢","Sad"),("😠","Angry"),("👍","Like") })
+                                {
+                                    <button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="@msg.MessageID" data-type="@rtype">@emoji</button>
+                                }
+                            </div>
+                            <div class="msg-menu hidden absolute bottom-full mb-2 left-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
+                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
+                                    <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
+                                </button>
+                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
+                                    <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
+                                </button>
+                                @if (!msg.IsDeleted)
+                                {
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 report-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
+                                        <span class="material-symbols-outlined text-[14px]">flag</span> Báo cáo
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
                     </div>
                 }
             </div>
 
+            <!-- Typing indicator -->
+            <div id="typing-indicator" class="hidden px-4 pb-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">
+                        @if (string.IsNullOrEmpty(Model.ActiveChatUser.AvatarUrl))
+                        {
+                            @Model.ActiveChatUser.FullName[0]
+                        }
+                        else
+                        {
+                            <img src="@Model.ActiveChatUser.AvatarUrl" class="w-full h-full object-cover" />
+                        }
+                    </div>
+                    <div class="flex gap-1 bg-slate-200 dark:bg-slate-700 rounded-full px-3 py-2">
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reply preview bar -->
+            <div id="reply-bar" class="hidden px-4 py-2 bg-blue-50 dark:bg-blue-950 border-t border-blue-200 dark:border-blue-900 flex items-center gap-2">
+                <div class="w-0.5 h-8 bg-primary rounded"></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-primary">Đang trả lời</p>
+                    <p id="reply-preview-text" class="text-xs text-slate-500 truncate"></p>
+                </div>
+                <button onclick="cancelReply()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors text-slate-400">
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                </button>
+            </div>
+
+            <!-- Image preview bar -->
+            <div id="chat-img-preview-bar" class="hidden px-4 py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                <img id="chat-img-thumb" src="" class="h-16 w-16 object-cover rounded-xl" />
+                <span id="chat-img-name" class="text-sm text-slate-500 flex-1 truncate"></span>
+                <button type="button" onclick="clearChatImage()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-rose-100 hover:text-rose-500 transition-colors">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+
+            <!-- Match card preview bar -->
+            <div id="chat-match-preview-bar" class="hidden px-4 py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary">sports</span>
+                <span id="chat-match-preview-title" class="text-sm font-bold flex-1 truncate"></span>
+                <button type="button" onclick="clearMatchCard()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-rose-100 hover:text-rose-500 transition-colors">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
+
             <!-- Input gửi tin -->
             <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-                <form id="chat-form" class="flex gap-2">
+                <form id="chat-form" class="flex gap-2 items-center">
                     <input type="hidden" id="receiver-id" value="@Model.ActiveChatUser.UserID" />
-                    <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off" class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all border-none" required />
+                    <input type="file" id="chat-file" accept="image/*" style="display:none" onchange="handleChatFile(this)" />
+                    <button type="button" onclick="document.getElementById('chat-file').click()"
+                            class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
+                            title="Gửi ảnh">
+                        <span class="material-symbols-outlined text-[20px]">image</span>
+                    </button>
+                    <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off"
+                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all border-none"
+                           onpaste="handleChatPaste(event)" />
                     <button type="submit" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-transform active:scale-95 flex-shrink-0">
                         <span class="material-symbols-outlined">send</span>
                     </button>
@@ -197,17 +543,122 @@
     </div>
 </div>
 
+<!-- Forward modal -->
+<div id="forward-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 dark:text-white">Chuyển tiếp tin nhắn</h3>
+            <button onclick="closeForwardModal()" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="forward-preview" class="px-6 py-3 bg-slate-50 dark:bg-slate-800 text-sm text-slate-600 dark:text-slate-300 italic truncate"></div>
+        <div class="px-6 py-4">
+            <p class="text-xs text-slate-400 mb-3">Chọn người nhận:</p>
+            <div id="forward-friends-list" class="space-y-1 max-h-52 overflow-y-auto">
+                @foreach (var friend in Model.Friends)
+                {
+                    <button class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors forward-friend-btn" data-uid="@friend.UserID">
+                        <div class="w-9 h-9 rounded-full bg-primary/10 overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-primary text-sm">
+                            @if (string.IsNullOrEmpty(friend.AvatarUrl))
+                            {
+                                @friend.FullName[0]
+                            }
+                            else
+                            {
+                                <img src="@friend.AvatarUrl" class="w-full h-full object-cover" />
+                            }
+                        </div>
+                        <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">@friend.FullName</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report modal -->
+<div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 dark:text-white">Báo cáo tin nhắn</h3>
+            <button onclick="closeReportModal()" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="report-msg-preview" class="px-6 py-3 bg-slate-50 dark:bg-slate-800 text-sm text-slate-600 dark:text-slate-300 italic truncate"></div>
+        <div class="px-6 py-4">
+            <textarea id="report-reason" placeholder="Lý do báo cáo (không bắt buộc)..."
+                      class="w-full bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm outline-none resize-none h-24 focus:ring-2 focus:ring-primary/50"></textarea>
+            <div class="flex gap-3 mt-4">
+                <button onclick="closeReportModal()" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Hủy</button>
+                <button onclick="submitReport()" class="flex-1 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Báo cáo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string RenderMatchCard(string json, bool isMine)
+    {
+        try
+        {
+            var m = System.Text.Json.JsonDocument.Parse(json).RootElement;
+            string title = m.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
+            string date  = m.TryGetProperty("date",  out var d) ? d.GetString() ?? "" : "";
+            string time  = m.TryGetProperty("time",  out var ti) ? ti.GetString() ?? "" : "";
+            string venue = m.TryGetProperty("venue", out var v) ? v.GetString() ?? "" : "";
+            string price = m.TryGetProperty("price", out var p) ? p.GetString() ?? "" : "";
+            int matchId  = m.TryGetProperty("id",    out var id) ? id.GetInt32() : 0;
+            int parts    = m.TryGetProperty("participants", out var pa) ? pa.GetInt32() : 0;
+            int max      = m.TryGetProperty("max",   out var mx) ? mx.GetInt32() : 0;
+            string skill = m.TryGetProperty("skill", out var sk) ? sk.GetString() ?? "" : "";
+
+            string roundedCorner = isMine ? "rounded-br-sm" : "rounded-bl-sm";
+            string border = isMine ? "border-blue-200 dark:border-blue-900" : "border-slate-200 dark:border-slate-700";
+            string bg     = isMine ? "bg-blue-50 dark:bg-blue-950" : "bg-white dark:bg-slate-800";
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<div class=\"rounded-2xl ").Append(roundedCorner).Append(" border ").Append(border).Append(" ").Append(bg).Append(" p-3 shadow-sm\">");
+            sb.Append("<div class=\"flex items-center gap-2 mb-1\"><span class=\"material-symbols-outlined text-primary\" style=\"font-size:14px\">sports</span>");
+            sb.Append("<p class=\"font-bold text-sm truncate\">").Append(System.Web.HttpUtility.HtmlEncode(title)).Append("</p></div>");
+            sb.Append("<p class=\"text-xs text-slate-500\">📅 ").Append(date).Append(" · ").Append(time).Append("</p>");
+            if (!string.IsNullOrEmpty(venue))
+                sb.Append("<p class=\"text-xs text-slate-500 truncate\">📍 ").Append(System.Web.HttpUtility.HtmlEncode(venue)).Append("</p>");
+            sb.Append("<p class=\"text-xs text-slate-500\">👥 ").Append(parts).Append("/").Append(max);
+            if (!string.IsNullOrEmpty(skill)) sb.Append(" · ").Append(System.Web.HttpUtility.HtmlEncode(skill));
+            sb.Append("</p>");
+            if (!string.IsNullOrEmpty(price))
+                sb.Append("<p class=\"text-xs text-slate-500\">💰 ").Append(System.Web.HttpUtility.HtmlEncode(price)).Append("</p>");
+            if (matchId > 0)
+                sb.Append("<a href=\"/Matchmaking/Details?id=").Append(matchId).Append("\" class=\"mt-2 block text-center bg-primary text-white text-xs font-bold rounded-lg py-1.5 hover:bg-primary/90 transition-colors\">Xem chi tiết</a>");
+            sb.Append("</div>");
+            return sb.ToString();
+        }
+        catch { return "<div class=\"text-xs text-slate-400 p-2\">Thẻ trận</div>"; }
+    }
+}
+
 @section Scripts {
+    <script>
+        if (typeof setChatBadge === 'function') setChatBadge(0);
+        var activeBadge = document.getElementById('unread-badge-@(Model.ActiveChatUser?.UserID ?? 0)');
+        if (activeBadge) activeBadge.style.display = 'none';
+
+        function filterFriends(q) {
+            q = q.toLowerCase();
+            document.querySelectorAll('.friend-row').forEach(function(row) {
+                var name = row.getAttribute('data-name') || '';
+                row.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+    </script>
     @if (Model.ActiveChatUser != null)
     {
         <script>
-            // Tự động cuộn xuống cuối
             const chatMessages = document.getElementById("chat-messages");
-            if (chatMessages) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
+            if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Kết nối SignalR ChatHub
             const chatConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/chat")
                 .withAutomaticReconnect()
@@ -216,68 +667,602 @@
             const currentUserId = @Model.CurrentUserId;
             const activeReceiverId = @Model.ActiveChatUser.UserID;
 
-            // Xử lý khi nhận tin nhắn mới
-            chatConnection.on("ReceiveMessage", function (msg) {
-                // Chỉ hiện nếu tin nhắn là của người đang chat (đang mở khung chat)
+            var pendingMatchCard = null;
+            var replyToMessageId = null;
+            var pendingReportMsgId = null;
+            var pendingForwardMsgId = null;
+            var typingTimer = null;
+            var isTyping = false;
+            var openReactionPicker = null;
+            var openMsgMenu = null;
+
+            // ---- SignalR event handlers ----
+            chatConnection.on("ReceiveMessage", function(msg) {
                 if (msg.senderID === activeReceiverId) {
-                    appendMessage(msg.content, msg.createdAt, false);
+                    appendMessage(msg, false);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    // Auto mark as read
+                    fetch('/api/chat/mark-read?userId=' + activeReceiverId, { method: 'POST' })
+                        .then(r => r.json()).then(d => { if (typeof setChatBadge === 'function') setChatBadge(d.count || 0); });
+                } else {
+                    updateFriendPreview(msg.senderID, msg.content, msg.messageType);
+                    incrementFriendBadge(msg.senderID);
                 }
-                // (Trong thực tế sẽ cần cập nhật preview bên menu trái nữa)
             });
 
-            // Xử lý khi gửi thành công (hệ thống dội lại)
-            chatConnection.on("MessageSent", function (msg) {
+            chatConnection.on("MessageSent", function(msg) {
                 if (msg.receiverID === activeReceiverId) {
-                    appendMessage(msg.content, msg.createdAt, true);
+                    appendMessage(msg, true);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
             });
 
-            chatConnection.start().catch(err => console.error(err.toString()));
+            chatConnection.on("UserTyping", function(senderId) {
+                if (senderId === activeReceiverId) {
+                    document.getElementById('typing-indicator').classList.remove('hidden');
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
 
-            // Gửi tin nhắn
-            document.getElementById("chat-form").addEventListener("submit", function(e) {
+            chatConnection.on("UserStoppedTyping", function(senderId) {
+                if (senderId === activeReceiverId)
+                    document.getElementById('typing-indicator').classList.add('hidden');
+            });
+
+            chatConnection.on("ReactionUpdated", function(payload) {
+                updateReactionsBar(payload.messageId, payload.reactions);
+            });
+
+            chatConnection.on("MessageDeleted", function(payload) {
+                var row = document.querySelector('[data-mid="' + payload.messageId + '"]');
+                if (!row) return;
+                var bubbleCol = row.querySelector('.bubble-col');
+                if (bubbleCol) {
+                    var firstChild = bubbleCol.firstElementChild;
+                    if (firstChild) firstChild.outerHTML = '<div class="px-4 py-2 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800"><p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p></div>';
+                }
+            });
+
+            chatConnection.on("MessagePinned", function(payload) {
+                var banner = document.getElementById('pinned-banner');
+                var text = document.getElementById('pinned-text');
+                if (payload.isPinned) {
+                    text.textContent = payload.previewText;
+                    banner.classList.remove('hidden');
+                    banner.classList.add('flex');
+                    banner.dataset.mid = payload.messageId;
+                } else {
+                    banner.classList.add('hidden');
+                    banner.classList.remove('flex');
+                }
+            });
+
+            chatConnection.on("MessagesRead", function(payload) {
+                if (payload.conversationWith === activeReceiverId) {
+                    document.querySelectorAll('.read-receipt').forEach(function(el) {
+                        el.textContent = '✓✓';
+                        el.classList.add('text-sky-300');
+                    });
+                }
+            });
+
+            chatConnection.start().then(function() {
+                // Load pinned message
+                fetch('/api/chat/pinned?userId=' + activeReceiverId)
+                    .then(r => r.json()).then(d => {
+                        if (d) {
+                            var banner = document.getElementById('pinned-banner');
+                            document.getElementById('pinned-text').textContent = d.content;
+                            banner.dataset.mid = d.messageID;
+                            banner.classList.remove('hidden');
+                            banner.classList.add('flex');
+                        }
+                    }).catch(()=>{});
+            }).catch(err => console.error(err.toString()));
+
+            // ---- Typing indicator ----
+            document.getElementById('chat-input').addEventListener('input', function() {
+                if (!isTyping) {
+                    isTyping = true;
+                    chatConnection.invoke('TypingStart', activeReceiverId).catch(()=>{});
+                }
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(function() {
+                    isTyping = false;
+                    chatConnection.invoke('TypingStop', activeReceiverId).catch(()=>{});
+                }, 1500);
+            });
+
+            // ---- Form submit ----
+            document.getElementById("chat-form").addEventListener("submit", async function(e) {
                 e.preventDefault();
                 const input = document.getElementById("chat-input");
                 const content = input.value.trim();
                 const receiverId = parseInt(document.getElementById("receiver-id").value);
+                if (chatConnection.state !== signalR.HubConnectionState.Connected) return;
 
-                if (content && chatConnection.state === signalR.HubConnectionState.Connected) {
-                    // Gọi hàm SendMessage trong ChatHub
-                    chatConnection.invoke("SendMessage", receiverId, content)
-                        .catch(err => console.error(err.toString()));
-                    
-                    input.value = "";
-                    input.focus();
+                if (isTyping) {
+                    isTyping = false;
+                    clearTimeout(typingTimer);
+                    chatConnection.invoke('TypingStop', receiverId).catch(()=>{});
+                }
+
+                if (pendingMatchCard) {
+                    await chatConnection.invoke("SendMatchCard", receiverId, pendingMatchCard.matchId).catch(()=>{});
+                    clearMatchCard(); input.value = ""; input.focus(); return;
+                }
+
+                const fileInput = document.getElementById("chat-file");
+                if (fileInput._pendingFile) {
+                    await uploadAndSendImage(receiverId, fileInput._pendingFile);
+                    fileInput._pendingFile = null; clearChatImage(); input.value = ""; input.focus(); return;
+                }
+
+                if (content) {
+                    await chatConnection.invoke("SendMessage", receiverId, content, replyToMessageId || null).catch(()=>{});
+                    cancelReply();
+                    input.value = ""; input.focus();
                 }
             });
 
-            function appendMessage(content, timeIso, isMine) {
-                const time = new Date(timeIso);
-                const timeStr = time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0');
-                
-                const divContainer = document.createElement("div");
-                divContainer.className = "flex " + (isMine ? "justify-end" : "justify-start");
-                
-                const divBubble = document.createElement("div");
-                let bubbleColor = isMine ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white";
-                let bubbleShape = isMine ? "rounded-br-sm" : "rounded-bl-sm";
-                divBubble.className = `max-w-[70%] ${bubbleColor} px-4 py-2 rounded-2xl ${bubbleShape} shadow-sm`;
-                
-                const pContent = document.createElement("p");
-                pContent.className = "text-sm";
-                pContent.innerText = content;
-                
-                const pTime = document.createElement("p");
-                pTime.className = "text-[10px] mt-1 opacity-70 text-right";
-                pTime.innerText = timeStr;
-                
-                divBubble.appendChild(pContent);
-                divBubble.appendChild(pTime);
-                divContainer.appendChild(divBubble);
-                
-                chatMessages.appendChild(divContainer);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+            async function uploadAndSendImage(receiverId, file) {
+                const formData = new FormData();
+                formData.append("file", file);
+                try {
+                    const res = await fetch("/api/chat/upload-image", { method: "POST", body: formData });
+                    if (!res.ok) { alert("Lỗi upload ảnh."); return; }
+                    const data = await res.json();
+                    await chatConnection.invoke("SendImage", receiverId, data.url).catch(()=>{});
+                } catch (ex) { console.error(ex); }
             }
+
+            // ---- Event delegation on chat messages ----
+            document.getElementById('chat-messages').addEventListener('click', function(e) {
+                var reactBtn = e.target.closest('.react-btn');
+                var replyBtn = e.target.closest('.reply-btn');
+                var menuBtn  = e.target.closest('.menu-btn');
+                var reactPick = e.target.closest('.react-pick');
+                var pinBtn   = e.target.closest('.pin-btn');
+                var deleteBtn = e.target.closest('.delete-btn');
+                var reportBtn = e.target.closest('.report-btn');
+                var forwardBtn = e.target.closest('.forward-btn');
+
+                // Close any open picker/menu first
+                if (!e.target.closest('.reaction-picker') && !e.target.closest('.react-btn')) closeReactionPicker();
+                if (!e.target.closest('.msg-menu') && !e.target.closest('.menu-btn')) closeMsgMenu();
+
+                if (reactBtn) {
+                    var mid = reactBtn.dataset.mid;
+                    var picker = document.querySelector('.reaction-picker[data-mid="' + mid + '"]');
+                    if (picker) { picker.classList.toggle('hidden'); openReactionPicker = picker; }
+                    return;
+                }
+                if (reactPick) {
+                    var mid = reactPick.dataset.mid;
+                    var rtype = reactPick.dataset.type;
+                    chatConnection.invoke('ReactToMessage', parseInt(mid), activeReceiverId, rtype).catch(()=>{});
+                    closeReactionPicker();
+                    return;
+                }
+                if (replyBtn) {
+                    replyToMessageId = parseInt(replyBtn.dataset.mid);
+                    document.getElementById('reply-preview-text').textContent = replyBtn.dataset.content;
+                    document.getElementById('reply-bar').classList.remove('hidden');
+                    document.getElementById('reply-bar').classList.add('flex');
+                    document.getElementById('chat-input').focus();
+                    return;
+                }
+                if (menuBtn) {
+                    var mid = menuBtn.dataset.mid;
+                    var menu = document.querySelector('.msg-menu[data-mid="' + mid + '"]');
+                    if (menu) { menu.classList.toggle('hidden'); openMsgMenu = menu; }
+                    return;
+                }
+                if (pinBtn) {
+                    var mid = parseInt(pinBtn.dataset.mid);
+                    chatConnection.invoke('PinMessage', mid, activeReceiverId).catch(()=>{});
+                    closeMsgMenu();
+                    return;
+                }
+                if (deleteBtn) {
+                    if (!confirm('Xóa tin nhắn này?')) return;
+                    var mid = parseInt(deleteBtn.dataset.mid);
+                    chatConnection.invoke('DeleteMessage', mid, activeReceiverId).catch(()=>{});
+                    closeMsgMenu();
+                    return;
+                }
+                if (reportBtn) {
+                    pendingReportMsgId = parseInt(reportBtn.dataset.mid);
+                    document.getElementById('report-msg-preview').textContent = reportBtn.dataset.content || '';
+                    document.getElementById('report-modal').classList.remove('hidden');
+                    closeMsgMenu();
+                    return;
+                }
+                if (forwardBtn) {
+                    pendingForwardMsgId = parseInt(forwardBtn.dataset.mid);
+                    document.getElementById('forward-preview').textContent = forwardBtn.dataset.content;
+                    document.getElementById('forward-modal').classList.remove('hidden');
+                    closeMsgMenu();
+                    return;
+                }
+            });
+
+            function closeReactionPicker() {
+                if (openReactionPicker) { openReactionPicker.classList.add('hidden'); openReactionPicker = null; }
+            }
+            function closeMsgMenu() {
+                if (openMsgMenu) { openMsgMenu.classList.add('hidden'); openMsgMenu = null; }
+            }
+
+            // Forward friend selection
+            document.querySelectorAll('.forward-friend-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var uid = parseInt(btn.dataset.uid);
+                    if (!pendingForwardMsgId) return;
+                    chatConnection.invoke('ForwardMessage', pendingForwardMsgId, uid).catch(()=>{});
+                    closeForwardModal();
+                    showToast('Đã chuyển tiếp tin nhắn!');
+                });
+            });
+
+            window.closeForwardModal = function() {
+                document.getElementById('forward-modal').classList.add('hidden');
+                pendingForwardMsgId = null;
+            };
+            window.closeReportModal = function() {
+                document.getElementById('report-modal').classList.add('hidden');
+                pendingReportMsgId = null;
+                document.getElementById('report-reason').value = '';
+            };
+            window.submitReport = async function() {
+                if (!pendingReportMsgId) return;
+                var reason = document.getElementById('report-reason').value.trim();
+                try {
+                    var r = await fetch('/api/chat/messages/' + pendingReportMsgId + '/report', {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ reason })
+                    });
+                    if (r.ok) { showToast('Đã gửi báo cáo tới admin.'); }
+                    else showToast('Không thể gửi báo cáo.', true);
+                } catch { showToast('Lỗi kết nối.', true); }
+                closeReportModal();
+            };
+
+            // Pin / unpin
+            window.scrollToPinnedMsg = function() {
+                var banner = document.getElementById('pinned-banner');
+                var mid = banner.dataset.mid;
+                if (!mid) return;
+                var row = document.querySelector('[data-mid="' + mid + '"]');
+                if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+            window.unpinMessage = function() {
+                var banner = document.getElementById('pinned-banner');
+                var mid = parseInt(banner.dataset.mid || '0');
+                if (!mid) return;
+                chatConnection.invoke('PinMessage', mid, activeReceiverId).catch(()=>{});
+            };
+
+            // Search in conversation
+            window.toggleSearchPanel = function() {
+                var panel = document.getElementById('search-panel');
+                panel.classList.toggle('hidden');
+                if (!panel.classList.contains('hidden')) document.getElementById('conv-search-input').focus();
+            };
+            var searchDebounce = null;
+            window.searchInConversation = function(q) {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(async function() {
+                    var resultsEl = document.getElementById('search-results');
+                    if (!q.trim()) { resultsEl.innerHTML = ''; return; }
+                    var r = await fetch('/api/chat/search?userId=' + activeReceiverId + '&q=' + encodeURIComponent(q));
+                    var data = await r.json();
+                    if (!data.length) { resultsEl.innerHTML = '<p class="text-xs text-slate-400 px-2">Không tìm thấy</p>'; return; }
+                    resultsEl.innerHTML = data.map(function(m) {
+                        var hl = m.content.replace(new RegExp('(' + escHtml(q) + ')', 'gi'), '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
+                        return '<div class="px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs" onclick="scrollToMsg(' + m.messageID + ')">' + hl + '</div>';
+                    }).join('');
+                }, 300);
+            };
+            window.scrollToMsg = function(mid) {
+                var row = document.querySelector('[data-mid="' + mid + '"]');
+                if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('ring-2', 'ring-primary/40'); setTimeout(()=>row.classList.remove('ring-2','ring-primary/40'), 1500); }
+            };
+
+            // Media gallery
+            window.toggleMediaGallery = function() {
+                var panel = document.getElementById('media-gallery-panel');
+                panel.classList.toggle('hidden');
+                if (!panel.classList.contains('hidden')) loadMediaGallery();
+            };
+            window.loadMediaGallery = async function() {
+                var grid = document.getElementById('media-grid');
+                grid.innerHTML = '<div class="col-span-4 text-center text-xs text-slate-400 py-4">Đang tải...</div>';
+                try {
+                    var r = await fetch('/api/chat/media?userId=' + activeReceiverId);
+                    var data = await r.json();
+                    if (!data.length) { grid.innerHTML = '<div class="col-span-4 text-center text-xs text-slate-400 py-4">Chưa có ảnh nào.</div>'; return; }
+                    grid.innerHTML = data.map(function(m) {
+                        return '<img src="' + escHtml(m.imageUrl) + '" class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open(\'' + escHtml(m.imageUrl) + '\')" />';
+                    }).join('');
+                } catch { grid.innerHTML = '<div class="col-span-4 text-center text-xs text-slate-400 py-4">Lỗi tải ảnh.</div>'; }
+            };
+
+            // Reactions bar update
+            function updateReactionsBar(messageId, reactions) {
+                var bar = document.querySelector('.reactions-bar[data-mid="' + messageId + '"]');
+                if (!bar) return;
+                bar.innerHTML = '';
+                var emojiMap = { Heart:'❤️', Laugh:'😆', Wow:'😮', Sad:'😢', Angry:'😠', Like:'👍' };
+                Object.entries(reactions).forEach(function([type, users]) {
+                    if (!users.length) return;
+                    var btn = document.createElement('button');
+                    btn.className = 'flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded-full text-xs shadow border border-slate-200 dark:border-slate-700 hover:scale-105 transition-transform';
+                    btn.innerHTML = (emojiMap[type] || '?') + ' <span>' + users.length + '</span>';
+                    btn.onclick = function() { chatConnection.invoke('ReactToMessage', messageId, activeReceiverId, type).catch(()=>{}); };
+                    bar.appendChild(btn);
+                });
+            }
+
+            // Reply
+            window.cancelReply = function() {
+                replyToMessageId = null;
+                document.getElementById('reply-bar').classList.add('hidden');
+                document.getElementById('reply-bar').classList.remove('flex');
+            };
+
+            // ---- File / drag helpers ----
+            window.handleChatFile = function(input) {
+                var file = input.files[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) { alert("Ảnh quá lớn. Tối đa 5MB."); input.value = ""; return; }
+                input._pendingFile = file;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById("chat-img-thumb").src = e.target.result;
+                    document.getElementById("chat-img-name").textContent = file.name;
+                    document.getElementById("chat-img-preview-bar").classList.remove("hidden");
+                    document.getElementById("chat-img-preview-bar").classList.add("flex");
+                    document.getElementById("chat-match-preview-bar").classList.add("hidden");
+                    document.getElementById("chat-match-preview-bar").classList.remove("flex");
+                };
+                reader.readAsDataURL(file);
+                input.value = "";
+            };
+            window.clearChatImage = function() {
+                document.getElementById("chat-file")._pendingFile = null;
+                document.getElementById("chat-img-preview-bar").classList.add("hidden");
+                document.getElementById("chat-img-preview-bar").classList.remove("flex");
+            };
+            window.handleChatPaste = function(e) {
+                var items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf("image") !== -1) {
+                        e.preventDefault();
+                        var file = items[i].getAsFile();
+                        if (file) {
+                            document.getElementById("chat-file")._pendingFile = file;
+                            var reader = new FileReader();
+                            reader.onload = function(ev) {
+                                document.getElementById("chat-img-thumb").src = ev.target.result;
+                                document.getElementById("chat-img-name").textContent = "image_pasted.png";
+                                document.getElementById("chat-img-preview-bar").classList.remove("hidden");
+                                document.getElementById("chat-img-preview-bar").classList.add("flex");
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                        break;
+                    }
+                }
+            };
+            window.handleMsgAreaDrop = function(e) {
+                e.preventDefault();
+                document.getElementById("chat-messages").classList.remove("ring-2", "ring-primary/40");
+                var matchJson = e.dataTransfer.getData("application/match-card");
+                if (matchJson) {
+                    try {
+                        var match = JSON.parse(matchJson);
+                        pendingMatchCard = { matchId: match.id, title: match.title };
+                        document.getElementById("chat-match-preview-title").textContent = match.title || match.type;
+                        document.getElementById("chat-match-preview-bar").classList.remove("hidden");
+                        document.getElementById("chat-match-preview-bar").classList.add("flex");
+                        document.getElementById("chat-img-preview-bar").classList.add("hidden");
+                        document.getElementById("chat-img-preview-bar").classList.remove("flex");
+                    } catch(ex) {}
+                    return;
+                }
+                var files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    var file = files[0];
+                    if (!file.type.startsWith("image/")) { alert("Chỉ hỗ trợ ảnh."); return; }
+                    if (file.size > 5 * 1024 * 1024) { alert("Ảnh quá lớn. Tối đa 5MB."); return; }
+                    document.getElementById("chat-file")._pendingFile = file;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        document.getElementById("chat-img-thumb").src = ev.target.result;
+                        document.getElementById("chat-img-name").textContent = file.name;
+                        document.getElementById("chat-img-preview-bar").classList.remove("hidden");
+                        document.getElementById("chat-img-preview-bar").classList.add("flex");
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            window.clearMatchCard = function() {
+                pendingMatchCard = null;
+                document.getElementById("chat-match-preview-bar").classList.add("hidden");
+                document.getElementById("chat-match-preview-bar").classList.remove("flex");
+            };
+
+            // ---- appendMessage ----
+            function appendMessage(msg, isMine) {
+                var mid = msg.messageID;
+                var previewContent = msg.content ? (msg.content.length > 60 ? msg.content.substring(0,60)+'…' : msg.content) : '';
+
+                var container = document.createElement("div");
+                container.className = "flex " + (isMine ? "justify-end" : "justify-start") + " items-end gap-1.5 group/msg";
+                container.dataset.mid = mid;
+
+                // Build actions wrapper (picker/menu open upward)
+                function buildActionsWrapper(pickerAlign) {
+                    var wrap = document.createElement("div");
+                    wrap.className = "flex-shrink-0 relative self-center";
+
+                    var bar = document.createElement("div");
+                    bar.className = "msg-actions opacity-0 group-hover/msg:opacity-100 transition-opacity flex items-center gap-0.5 bg-white dark:bg-slate-800 shadow-md rounded-full px-1.5 py-1";
+                    bar.innerHTML = [
+                        '<button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center react-btn" data-mid="'+mid+'">😊</button>',
+                        '<button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center reply-btn" data-mid="'+mid+'" data-content="'+escHtml(previewContent)+'"><span class="material-symbols-outlined text-[14px] text-slate-500">reply</span></button>',
+                        '<button class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center menu-btn" data-mid="'+mid+'" data-mine="'+(isMine?'true':'false')+'"><span class="material-symbols-outlined text-[14px] text-slate-500">more_vert</span></button>'
+                    ].join('');
+
+                    var picker = document.createElement("div");
+                    picker.className = "reaction-picker hidden absolute bottom-full mb-2 " + pickerAlign + " z-20 bg-white dark:bg-slate-800 shadow-xl rounded-full px-2 py-1.5 flex items-center gap-1";
+                    picker.dataset.mid = mid;
+                    picker.innerHTML = [['❤️','Heart'],['😆','Laugh'],['😮','Wow'],['😢','Sad'],['😠','Angry'],['👍','Like']]
+                        .map(function(r){ return '<button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="'+mid+'" data-type="'+r[1]+'">'+r[0]+'</button>'; }).join('');
+
+                    var menu = document.createElement("div");
+                    menu.className = "msg-menu hidden absolute bottom-full mb-2 " + pickerAlign + " z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700";
+                    menu.dataset.mid = mid;
+                    var items = [
+                        '<button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="'+mid+'"><span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim</button>',
+                        '<button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="'+mid+'" data-content="'+escHtml(previewContent)+'"><span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp</button>'
+                    ];
+                    if (isMine) items.push('<button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 delete-btn" data-mid="'+mid+'"><span class="material-symbols-outlined text-[14px]">delete</span> Xóa</button>');
+                    else items.push('<button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 report-btn" data-mid="'+mid+'" data-content="'+escHtml(previewContent)+'"><span class="material-symbols-outlined text-[14px]">flag</span> Báo cáo</button>');
+                    menu.innerHTML = items.join('');
+
+                    wrap.appendChild(bar);
+                    wrap.appendChild(picker);
+                    wrap.appendChild(menu);
+                    return wrap;
+                }
+
+                // Build bubble column
+                var bubbleCol = document.createElement("div");
+                bubbleCol.className = "bubble-col flex flex-col " + (isMine ? "items-end" : "items-start") + " max-w-[65%]";
+
+                if (msg.messageType === "Image" && msg.imageUrl) {
+                    var wrap = document.createElement("div");
+                    if (msg.replyPreview) {
+                        var rq = document.createElement("div");
+                        rq.className = "text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary";
+                        rq.textContent = '↩ ' + (msg.replyPreview.content || '');
+                        wrap.appendChild(rq);
+                    }
+                    var img = document.createElement("img");
+                    img.src = msg.imageUrl;
+                    img.className = "rounded-2xl " + (isMine ? "rounded-br-sm" : "rounded-bl-sm") + " max-w-full shadow-sm cursor-pointer";
+                    img.onclick = function() { window.open(img.src); };
+                    var timeP = document.createElement("p");
+                    timeP.className = "text-[10px] mt-1 opacity-70" + (isMine ? " text-right" : "");
+                    timeP.textContent = formatTime(msg.createdAt);
+                    wrap.appendChild(img); wrap.appendChild(timeP);
+                    bubbleCol.appendChild(wrap);
+
+                } else if (msg.messageType === "MatchCard" && msg.matchCardJson) {
+                    var wrap = document.createElement("div");
+                    wrap.className = "max-w-[280px]";
+                    wrap.innerHTML = renderMatchCardHtml(msg.matchCardJson, isMine);
+                    var timeP = document.createElement("p");
+                    timeP.className = "text-[10px] mt-1 opacity-70" + (isMine ? " text-right" : "");
+                    timeP.textContent = formatTime(msg.createdAt);
+                    wrap.appendChild(timeP);
+                    bubbleCol.appendChild(wrap);
+
+                } else {
+                    var bubble = document.createElement("div");
+                    bubble.className = "px-4 py-2 rounded-2xl shadow-sm " +
+                        (isMine ? "bg-primary text-white rounded-br-sm" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm");
+                    if (msg.replyPreview) {
+                        var rq = document.createElement("div");
+                        rq.className = "text-[10px] " + (isMine ? "text-blue-100" : "text-slate-500") + " bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 " + (isMine ? "border-white/60" : "border-primary") + " truncate";
+                        rq.textContent = '↩ ' + (msg.replyPreview.content || '');
+                        bubble.appendChild(rq);
+                    }
+                    var contentP = document.createElement("p"); contentP.className = "text-sm"; contentP.textContent = msg.content;
+                    var timeRow = document.createElement("p");
+                    timeRow.className = "text-[10px] mt-1 opacity-70 flex items-center gap-1" + (isMine ? " justify-end text-right" : "");
+                    timeRow.textContent = formatTime(msg.createdAt);
+                    if (isMine) {
+                        var receipt = document.createElement("span");
+                        receipt.className = "read-receipt opacity-70"; receipt.dataset.mid = mid; receipt.textContent = "✓";
+                        timeRow.appendChild(receipt);
+                    }
+                    bubble.appendChild(contentP); bubble.appendChild(timeRow);
+                    bubbleCol.appendChild(bubble);
+                }
+
+                var reactBar = document.createElement("div");
+                reactBar.className = "reactions-bar flex flex-wrap gap-1 mt-1" + (isMine ? " justify-end" : "");
+                reactBar.dataset.mid = mid;
+                bubbleCol.appendChild(reactBar);
+
+                // isMine: actions LEFT, bubble RIGHT; else bubble LEFT, actions RIGHT
+                if (isMine) {
+                    container.appendChild(buildActionsWrapper("right-0"));
+                    container.appendChild(bubbleCol);
+                } else {
+                    container.appendChild(bubbleCol);
+                    container.appendChild(buildActionsWrapper("left-0"));
+                }
+                chatMessages.appendChild(container);
+            }
+
+            function renderMatchCardHtml(jsonStr, isMine) {
+                try {
+                    var m = JSON.parse(jsonStr);
+                    var border = isMine ? "border-blue-200 dark:border-blue-900" : "border-slate-200 dark:border-slate-700";
+                    var bg = isMine ? "background:rgba(59,130,246,0.05)" : "";
+                    var link = m.id ? `<a href="/Matchmaking/Details?id=${m.id}" style="display:block;text-align:center;background:#3b82f6;color:white;border-radius:8px;padding:4px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>` : "";
+                    return `<div class="rounded-2xl ${isMine?'rounded-br-sm':'rounded-bl-sm'} border ${border} p-3 shadow-sm" style="${bg}">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="material-symbols-outlined" style="font-size:14px;color:#3b82f6">sports</span>
+                        <strong style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(m.title||m.type||"")}</strong></div>
+                        <p style="font-size:11px;color:#64748b">📅 ${m.date||""} · ${m.time||""}</p>
+                        ${m.venue?`<p style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📍 ${escHtml(m.venue)}</p>`:""}
+                        <p style="font-size:11px;color:#64748b">👥 ${m.participants||0}/${m.max||0}${m.skill?` · ${escHtml(m.skill)}`:""}</p>
+                        ${m.price?`<p style="font-size:11px;color:#64748b">💰 ${escHtml(m.price)}</p>`:""}
+                        ${link}</div>`;
+                } catch(e) { return '<div style="font-size:11px;color:#94a3b8;padding:8px">Thẻ trận</div>'; }
+            }
+
+            function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+            function formatTime(isoStr) { var d = new Date(isoStr); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+
+            function updateFriendPreview(senderId, content, messageType) {
+                var preview = document.getElementById("preview-" + senderId);
+                if (!preview) return;
+                var text = messageType === "Image" ? "Đã gửi một ảnh" : messageType === "MatchCard" ? "Đã chia sẻ thẻ trận" : (content.length > 35 ? content.substring(0,35)+"…" : content);
+                preview.textContent = text;
+            }
+            function incrementFriendBadge(senderId) {
+                var badge = document.getElementById("unread-badge-" + senderId);
+                if (!badge) return;
+                var current = parseInt(badge.textContent) || 0;
+                badge.textContent = current >= 9 ? "9+" : String(current + 1);
+                badge.style.display = "flex"; badge.classList.remove("hidden");
+            }
+            function showToast(msg, isErr) {
+                var t = document.createElement('div');
+                t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg text-white ' + (isErr ? 'bg-rose-500' : 'bg-emerald-500');
+                t.textContent = msg;
+                document.body.appendChild(t);
+                setTimeout(function() { t.remove(); }, 3000);
+            }
+
+            // Close menus on outside click
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.reaction-picker') && !e.target.closest('.react-btn')) closeReactionPicker();
+                if (!e.target.closest('.msg-menu') && !e.target.closest('.menu-btn')) closeMsgMenu();
+            });
+            // Close modals on backdrop click
+            document.getElementById('forward-modal').addEventListener('click', function(e) { if (e.target === this) closeForwardModal(); });
+            document.getElementById('report-modal').addEventListener('click', function(e) { if (e.target === this) closeReportModal(); });
+
+            function closeReactionPicker() { if (openReactionPicker) { openReactionPicker.classList.add('hidden'); openReactionPicker = null; } }
+            function closeMsgMenu() { if (openMsgMenu) { openMsgMenu.classList.add('hidden'); openMsgMenu = null; } }
         </script>
     }
 }

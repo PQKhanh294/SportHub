@@ -364,3 +364,7 @@ FodyWeavers.xsd
 # Local secrets
 appsettings.Development.json
 appsettings.*.json
+appsettings.json
+
+# User-uploaded files
+wwwroot/uploads/

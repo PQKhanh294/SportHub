@@ -116,6 +116,7 @@ namespace SportHub.Middleware
             }
 
             result = result.Replace("Môn thể thao Hub", "Sport Hub", StringComparison.Ordinal);
+            result = result.Replace("Môn thể thaoHub", "SportHub", StringComparison.Ordinal);
             return result;
         }
 

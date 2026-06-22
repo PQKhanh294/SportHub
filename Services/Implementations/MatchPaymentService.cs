@@ -91,10 +91,23 @@ namespace SportHub.Services.Implementations
                 .FirstOrDefaultAsync();
         }
 
+        // Tìm payment có thể nộp lại biên lai: Pending hoặc Refunded (bị reject bởi admin)
+        private async Task<MatchPayment?> GetResubmittablePaymentAsync(int matchId, int userId, string paymentType)
+        {
+            return await _context.MatchPayments
+                .Where(p => p.MatchID == matchId
+                    && p.PayerUserID == userId
+                    && p.PaymentType == paymentType
+                    && (p.Status == "Pending" || p.Status == "Refunded"))
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<bool> SubmitHostDepositReceiptAsync(int matchId, int userId, string receiptUrl)
         {
-            var payment = await GetActivePaymentAsync(matchId, userId, "HostDeposit");
+            var payment = await GetResubmittablePaymentAsync(matchId, userId, "HostDeposit");
             if (payment == null) return false;
+            payment.Status = "Pending";
             payment.ReceiptUrl = receiptUrl;
             await _context.SaveChangesAsync();
             return true;
@@ -102,9 +115,12 @@ namespace SportHub.Services.Implementations
 
         public async Task<bool> SubmitPlayerFeeReceiptAsync(int matchId, int userId, string receiptUrl)
         {
-            var payment = await GetActivePaymentAsync(matchId, userId, "PlayerFee");
+            var payment = await GetResubmittablePaymentAsync(matchId, userId, "PlayerFee");
             if (payment == null) return false;
-            if (payment.ExpiresAt.HasValue && payment.ExpiresAt < DateTime.UtcNow) return false;
+            // Bỏ qua deadline nếu đây là lần nộp lại sau khi bị reject
+            if (payment.Status == "Pending" && payment.ExpiresAt.HasValue && payment.ExpiresAt < DateTime.UtcNow)
+                return false;
+            payment.Status = "Pending";
             payment.ReceiptUrl = receiptUrl;
             await _context.SaveChangesAsync();
             return true;
@@ -112,8 +128,9 @@ namespace SportHub.Services.Implementations
 
         public async Task<bool> SubmitHostRemainingReceiptAsync(int matchId, int userId, string receiptUrl)
         {
-            var payment = await GetActivePaymentAsync(matchId, userId, "HostRemaining");
+            var payment = await GetResubmittablePaymentAsync(matchId, userId, "HostRemaining");
             if (payment == null) return false;
+            payment.Status = "Pending";
             payment.ReceiptUrl = receiptUrl;
             await _context.SaveChangesAsync();
             return true;
@@ -294,7 +311,7 @@ namespace SportHub.Services.Implementations
                 {
                     m.RemainingFeeStatus = "Notified";
 
-                    // Create HostRemaining payment record
+                    // Create HostRemaining payment record with 48h deadline
                     var remaining = CalculateHostDeposit(m.MaxParticipants);
                     _context.MatchPayments.Add(new MatchPayment
                     {
@@ -304,7 +321,8 @@ namespace SportHub.Services.Implementations
                         Amount = remaining,
                         Status = "Pending",
                         TransactionRef = $"REMAINING-{m.MatchID}-{DateTime.UtcNow:yyyyMMddHHmmss}",
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        ExpiresAt = DateTime.UtcNow.AddHours(48)
                     });
 
                     var title = string.IsNullOrWhiteSpace(m.Title) ? m.MatchType : m.Title;
@@ -315,6 +333,59 @@ namespace SportHub.Services.Implementations
             if (result.Count > 0)
                 await _context.SaveChangesAsync(ct);
 
+            return result;
+        }
+
+        public async Task<List<DailyRevenue>> GetDailyRevenueAsync(int days = 7)
+        {
+            var since = DateTime.UtcNow.Date.AddDays(-(days - 1));
+            var payments = await _context.MatchPayments
+                .Where(p => p.Status == "Confirmed" && p.ConfirmedAt >= since)
+                .Select(p => new { p.PaymentType, p.Amount, Date = p.ConfirmedAt!.Value.Date })
+                .ToListAsync();
+
+            return Enumerable.Range(0, days)
+                .Select(i => since.AddDays(i))
+                .Select(date => new DailyRevenue
+                {
+                    Date = date,
+                    HostDepositTotal  = payments.Where(p => p.Date == date && p.PaymentType == "HostDeposit").Sum(p => p.Amount),
+                    PlayerFeeTotal    = payments.Where(p => p.Date == date && p.PaymentType == "PlayerFee").Sum(p => p.Amount),
+                    HostRemainingTotal = payments.Where(p => p.Date == date && p.PaymentType == "HostRemaining").Sum(p => p.Amount)
+                })
+                .ToList();
+        }
+
+        public async Task<List<UnpaidRemainingFee>> GetUnpaidRemainingFeesAsync()
+        {
+            var unpaid = await _context.Matches
+                .Include(m => m.CreatedByUser)
+                .Where(m => m.RemainingFeeStatus == "Notified")
+                .ToListAsync();
+
+            var result = new List<UnpaidRemainingFee>();
+            foreach (var m in unpaid)
+            {
+                var payment = await _context.MatchPayments
+                    .Where(p => p.MatchID == m.MatchID && p.PaymentType == "HostRemaining")
+                    .OrderByDescending(p => p.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                // Skip if already confirmed or receipt submitted
+                if (payment?.Status == "Confirmed") continue;
+                if (payment?.ReceiptUrl != null) continue;
+
+                var title = string.IsNullOrWhiteSpace(m.Title) ? m.MatchType : m.Title;
+                result.Add(new UnpaidRemainingFee
+                {
+                    MatchId = m.MatchID,
+                    MatchTitle = title ?? "Trận đấu",
+                    HostName = m.CreatedByUser.FullName,
+                    Amount = CalculateHostDeposit(m.MaxParticipants),
+                    MatchDate = m.MatchDate,
+                    PaymentCreatedAt = payment?.CreatedAt
+                });
+            }
             return result;
         }
     }

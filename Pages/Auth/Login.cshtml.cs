@@ -75,6 +75,7 @@ namespace SportHub.Pages.Auth
             var principal = new ClaimsPrincipal(identity);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await _userService.IncrementLoginCountAsync(user.UserID);
 
             TempData["SuccessMessage"] = "Logged in successfully.";
 

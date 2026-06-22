@@ -48,6 +48,13 @@ namespace SportHub.Data
         public DbSet<Friendship> Friendships { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<ChatBookingProposal> ChatBookingProposals { get; set; } = null!;
+        public DbSet<MessageReaction> MessageReactions { get; set; } = null!;
+        public DbSet<MessageReport> MessageReports { get; set; } = null!;
+        public DbSet<UserBan> UserBans { get; set; } = null!;
+
+        // Nhóm 8: Wallet
+        public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
+        public DbSet<WalletTopUpRequest> WalletTopUpRequests { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -73,6 +80,7 @@ namespace SportHub.Data
             modelBuilder.Entity<MatchPayment>().ToTable("MatchPayments");
             modelBuilder.Entity<MatchReview>().ToTable("MatchReviews");
             modelBuilder.Entity<Review>().ToTable("Reviews");
+            modelBuilder.Entity<WalletTransaction>().ToTable("WalletTransactions");
             modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
             modelBuilder.Entity<Notification>().ToTable("Notifications");
             modelBuilder.Entity<UserBadge>().ToTable("UserBadges");
@@ -101,6 +109,7 @@ namespace SportHub.Data
             modelBuilder.Entity<ChatBookingProposal>().HasKey(p => p.ProposalID);
             modelBuilder.Entity<MatchPayment>().HasKey(mp => mp.MatchPaymentID);
             modelBuilder.Entity<MatchReview>().HasKey(mr => mr.MatchReviewID);
+            modelBuilder.Entity<WalletTransaction>().HasKey(wt => wt.WalletTransactionID);
 
             // Composite Key (N:N) - UserRole
             modelBuilder.Entity<UserRole>()
@@ -544,6 +553,52 @@ namespace SportHub.Data
                 .HasIndex(mr => new { mr.MatchID, mr.ReviewerUserID, mr.ReviewedUserID, mr.ReviewType })
                 .IsUnique();
 
+            // WalletTransaction relations
+            modelBuilder.Entity<WalletTransaction>()
+                .HasOne(wt => wt.User)
+                .WithMany()
+                .HasForeignKey(wt => wt.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<WalletTransaction>()
+                .HasIndex(wt => wt.UserID);
+
+            modelBuilder.Entity<WalletTransaction>()
+                .Property(wt => wt.Amount)
+                .HasPrecision(12, 2);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.WalletBalance)
+                .HasPrecision(12, 2)
+                .HasDefaultValue(0m);
+
+            modelBuilder.Entity<WalletTransaction>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_WalletTransactions_Type", "Type IN ('Refund','Deduction','AdminCredit','TopUp','MatchPayment')");
+            });
+
+            // WalletTopUpRequest
+            modelBuilder.Entity<WalletTopUpRequest>().ToTable("WalletTopUpRequests");
+            modelBuilder.Entity<WalletTopUpRequest>().HasKey(t => t.WalletTopUpID);
+            modelBuilder.Entity<WalletTopUpRequest>()
+                .HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<WalletTopUpRequest>()
+                .HasIndex(t => t.TransactionRef)
+                .IsUnique();
+            modelBuilder.Entity<WalletTopUpRequest>()
+                .HasIndex(t => new { t.UserID, t.Status });
+            modelBuilder.Entity<WalletTopUpRequest>()
+                .Property(t => t.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<WalletTopUpRequest>()
+                .Property(t => t.ActualAmount).HasPrecision(12, 2);
+            modelBuilder.Entity<WalletTopUpRequest>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_WalletTopUpRequests_Status", "Status IN ('Pending','Confirmed','Expired')");
+            });
+
             modelBuilder.Entity<MatchReview>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_MatchReviews_Type", "ReviewType IN ('PlayerToMatch','HostToPlayer')");
@@ -561,9 +616,76 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder')");
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder','RemainingFeeReminder','WalletCredit')");
             });
 
+            // ---- Chat Enhancement Phase 2 ----
+
+            // ChatMessage self-ref for reply
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.ReplyToMessage)
+                .WithMany()
+                .HasForeignKey(m => m.ReplyToMessageID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // MessageReaction
+            modelBuilder.Entity<MessageReaction>().ToTable("MessageReactions");
+            modelBuilder.Entity<MessageReaction>().HasKey(r => r.ReactionID);
+            modelBuilder.Entity<MessageReaction>()
+                .HasIndex(r => new { r.MessageID, r.UserID, r.ReactionType })
+                .IsUnique();
+            modelBuilder.Entity<MessageReaction>()
+                .HasOne(r => r.Message)
+                .WithMany(m => m.Reactions)
+                .HasForeignKey(r => r.MessageID)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MessageReaction>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // MessageReport
+            modelBuilder.Entity<MessageReport>().ToTable("MessageReports");
+            modelBuilder.Entity<MessageReport>().HasKey(r => r.ReportID);
+            modelBuilder.Entity<MessageReport>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_MessageReports_Status", "Status IN ('Pending','Reviewed','Dismissed')");
+            });
+            modelBuilder.Entity<MessageReport>()
+                .HasOne(r => r.Message)
+                .WithMany()
+                .HasForeignKey(r => r.MessageID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<MessageReport>()
+                .HasOne(r => r.Reporter)
+                .WithMany()
+                .HasForeignKey(r => r.ReporterID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<MessageReport>()
+                .HasOne(r => r.ReviewedByAdmin)
+                .WithMany()
+                .HasForeignKey(r => r.ReviewedByAdminID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // UserBan
+            modelBuilder.Entity<UserBan>().ToTable("UserBans");
+            modelBuilder.Entity<UserBan>().HasKey(b => b.BanID);
+            modelBuilder.Entity<UserBan>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<UserBan>()
+                .HasOne(b => b.BannedByAdmin)
+                .WithMany()
+                .HasForeignKey(b => b.BannedByAdminID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<UserBan>()
+                .HasOne(b => b.Report)
+                .WithMany()
+                .HasForeignKey(b => b.ReportID)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

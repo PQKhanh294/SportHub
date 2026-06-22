@@ -17,12 +17,15 @@ namespace SportHub.Pages.Profile
         private readonly IBadgeService _badgeService;
         private readonly IMatchReviewService _reviewService;
 
-        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService)
+        private readonly IWalletService _walletService;
+
+        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService, IWalletService walletService)
         {
             _userService = userService;
             _context = context;
             _badgeService = badgeService;
             _reviewService = reviewService;
+            _walletService = walletService;
         }
 
         public ProfileViewModel Profile { get; set; } = new();
@@ -31,6 +34,8 @@ namespace SportHub.Pages.Profile
         public UserRatingSummary HostRatingSummary { get; set; } = new();
         public UserRatingSummary PlayerRatingSummary { get; set; } = new();
         public List<MatchReviewHistoryItem> ReceivedReviews { get; set; } = new();
+        public decimal WalletBalance { get; set; }
+        public List<SportHub.Models.Entities.WalletTransaction> WalletHistory { get; set; } = new();
 
         public class UserSportProfileItem
         {
@@ -78,7 +83,7 @@ namespace SportHub.Pages.Profile
                 PhoneNumber = string.IsNullOrWhiteSpace(user.PhoneNumber) ? notUpdatedText : user.PhoneNumber,
                 DefaultAddress = string.IsNullOrWhiteSpace(user.DefaultAddress) ? notUpdatedText : user.DefaultAddress,
                 AvatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
-                    ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(user.FullName)}&background=E2E8F0&color=1E293B"
+                    ? "/images/avatar-default.png"
                     : user.AvatarUrl,
                 JoinedText = user.CreatedAt.ToString("MM/yyyy"),
                 MatchesPlayed = await _userService.GetTotalMatchesPlayedAsync(userId),
@@ -102,6 +107,9 @@ namespace SportHub.Pages.Profile
             HostRatingSummary = await _reviewService.GetHostRatingSummaryAsync(userId);
             PlayerRatingSummary = await _reviewService.GetPlayerRatingSummaryAsync(userId);
             ReceivedReviews = await _reviewService.GetReceivedReviewsAsync(userId);
+
+            WalletBalance = await _walletService.GetBalanceAsync(userId);
+            WalletHistory = await _walletService.GetHistoryAsync(userId, 10);
 
             return Page();
         }

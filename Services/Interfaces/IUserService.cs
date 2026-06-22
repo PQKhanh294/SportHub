@@ -16,5 +16,7 @@ namespace SportHub.Services.Interfaces
         Task<int> GetTotalBookingsAsync(int userId);
         Task<List<User>> GetAllUsersAsync();
         Task<bool> SetUserActiveAsync(int userId, bool isActive);
+        Task IncrementLoginCountAsync(int userId);
+        Task<bool> IsProfileCompleteAsync(int userId);
     }
 }

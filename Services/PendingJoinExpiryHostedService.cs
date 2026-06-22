@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
+using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Services
@@ -25,6 +26,64 @@ namespace SportHub.Services
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+        }
+
+        private async Task RemindRemainingFeesAsync(IServiceScope scope, INotificationService notificationService, CancellationToken ct)
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var now = DateTime.UtcNow;
+
+            var pendingRemaining = await db.MatchPayments
+                .Include(p => p.Match)
+                .Where(p => p.PaymentType == "HostRemaining"
+                    && p.Status == "Pending"
+                    && p.ReceiptUrl == null
+                    && p.ReminderSentAt == null)
+                .ToListAsync(ct);
+
+            var toRemind = new List<MatchPayment>();
+            var urgentRemind = new List<MatchPayment>();
+
+            foreach (var p in pendingRemaining)
+            {
+                var age = now - p.CreatedAt;
+                var remaining = p.ExpiresAt.HasValue ? (p.ExpiresAt.Value - now) : TimeSpan.MaxValue;
+
+                if (remaining <= TimeSpan.FromHours(4))
+                    urgentRemind.Add(p);
+                else if (age >= TimeSpan.FromHours(24))
+                    toRemind.Add(p);
+            }
+
+            foreach (var p in toRemind)
+            {
+                var title = string.IsNullOrWhiteSpace(p.Match.Title) ? p.Match.MatchType : p.Match.Title;
+                await notificationService.CreateAsync(
+                    p.PayerUserID,
+                    "RemainingFeeReminder",
+                    "Nhắc nhở: còn 24h để nộp phí còn lại",
+                    $"Trận \"{title}\" — còn 24 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} VND.",
+                    $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
+                p.ReminderSentAt = now;
+            }
+
+            foreach (var p in urgentRemind)
+            {
+                var title = string.IsNullOrWhiteSpace(p.Match.Title) ? p.Match.MatchType : p.Match.Title;
+                await notificationService.CreateAsync(
+                    p.PayerUserID,
+                    "RemainingFeeReminder",
+                    "Khẩn: còn ít hơn 4h nộp phí còn lại!",
+                    $"Trận \"{title}\" — còn ít hơn 4 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} VND. Hãy nộp ngay!",
+                    $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
+                p.ReminderSentAt = now;
+            }
+
+            if (toRemind.Count + urgentRemind.Count > 0)
+            {
+                await db.SaveChangesAsync(ct);
+                _logger.LogInformation("Sent {Count} HostRemaining reminder(s).", toRemind.Count + urgentRemind.Count);
+            }
         }
 
         private async Task AutoCompleteMatchesAsync(IServiceScope scope, INotificationService notificationService, CancellationToken ct)
@@ -135,7 +194,10 @@ namespace SportHub.Services
                     if (remainingFeeMatches.Count > 0)
                         _logger.LogInformation("Sent {Count} remaining fee notification(s).", remainingFeeMatches.Count);
 
-                    // 4. Auto-complete matches that have ended + send review reminders
+                    // 4. Remind host to pay HostRemaining fee (24h warning + 4h urgent)
+                    await RemindRemainingFeesAsync(scope, notificationService, stoppingToken);
+
+                    // 5. Auto-complete matches that have ended + send review reminders
                     await AutoCompleteMatchesAsync(scope, notificationService, stoppingToken);
                 }
                 catch (Exception ex)

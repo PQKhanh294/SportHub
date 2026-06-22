@@ -1,7 +1,8 @@
-@page
+﻿@page
 @model SportHub.Pages.Matchmaking.IndexModel
 @{
     ViewData["Title"] = "Ghép cặp";
+    var isEn = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 
 <style>
@@ -94,7 +95,30 @@
     <!-- Map Section (Hidden) -->
     <div id="mapSection" class="hidden mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
         <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-primary text-base">place</span>
+                    Bản đồ trận đấu
+                </span>
+                <button type="button" onclick="openIndexMapFullscreen()" class="flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined text-sm">fullscreen</span>
+                    Toàn màn hình
+                </button>
+            </div>
             <div id="matchMap"></div>
+        </div>
+    </div>
+
+    <!-- Map fullscreen modal (Index) -->
+    <div id="indexMapFullscreenModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.85);" onclick="if(event.target===this)closeIndexMapFullscreen()">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:95vw;height:90vh;background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
+                <span style="font-weight:700;font-size:15px;">Bản đồ trận đấu</span>
+                <button onclick="closeIndexMapFullscreen()" style="background:none;border:none;cursor:pointer;padding:4px;">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="indexMapFullscreen" style="flex:1;width:100%;"></div>
         </div>
     </div>
 
@@ -182,7 +206,7 @@
                             <option value="Upcoming">Sắp diễn ra</option>
                             <option value="Pending">Đang chờ duyệt</option>
                             <option value="Joined">Đã tham gia</option>
-                            <option value="Owned">Kèo của tôi</option>
+                            <option value="Owned">Trận của tôi</option>
                         </select>
                     </div>
 
@@ -212,12 +236,6 @@
                         </div>
                         <select asp-for="Skill" id="skillSelect" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium p-2.5 focus:border-primary focus:ring-1 focus:ring-primary">
                             <option value="Any">Tất cả trình độ</option>
-                            <option value="Newbie">Newbie</option>
-                            <option value="Yếu">Yếu</option>
-                            <option value="Yếu+">Yếu+</option>
-                            <option value="TBY/TB-">TBY / TB-</option>
-                            <option value="Trung Bình">Trung Bình</option>
-                            <option value="TB+/Khá">TB+ / Khá</option>
                         </select>
                     </div>
 
@@ -413,7 +431,9 @@
             {
                 @foreach (var match in Model.Matches)
                 {
-                    <div class="relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group">
+                    <div class="relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
+                         draggable="true"
+                         data-drag-match="@System.Text.Json.JsonSerializer.Serialize(new { id = match.MatchId, title = match.Title, type = match.MatchType, date = match.StartText, time = match.StartTime, venue = match.Venue, price = match.PriceDisplay, participants = match.Participants, max = match.MaxParticipants, skill = match.SkillRequired })">
                         <!-- Blurred Background -->
                         @if (match.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
                         {
@@ -464,7 +484,7 @@
                                         else if (match.IsPendingByCurrentUser)
                                         {
                                             <span class="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[14px]">hourglass_top</span>
+                                                <span class="material-symbols-outlined text-[14px]">schedule</span>
                                                 Chờ host duyệt
                                             </span>
                                         }
@@ -528,7 +548,7 @@
                                             <form method="post" asp-page-handler="Skip" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none">
                                                 <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
                                                     <span class="material-symbols-outlined text-lg">close</span>
-                                                    Bá» qua
+                                                    Bỏ qua
                                                 </button>
                                             </form>
                                         }
@@ -543,9 +563,10 @@
                                         }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <span class="flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold text-center text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                                            <div class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                                                <span class="material-symbols-outlined text-base">schedule</span>
                                                 Đang chờ duyệt
-                                            </span>
+                                            </div>
                                         }
                                         <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center">
                                             Chi tiết
@@ -567,137 +588,317 @@
     </div>
 </section>
 
-<!-- Skill Guide Modal - Pure inline styles, no Tailwind dependency -->
+<!-- Skill Guide Modal -->
 <style>
 #skillGuideModal {
     display: none;
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     z-index: 99999;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-#skillGuideModal.open {
-    display: flex !important;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 #skillGuideBox {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 20px;
     width: 100%;
-    max-width: 800px;
-    max-height: 88vh;
-    overflow: hidden;
+    max-width: min(720px, 86vh);
+    max-height: 86vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.4);
-    position: relative;
-    z-index: 1;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    overflow: hidden;
 }
-@@media (prefers-color-scheme: dark) {
-    #skillGuideBox { background: #0f172a; color: #f1f5f9; }
+.dark #skillGuideBox { background: #0f172a; }
+/* Tabs */
+.sg-tabs { display: flex; border-bottom: 2px solid #e2e8f0; flex-shrink: 0; background: #f8fafc; }
+.dark .sg-tabs { background: #0c1221; border-bottom-color: #1e293b; }
+.sg-tab {
+    padding: 10px 20px; font-size: 13px; font-weight: 700;
+    color: #64748b; border: none; background: none; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+    display: flex; align-items: center; gap: 6px;
 }
-#skillGuideHeader {
-    padding: 20px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-shrink: 0;
+.sg-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+.sg-tab:hover:not(.active) { color: #1e293b; }
+.dark .sg-tab { color: #94a3b8; }
+.dark .sg-tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+/* Panels */
+.sg-panel { display: none; flex: 1; overflow-y: auto; }
+.sg-panel.active { display: flex; flex-direction: column; }
+/* Skill table */
+#sg-skill-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#sg-skill-table thead th {
+    padding: 11px 14px; text-align: left;
+    background: #1d4ed8; color: #fff;
+    font-weight: 800; font-size: 11.5px; letter-spacing: 0.5px; text-transform: uppercase;
+    position: sticky; top: 0; z-index: 1;
 }
-#skillGuideContent {
-    overflow-y: auto;
-    flex: 1;
+#sg-skill-table th:first-child  { width: 100px; }
+#sg-skill-table th:last-child   { width: 152px; }
+#sg-skill-table td { padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); vertical-align: top; line-height: 1.65; }
+#sg-skill-table tr:last-child td { border-bottom: none; }
+.dark #sg-skill-table td { border-bottom-color: rgba(255,255,255,0.06); color: #cbd5e1; }
+.sg-lv-cell { font-weight: 900; font-size: 13px; text-align: center; line-height: 1.5; white-space: pre-line; }
+.sg-time-cell { font-size: 12px; font-weight: 700; color: #374151; white-space: pre-line; }
+.dark .sg-time-cell { color: #94a3b8; }
+.sg-bullets { margin: 0; padding-left: 17px; }
+.sg-bullets li { margin-bottom: 2px; }
+/* AI panel */
+#sg-ai-panel { padding: 20px; gap: 14px; }
+.sg-ai-hint { font-size: 12.5px; color: #64748b; line-height: 1.7; margin: 0; }
+.dark .sg-ai-hint { color: #94a3b8; }
+#sg-ai-input {
+    width: 100%; box-sizing: border-box;
+    border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 14px; font-size: 13px; font-family: inherit;
+    line-height: 1.65; resize: vertical; min-height: 110px; outline: none;
+    transition: border-color .15s;
 }
-.skill-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.skill-table th { padding: 12px 16px; text-align: left; background: #1a5c2a; color: #fff; font-weight: 900; }
-.skill-table td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; vertical-align: top; line-height: 1.6; color: #1f2937; font-weight: 500; }
-.skill-table tr:last-child td { border-bottom: none; }
-.skill-table tr.row-newbie { background: #fee2e2; }
-.skill-table tr.row-yeu { background: #fef3c7; }
-.skill-table tr.row-yeuplus { background: #f0fdf4; }
-.skill-table tr.row-tby { background: #fef3c7; }
-.skill-table tr.row-tb { background: #d1fae5; }
-.skill-table tr.row-tbplus { background: #dbeafe; }
-.skill-lv-newbie { color: #991b1b; font-weight: 900; font-size: 14px; }
-.skill-lv-yeu { color: #78350f; font-weight: 900; font-size: 14px; }
-.skill-lv-tby { color: #92400e; font-weight: 900; font-size: 14px; }
-.skill-lv-tb { color: #166534; font-weight: 900; font-size: 14px; }
-.skill-lv-tbplus { color: #1e40af; font-weight: 900; font-size: 14px; }
-.skill-time { color: #374151; font-weight: 700; white-space: nowrap; }
-#skillCloseBtn {
-    background: #f1f5f9;
-    border: none;
-    border-radius: 50%;
-    width: 36px; height: 36px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    font-size: 18px;
-    color: #64748b;
+#sg-ai-input:focus { border-color: #3b82f6; }
+.dark #sg-ai-input { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+.dark #sg-ai-input:focus { border-color: #60a5fa; }
+#sg-ai-result {
+    border-radius: 12px; padding: 14px 16px;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    font-size: 13px; line-height: 1.8; color: #1e3a5f;
+    display: none;
 }
-#skillCloseBtn:hover { background: #e2e8f0; }
+.dark #sg-ai-result { background: rgba(30,64,175,0.12); border-color: #1d4ed8; color: #93c5fd; }
 </style>
 
-<div id="skillGuideModal" onclick="if(event.target===this){closeSkillModal()}">
+<div id="skillGuideModal" onclick="if(event.target===this)closeSkillModal()">
     <div id="skillGuideBox">
-        <div id="skillGuideHeader">
-            <div>
-                <div style="font-size:18px;font-weight:900;">&#127955; Tr&#7843;nh V&#7843;ng Lai C&#7847;u L&#244;ng</div>
-                <div style="font-size:11px;color:#94a3b8;margin-top:2px;font-style:italic;">(D&#7921;a theo th&#244;ng tin t&#7893;ng h&#7907;p v&#224; quan &#273;i&#7875;m c&#225; nh&#226;n)</div>
+
+        @* Header *@
+        <div style="background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 55%,#60a5fa 100%);padding:18px 22px 14px;flex-shrink:0">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div>
+                    <div id="sg-modal-title" style="font-size:18px;font-weight:900;color:white;margin-bottom:3px;letter-spacing:-0.3px">
+                        🏸 @(isEn ? "Badminton Skill Levels" : "Trình Độ Cầu Lông")
+                    </div>
+                    <div id="sg-modal-subtitle" style="font-size:11px;color:rgba(255,255,255,0.72);font-style:italic">
+                        @(isEn ? "Based on aggregated information and personal perspective" : "Dựa theo thông tin tổng hợp và quan điểm cá nhân")
+                    </div>
+                </div>
+                <button onclick="closeSkillModal()"
+                        style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;transition:background .15s"
+                        onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    <span class="material-symbols-outlined" style="font-size:17px">close</span>
+                </button>
             </div>
-            <button id="skillCloseBtn" onclick="closeSkillModal()" title="&#272;&#243;ng">
-                <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+        </div>
+
+        @* Tabs *@
+        <div class="sg-tabs">
+            <button class="sg-tab active" onclick="sgSwitchTab('table',this)">
+                <span class="material-symbols-outlined" style="font-size:15px">table_chart</span>
+                @(isEn ? "Skill Table" : "Bảng trình độ")
+            </button>
+            <button class="sg-tab" onclick="sgSwitchTab('ai',this)">
+                <span class="material-symbols-outlined" style="font-size:15px">psychology</span>
+                @(isEn ? "AI Self-Assessment" : "Tự đánh giá AI")
             </button>
         </div>
-        <div id="skillGuideContent">
-            <div style="overflow-x:auto;">
-                <table class="skill-table">
-                    <thead>
-                        <tr>
-                            <th style="width:100px;">TR&#7842;NH</th>
-                            <th>CHI TI&#7870;T</th>
-                            <th style="width:150px;">TH&#7900;I GIAN THAM KH&#7842;O<br/><span style="font-weight:400;font-size:10px;opacity:0.85;">(Ch&#417;i li&#234;n t&#7909;c tu&#7847;n 3 bu&#7893;i)</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="row-newbie">
-                            <td class="skill-lv-newbie">NEWBIE</td>
-                            <td>&#8226; M&#7899;i t&#7853;p ch&#417;i, ch&#432;a bi&#7871;t ho&#7863;c bi&#7871;t s&#417; lu&#7853;t, c&#7847;n ph&#7843;i nh&#7855;c<br/>&#8226; &#272;&#225;nh tr&#250;ng tr&#225;i c&#7847;u n&#7871;u tr&#432;&#7899;c m&#7863;t. C&#7847;u &#273;i h&#432;&#7899;ng kh&#225;c l&#224; b&#7887; lu&#244;n.<br/>&#8226; &#272;&#225;nh theo b&#7843;n n&#259;ng, kh&#244;ng c&#243; k&#7929; thu&#7853;t<br/>&#8226; Kh&#244;ng ho&#7863;c &#237;t ch&#7883;u di chuy&#7875;n theo c&#7847;u, &#273;&#7913;ng im 1 ch&#7895;<br/>&#8226; &#272;&#225;nh nh&#7865; qua l&#7841;i kh&#244;ng cho c&#7847;u r&#7899;t, kh&#244;ng &#273;&#225;nh d&#7913;t &#273;i&#7875;m</td>
-                            <td class="skill-time">~ 3 th&#225;ng</td>
-                        </tr>
-                        <tr class="row-yeu">
-                            <td class="skill-lv-yeu">Y&#7870;U</td>
-                            <td>&#8226; N&#7855;m r&#245; lu&#7853;t, bi&#7871;t t&#237;nh &#273;i&#7875;m<br/>&#8226; T&#7889;i thi&#7875;u bi&#7871;t giao c&#7847;u, ph&#242;ng c&#7847;u....<br/>&#8226; C&#7847;m v&#7907;t &#273;&#250;ng (c&#243; l&#250;c kh&#244;ng)<br/>&#8226; Ch&#7883;u di chuy&#7875;n theo c&#7847;u nh&#432;ng b&#7883; ch&#7853;m<br/>&#8226; &#272;&#225;nh d&#7913;t &#273;i&#7875;m. Kh&#244;ng c&#250; c&#432;a.</td>
-                            <td class="skill-time">3 th&#225;ng ~ 6 th&#225;ng</td>
-                        </tr>
-                        <tr class="row-yeuplus">
-                            <td class="skill-lv-yeu">Y&#7870;U +</td>
-                            <td>&#8226; Bi&#7871;t b&#7897; nh&#7887;, giao/ph&#242;ng/&#273;&#7853;p/ch&#7863;t c&#7847;u... nh&#432;ng l&#224;m ch&#432;a t&#7889;t<br/>&#8226; &#272;i&#7873;u khi&#7875;n &#273;&#432;&#7907;c v&#7907;t theo &#253;<br/>&#8226; Bi&#7871;t ph&#7889;i h&#7907;p v&#7899;i &#273;&#7891;ng &#273;&#7897;i<br/>&#8226; L&#7921;c &#273;&#225;nh kh&#244;ng &#7893;n &#273;&#7883;nh, l&#250;c m&#7841;nh l&#250;c y&#7871;u</td>
-                            <td class="skill-time">6 th&#225;ng ~ 1 n&#259;m</td>
-                        </tr>
-                        <tr class="row-tby">
-                            <td class="skill-lv-tby">TBY<br/>&#9135;&#9135;&#9135;&#9135;&#9135;<br/>TB-</td>
-                            <td>&#8226; L&#224;m g&#7847;n nh&#432; ho&#224;n thi&#7879;n b&#7897; nh&#7887;, giao/ph&#242;ng/ch&#7863;t/&#273;&#7853;p/v&#7873; c&#7847;u...<br/>&#8226; H&#236;nh th&#224;nh l&#7889;i &#273;&#225;nh, s&#7917; d&#7909;ng v&#7907;t t&#432;&#417;ng &#7913;ng, c&#7847;m &#273;&#432;&#7907;c c&#7847;u<br/>&#8226; Di chuy&#7875;n theo b&#7897; ph&#225;p nh&#432;ng ch&#432;a chu&#7849;n, ch&#432;a linh ho&#7841;t<br/>&#8226; T&#226;m l&#253;/phong &#273;&#7897; c&#243; l&#250;c kh&#244;ng &#7893;n &#273;&#7883;nh, b&#7883; giao &#273;&#7897;ng b&#7903;i &#273;&#7889;i th&#7911;</td>
-                            <td class="skill-time">1 n&#259;m ~<br/>&#8213;&#8213;&#8213;&#8213;&#8213;<br/>2 n&#259;m ~</td>
-                        </tr>
-                        <tr class="row-tb">
-                            <td class="skill-lv-tb">TRUNG<br/>B&#204;NH</td>
-                            <td>&#8226; Ho&#224;n thi&#7879;n h&#7871;t t&#7845;t c&#7843; k&#7929; thu&#7853;t c&#417; b&#7843;n c&#7911;a c&#7847;u l&#244;ng<br/>&#8226; Di chuy&#7875;n theo b&#7897; ph&#225;p<br/>&#8226; C&#243; t&#432; duy &#273;&#225;nh c&#7847;u, &#273;i&#7873;u c&#7847;u, chi&#7871;n thu&#7853;t r&#245; r&#224;ng, t&#226;m l&#253; v&#7919;ng<br/>&#8226; &#272;&#7905; &#273;&#432;&#7907;c c&#7847;u h&#7847;u nh&#432; t&#7845;t c&#7843; v&#7883; tr&#237; tr&#234;n s&#226;n</td>
-                            <td class="skill-time">3 n&#259;m ~</td>
-                        </tr>
-                        <tr class="row-tbplus">
-                            <td class="skill-lv-tbplus">TB+<br/>&#8213;&#8213;&#8213;&#8213;&#8213;&#8213;<br/>KH&#193;</td>
-                            <td>&#8226; Ho&#224;n thi&#7879;n h&#7871;t t&#7845;t c&#7843; k&#7929; thu&#7853;t c&#417; b&#7843;n v&#224; n&#226;ng cao c&#7911;a c&#7847;u l&#244;ng<br/>&#8226; C&#7847;u sao c&#361;ng &#273;&#7905; &#273;&#432;&#7907;c<br/>&#8226; T&#7845;n c&#244;ng uy l&#7921;c, tinh t&#7871;. Ph&#242;ng th&#7911; t&#7889;t v&#224; hi&#7875;m, &#273;&#7897;ng t&#225;c nhanh g&#7885;n, trickshot, deception m&#432;&#7907;t m&#224;<br/>&#8226; T&#432; duy, chi&#7871;n thu&#7853;t r&#245; r&#224;ng, b&#236;nh t&#297;nh n&#7855;m b&#7855;t v&#224; khai th&#225;c &#273;&#432;&#7907;c nh&#432;&#7907;c &#273;i&#7875;m c&#7911;a &#273;&#7889;i th&#7911;, hi&#7871;m khi m&#7855;c l&#7895;i v&#224; th&#7875; l&#7921;c c&#7921;c t&#7889;t</td>
-                            <td class="skill-time">5 n&#259;m ~</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+        @* Tab 1 — Skill table *@
+        <div id="sg-table-panel" class="sg-panel active">
+        <table id="sg-skill-table">
+            <thead>
+                <tr>
+                    <th style="width:110px">@(isEn ? "LEVEL" : "TRÌNH ĐỘ")</th>
+                    <th>@(isEn ? "DESCRIPTION" : "CHI TIẾT")</th>
+                    <th style="width:130px">@(isEn ? "REFERENCE" : "THAM KHẢO")</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#991b1b">NEWBIE</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Just started, barely knows the rules, needs reminders" : "Mới tập chơi, chưa biết hoặc biết sơ luật, cần phải nhắc")</li>
+                        <li>@(isEn ? "Hits the shuttle if it comes straight; otherwise misses completely" : "Đánh trúng trái cầu nếu trước mặt. Cầu đi hướng khác là bỏ luôn.")</li>
+                        <li>@(isEn ? "Plays by instinct, no technique" : "Đánh theo bản năng, không có kỹ thuật")</li>
+                        <li>@(isEn ? "Barely moves for the shuttle, stands in one spot" : "Không hoặc ít chịu di chuyển theo cầu, đứng im 1 chỗ")</li>
+                        <li>@(isEn ? "Taps shuttle back and forth, no winning shots" : "Đánh nhẹ qua lại không cho cầu rớt, không đánh dứt điểm")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">~ 3 @(isEn ? "months" : "tháng")</td>
+                </tr>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#78350f">@(isEn ? "WEAK" : "YẾU")</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Knows the rules and how to keep score" : "Nắm rõ luật, biết tính điểm")</li>
+                        <li>@(isEn ? "Minimum skill — knows basic serve and defense" : "Tối thiểu biết giao cầu, phòng cầu....")</li>
+                        <li>@(isEn ? "Holds racket correctly (most of the time)" : "Cầm vợt đúng (có lúc không)")</li>
+                        <li>@(isEn ? "Follows the shuttle but is slow" : "Chịu di chuyển theo cầu nhưng bị chậm")</li>
+                        <li>@(isEn ? "Can finish points — no deceptive shots yet" : "Đánh dứt điểm. Không cú cưa.")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">3 @(isEn ? "months" : "tháng") ~&#10;6 @(isEn ? "months" : "tháng")</td>
+                </tr>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#166534">@(isEn ? "WEAK +" : "YẾU +")</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Knows basic shots (drop/lift/smash/block) but execution is rough" : "Biết bộ nhỡ, giao/phòng/đập/chặt cầu... nhưng làm chưa tốt")</li>
+                        <li>@(isEn ? "Can control the racket intentionally" : "Điều khiển được vợt theo ý")</li>
+                        <li>@(isEn ? "Understands doubles coordination" : "Biết phối hợp với đồng đội")</li>
+                        <li>@(isEn ? "Power inconsistent — sometimes strong, sometimes weak" : "Lực đánh không ổn định, lúc mạnh lúc yếu")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">6 @(isEn ? "months" : "tháng") ~&#10;1 @(isEn ? "year" : "năm")</td>
+                </tr>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#713f12">TBY&#10;─────&#10;TB-</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Nearly complete shot repertoire (lift/block/smash/drop/clear)" : "Làm gần như hoàn thiện bộ nhỡ, giao/phòng/chặt/đập/ve cầu...")</li>
+                        <li>@(isEn ? "Forming a playing style, appropriate racket selection, good shuttle feel" : "Hình thành lối đánh, sử dụng vợt tương ứng, cầm được cầu")</li>
+                        <li>@(isEn ? "Footwork follows patterns but not yet precise or fluid" : "Di chuyển theo bộ pháp nhưng chưa chuẩn, chưa linh hoạt.")</li>
+                        <li>@(isEn ? "Mentality/form sometimes unstable — rattled by opponents" : "Tâm lý/ phong độ có lúc không ổn định, bị giao động bởi đối thủ")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">1 @(isEn ? "year" : "năm") ~&#10;──────&#10;2 @(isEn ? "years" : "năm") ~</td>
+                </tr>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#14532d">@Html.Raw(isEn ? "INTER-<br/>MEDIATE" : "TRUNG<br/>BÌNH")</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Mastered all basic badminton techniques" : "Hoàn thiện hết tất cả kỹ thuật cơ bản của cầu lông")</li>
+                        <li>@(isEn ? "Moves with correct footwork patterns" : "Di chuyển theo bộ pháp")</li>
+                        <li>@(isEn ? "Strategic thinking, clear tactics, composed and stable" : "Có tư duy đánh cầu, điều cầu, chiến thuật rõ ràng, tâm lý vững")</li>
+                        <li>@(isEn ? "Can retrieve shuttles from almost any position on court" : "Đỡ được cầu hầu như tất cả vị trí trên sân")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">3 @(isEn ? "years" : "năm") ~</td>
+                </tr>
+                <tr>
+                    <td class="sg-lv-cell" style="color:#1e40af">TB+&#10;──────&#10;@(isEn ? "ADVANCED" : "KHÁ")</td>
+                    <td><ul class="sg-bullets">
+                        <li>@(isEn ? "Mastered all basic and advanced techniques" : "Hoàn thiện hết tất cả kỹ thuật cơ bản và nâng cao của cầu lông")</li>
+                        <li>@(isEn ? "Can retrieve any shuttle" : "Cầu sao cũng đỡ được")</li>
+                        <li>@(isEn ? "Powerful/precise attacks; deceptive, tight defense; clean trickshots and deception" : "Tấn công uy lực, tinh tế. Phòng thủ tốt và hiểm, động tác nhanh gọn, trickshot, deception mượt mà")</li>
+                        <li>@(isEn ? "Clear strategy, exploits opponent weaknesses, rarely errs, excellent stamina" : "Tư duy, chiến thuật rõ ràng, bình tĩnh nắm bắt và khai thác được nhược điểm của đối thủ, hiếm khi mắc lỗi và thể lực cực tốt")</li>
+                    </ul></td>
+                    <td class="sg-time-cell">5 @(isEn ? "years" : "năm") ~</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        @* Other sport skills panel (populated by JS) *@
+        <div id="sg-other-panel" class="sg-panel" style="display:none;padding:0"></div>
+
+        @* Tab 2 — AI assessment *@
+        <div id="sg-ai-panel" class="sg-panel" style="padding:20px;gap:14px">
+            <p class="sg-ai-hint">
+                @(isEn
+                    ? "Describe your badminton skills honestly — how long you've played, what shots you can do, your footwork, weaknesses, etc. AI will assess your level using the skill table as reference."
+                    : "Hãy mô tả kỹ năng cầu lông của bạn một cách thành thật — thời gian chơi, những kỹ thuật biết, cách di chuyển, điểm yếu... AI sẽ đánh giá trình độ dựa theo bảng trên.")
+            </p>
+            <textarea id="sg-ai-input"
+                      placeholder="@(isEn
+                          ? "E.g. I've been playing 6 months, I can serve and smash but my footwork is slow, I can't do drop shots yet..."
+                          : "Ví dụ: Tôi đã chơi được 6 tháng, biết giao cầu và đập cầu nhưng di chuyển còn chậm, chưa đánh được cú chặt cầu...")"></textarea>
+            <button id="sg-ai-btn" onclick="sgAssessSkill()"
+                    style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;align-self:flex-start;transition:background .15s"
+                    onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                <span class="material-symbols-outlined" style="font-size:16px">psychology</span>
+                @(isEn ? "Assess my skill level" : "Đánh giá trình độ của tôi")
+            </button>
+            <div id="sg-ai-result"></div>
+        </div>
+
+        @* OLD_CARDS_START (hidden, will remove) *@
+        <div style="display:none"><div class="sg-card sg-newbie">
+                <div class="sg-card-head">
+                    <span class="sg-lv">NEWBIE</span>
+                    <span class="sg-dur">@(isEn ? "~ 3 months" : "~ 3 tháng")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Just started — barely knows the rules, needs reminders" : "Mới tập chơi, chưa biết hoặc biết sơ luật, cần phải nhắc")</li>
+                        <li>@(isEn ? "Only hits the shuttle if it comes straight at them; otherwise misses" : "Đánh trúng trái cầu nếu trước mặt. Cầu đi hướng khác là bỏ luôn.")</li>
+                        <li>@(isEn ? "Plays by instinct, no technique" : "Đánh theo bản năng, không có kỹ thuật")</li>
+                        <li>@(isEn ? "Barely moves for the shuttle, stands in one spot" : "Không hoặc ít chịu di chuyển theo cầu, đứng im 1 chỗ")</li>
+                        <li>@(isEn ? "Taps shuttle back and forth — no winning shots" : "Đánh nhẹ qua lại không cho cầu rớt, không đánh dứt điểm")</li>
+                    </ul>
+                </div>
             </div>
+
+            <div class="sg-card sg-yeu">
+                <div class="sg-card-head">
+                    <span class="sg-lv">@(isEn ? "WEAK" : "YẾU")</span>
+                    <span class="sg-dur">@(isEn ? "3 – 6 months" : "3 tháng ~ 6 tháng")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Knows the rules and how to keep score" : "Nắm rõ luật, biết tính điểm")</li>
+                        <li>@(isEn ? "Minimum skill — knows basic serve and defense" : "Tối thiểu biết giao cầu, phòng cầu....")</li>
+                        <li>@(isEn ? "Holds racket correctly (most of the time)" : "Cầm vợt đúng (có lúc không)")</li>
+                        <li>@(isEn ? "Follows the shuttle but is slow" : "Chịu di chuyển theo cầu nhưng bị chậm")</li>
+                        <li>@(isEn ? "Can finish points — no deceptive shots yet" : "Đánh dứt điểm. Không cú cưa.")</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sg-card sg-yeuplus">
+                <div class="sg-card-head">
+                    <span class="sg-lv">@(isEn ? "WEAK +" : "YẾU +")</span>
+                    <span class="sg-dur">@(isEn ? "6 months – 1 year" : "6 tháng ~ 1 năm")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Knows basic shots (drop/lift/smash/block) but execution is rough" : "Biết bộ nhỡ, giao/phòng/đập/chặt cầu... nhưng làm chưa tốt")</li>
+                        <li>@(isEn ? "Can control racket intentionally" : "Điều khiển được vợt theo ý")</li>
+                        <li>@(isEn ? "Understands doubles coordination" : "Biết phối hợp với đồng đội")</li>
+                        <li>@(isEn ? "Power inconsistent — sometimes strong, sometimes weak" : "Lực đánh không ổn định, lúc mạnh lúc yếu")</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sg-card sg-tby">
+                <div class="sg-card-head">
+                    <span class="sg-lv">TBY / TB-</span>
+                    <span class="sg-dur">@(isEn ? "1 – 2 years" : "1 năm ~ 2 năm")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Nearly complete shot repertoire (lift/block/smash/drop/clear)" : "Làm gần như hoàn thiện bộ nhỡ, giao/phòng/chặt/đập/về cầu...")</li>
+                        <li>@(isEn ? "Forming a playing style, appropriate racket selection, good shuttle feel" : "Hình thành lối đánh, sử dụng vợt tương ứng, cầm được cầu")</li>
+                        <li>@(isEn ? "Footwork follows patterns but not yet precise or fluid" : "Di chuyển theo bộ pháp nhưng chưa chuẩn, chưa linh hoạt")</li>
+                        <li>@(isEn ? "Mentality/form sometimes inconsistent — rattled by opponents" : "Tâm lý/phong độ có lúc không ổn định, bị giao động bởi đối thủ")</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sg-card sg-tb">
+                <div class="sg-card-head">
+                    <span class="sg-lv">@(isEn ? "INTERMEDIATE" : "TRUNG BÌNH")</span>
+                    <span class="sg-dur">@(isEn ? "3 years +" : "3 năm ~")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Mastered all basic badminton techniques" : "Hoàn thiện hết tất cả kỹ thuật cơ bản của cầu lông")</li>
+                        <li>@(isEn ? "Moves with correct footwork patterns" : "Di chuyển theo bộ pháp")</li>
+                        <li>@(isEn ? "Strategic thinking, clear tactics, composed and stable" : "Có tư duy đánh cầu, điều cầu, chiến thuật rõ ràng, tâm lý vững")</li>
+                        <li>@(isEn ? "Can retrieve shuttles from almost any position on court" : "Đỡ được cầu hầu như tất cả vị trí trên sân")</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sg-card sg-tbplus">
+                <div class="sg-card-head">
+                    <span class="sg-lv">@(isEn ? "ADVANCED" : "TB+ / KHÁ")</span>
+                    <span class="sg-dur">@(isEn ? "5 years +" : "5 năm ~")</span>
+                </div>
+                <div class="sg-body">
+                    <ul>
+                        <li>@(isEn ? "Mastered all basic and advanced techniques" : "Hoàn thiện hết tất cả kỹ thuật cơ bản và nâng cao của cầu lông")</li>
+                        <li>@(isEn ? "Can retrieve any shuttle" : "Cầu sao cũng đỡ được")</li>
+                        <li>@(isEn ? "Powerful precise attacks; deceptive defense; quick trickshots and deception" : "Tấn công uy lực, tinh tế. Phòng thủ tốt và hiểm, động tác nhanh gọn, trickshot, deception mượt mà")</li>
+                        <li>@(isEn ? "Clear strategy, exploits opponent's weaknesses, rarely errs, excellent stamina" : "Tư duy, chiến thuật rõ ràng, bình tĩnh nắm bắt và khai thác được nhược điểm của đối thủ, hiếm khi mắc lỗi và thể lực cực tốt")</li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -754,10 +955,123 @@
 
 <!-- JavaScript for Filter Functionality -->
 <script>
-    // --- SKILL LEVEL MODAL (simple version) ---
+    // --- SKILL GUIDE MODAL ---
     function closeSkillModal() {
         var m = document.getElementById('skillGuideModal');
         if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+    }
+
+    // Dữ liệu hướng dẫn trình độ theo môn
+    var skillGuideData = {
+        'Cầu Lông': null, // handled by existing sg-table-panel
+        'Pickleball': [
+            { level:'2.0', color:'#991b1b', desc:'Mới bắt đầu, chưa nắm luật. Đánh bóng trước mặt, thường mất ổn định.', ref:'Dưới 3 tháng' },
+            { level:'2.5', color:'#78350f', desc:'Biết cơ bản, giao bóng và trả bóng đơn giản. Chưa kiểm soát được hướng bóng.', ref:'3-6 tháng' },
+            { level:'3.0', color:'#166534', desc:'Biết dink, drive và smash cơ bản. Di chuyển ổn định, hiểu sơ chiến thuật đôi.', ref:'6-12 tháng' },
+            { level:'3.5', color:'#14532d', desc:'Dink nhất quán, overhead tốt, biết chọn đánh bên nào. Bắt đầu dùng lobs và drops chiến thuật.', ref:'1-2 năm' },
+            { level:'4.0', color:'#1e40af', desc:'Dink chính xác, stack & stagger trong đôi, biết reset khi ở thế bất lợi. Smash với góc tốt.', ref:'2-4 năm' },
+            { level:'4.5+', color:'#6b21a8', desc:'ATP, erne, speedup xuất thần. Đọc game và phối hợp cặp đôi ở mức cao. Thường xuyên thi đấu giải.', ref:'4+ năm' }
+        ],
+        'Tennis': [
+            { level:'1.0-2.0', color:'#991b1b', desc:'Mới tập, chưa kiểm soát bóng, cần học kỹ thuật cơ bản với huấn luyện viên.', ref:'Dưới 6 tháng' },
+            { level:'2.5-3.0', color:'#78350f', desc:'Đánh forehand/backhand ổn định, biết giao bóng. Chưa nhất quán khi đặt bóng.', ref:'6 tháng-2 năm' },
+            { level:'3.5', color:'#166534', desc:'Biết chiến thuật cơ bản, đánh được cả baseline lẫn net. Rally ổn định 10+ lần.', ref:'2-4 năm' },
+            { level:'4.0', color:'#14532d', desc:'Topspin và slice nhất quán, serve có tốc độ. Biết khai thác điểm yếu đối thủ.', ref:'4-6 năm' },
+            { level:'4.5', color:'#1e40af', desc:'Thi đấu giải thường xuyên. Serve+1 mạnh, biết đọc game, di chuyển linh hoạt, volley tốt.', ref:'6+ năm' },
+            { level:'5.0+', color:'#6b21a8', desc:'Gần mức chuyên nghiệp. Serve 180km/h+, chiến thuật đỉnh cao, thể lực xuất sắc.', ref:'Chuyên nghiệp' }
+        ],
+        'Bóng đá': [
+            { level:'Phong trào', color:'#991b1b', desc:'Chơi giải trí cuối tuần. Kỹ năng cơ bản, chưa chú trọng chiến thuật, quan trọng là vui.', ref:'Mọi lứa tuổi' },
+            { level:'Trung bình', color:'#78350f', desc:'Kiểm soát bóng ổn, biết vị trí, phối hợp được với đồng đội trong các tình huống đơn giản.', ref:'Có nền tảng cơ bản' },
+            { level:'Khá', color:'#166534', desc:'Dứt điểm tốt, kỹ thuật rê bóng và chuyền ổn định. Hiểu chiến thuật đội hình cơ bản.', ref:'Chơi thường xuyên 2+ năm' },
+            { level:'Tốt', color:'#1e40af', desc:'Đọc game tốt, pressing và build-up play. Từng tham gia giải phong trào hoặc đội câu lạc bộ.', ref:'Có kinh nghiệm thi đấu' },
+            { level:'Chuyên nghiệp', color:'#6b21a8', desc:'Thi đấu chuyên nghiệp hoặc bán chuyên. Thể lực, kỹ thuật và chiến thuật ở mức cao.', ref:'Đào tạo bài bản' }
+        ],
+        'Bóng bàn': [
+            { level:'Mới', color:'#991b1b', desc:'Mới chơi, đánh được giao bóng cơ bản. Chưa kiểm soát được vòng quay và tốc độ.', ref:'Dưới 3 tháng' },
+            { level:'Cơ bản', color:'#78350f', desc:'Đánh forehand/backhand ổn định trên bàn. Biết giao bóng cắt. Rally ngắn được 10-15 lần.', ref:'3-12 tháng' },
+            { level:'Trung bình', color:'#166534', desc:'Kiểm soát topspin và backspin. Biết đọc xoáy và trả bóng đúng hướng. Di chuyển tốt.', ref:'1-3 năm' },
+            { level:'Khá', color:'#1e40af', desc:'Loop trái phải nhất quán, serve chiến thuật nhiều xoáy, biết open-up và counter-attack.', ref:'3-6 năm' },
+            { level:'Nâng cao', color:'#6b21a8', desc:'Thi đấu giải được. Phối hợp cao su nhảm/tấn công đỉnh, chiến thuật trận đấu rõ ràng.', ref:'6+ năm hoặc đào tạo chuyên' }
+        ]
+    };
+
+    function updateSkillGuideTitle(sport) {
+        var titleEl = document.getElementById('sg-modal-title');
+        var tablePanel = document.getElementById('sg-table-panel');
+        var otherPanel = document.getElementById('sg-other-panel');
+        if (!titleEl) return;
+
+        var sportEmoji = { 'Cầu Lông':'🏸', 'Pickleball':'🏓', 'Tennis':'🎾', 'Bóng đá':'⚽', 'Bóng bàn':'🏓' };
+        var emoji = sportEmoji[sport] || '🏅';
+        var name = sport || 'Thể thao';
+        titleEl.textContent = emoji + ' Trình Độ ' + name;
+
+        var data = sport && sport !== 'Cầu Lông' && sport !== '' ? skillGuideData[sport] : null;
+        if (data && otherPanel) {
+            var rows = data.map(function(r) {
+                return '<tr><td class="sg-lv-cell" style="color:' + r.color + '">' + r.level + '</td>' +
+                       '<td>' + r.desc + '</td><td class="sg-time-cell">' + r.ref + '</td></tr>';
+            }).join('');
+            otherPanel.innerHTML = '<table id="sg-skill-table" style="overflow:auto;display:table"><thead><tr>' +
+                '<th style="width:110px">TRÌNH ĐỘ</th><th>CHI TIẾT</th><th style="width:130px">THAM KHẢO</th>' +
+                '</tr></thead><tbody>' + rows + '</tbody></table>';
+            // Switch to otherPanel, hide table tab panel
+            document.querySelectorAll('.sg-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.sg-panel').forEach(function(p) { p.classList.remove('active'); });
+            otherPanel.classList.add('active');
+            otherPanel.style.display = 'block';
+            if (tablePanel) { tablePanel.classList.remove('active'); tablePanel.style.display = 'none'; }
+            // Make the table-tab re-activate when clicked (restore normal flow)
+            var tableTab = document.querySelector('.sg-tab[onclick*="table"]');
+            if (tableTab) tableTab.onclick = function() { sgSwitchTabWithOther('table', this); };
+        } else {
+            // Cầu Lông: show sg-table-panel
+            if (otherPanel) { otherPanel.classList.remove('active'); otherPanel.style.display = 'none'; }
+            if (tablePanel) { tablePanel.style.display = ''; tablePanel.classList.add('active'); }
+            document.querySelectorAll('.sg-tab').forEach(function(t, i) { t.classList.toggle('active', i === 0); });
+        }
+    }
+
+    function sgSwitchTabWithOther(tab, btn) {
+        // Same as sgSwitchTab but also hides sg-other-panel
+        var otherPanel = document.getElementById('sg-other-panel');
+        if (otherPanel) { otherPanel.classList.remove('active'); otherPanel.style.display = 'none'; }
+        sgSwitchTab(tab, btn);
+    }
+
+    function sgSwitchTab(tab, btn) {
+        document.querySelectorAll('.sg-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.sg-panel').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        var panel = document.getElementById('sg-' + tab + '-panel');
+        if (panel) panel.classList.add('active');
+    }
+
+    async function sgAssessSkill() {
+        var input = document.getElementById('sg-ai-input');
+        var btn = document.getElementById('sg-ai-btn');
+        var result = document.getElementById('sg-ai-result');
+        if (!input || !input.value.trim()) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;animation:spin 1s linear infinite">progress_activity</span> Đang phân tích...';
+        result.style.display = 'none';
+        try {
+            var resp = await fetch('/api/skill/assess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: input.value.trim() })
+            });
+            var data = await resp.json();
+            var html = (data.result || 'Không thể phân tích.').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+            result.innerHTML = html;
+            result.style.display = 'block';
+        } catch(e) {
+            result.innerHTML = 'Có lỗi xảy ra, vui lòng thử lại.';
+            result.style.display = 'block';
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">psychology</span> Đánh giá trình độ của tôi';
     }
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeSkillModal();
@@ -810,23 +1124,62 @@
     });
 
     // --- DYNAMIC SKILL OPTIONS ---
-    const badmintonSkills = [
-        { value: "Any",       text: "Tất cả trình độ" },
-        { value: "Newbie",    text: "Newbie" },
-        { value: "Yếu",      text: "Yếu" },
-        { value: "Yếu+",     text: "Yếu+" },
-        { value: "TBY/TB-",  text: "TBY / TB-" },
-        { value: "Trung Bình", text: "Trung Bình" },
-        { value: "TB+/Khá",  text: "TB+ / Khá" }
-    ];
+    const skillsBySport = {
+        'Cầu Lông': [
+            { value: "Any",        text: "Tất cả trình độ" },
+            { value: "Newbie",     text: "Newbie (~3 tháng)" },
+            { value: "Yếu",       text: "Yếu (3-6 tháng)" },
+            { value: "Yếu+",      text: "Yếu+ (6 tháng-1 năm)" },
+            { value: "TBY/TB-",   text: "TBY / TB- (1-2 năm)" },
+            { value: "Trung Bình", text: "Trung Bình (3 năm+)" },
+            { value: "TB+/Khá",   text: "TB+ / Khá (5 năm+)" }
+        ],
+        'Pickleball': [
+            { value: "Any",  text: "Tất cả trình độ" },
+            { value: "2.0",  text: "2.0 — Mới bắt đầu" },
+            { value: "2.5",  text: "2.5 — Biết cơ bản" },
+            { value: "3.0",  text: "3.0 — Ổn định" },
+            { value: "3.5",  text: "3.5 — Trung bình khá" },
+            { value: "4.0",  text: "4.0 — Khá" },
+            { value: "4.5+", text: "4.5+ — Nâng cao / Thi đấu" }
+        ],
+        'Tennis': [
+            { value: "Any",          text: "Tất cả trình độ" },
+            { value: "1.0-2.0",      text: "1.0-2.0 — Mới bắt đầu" },
+            { value: "2.5-3.0",      text: "2.5-3.0 — Biết cơ bản" },
+            { value: "3.5",          text: "3.5 — Trung bình" },
+            { value: "4.0",          text: "4.0 — Khá" },
+            { value: "4.5",          text: "4.5 — Tốt" },
+            { value: "5.0+",         text: "5.0+ — Chuyên nghiệp" }
+        ],
+        'Bóng đá': [
+            { value: "Any",          text: "Tất cả trình độ" },
+            { value: "Phong trào",   text: "Phong trào" },
+            { value: "Trung bình",   text: "Trung bình" },
+            { value: "Khá",          text: "Khá" },
+            { value: "Tốt",          text: "Tốt" },
+            { value: "Chuyên nghiệp", text: "Chuyên nghiệp" }
+        ],
+        'Bóng bàn': [
+            { value: "Any",       text: "Tất cả trình độ" },
+            { value: "Mới",       text: "Mới bắt đầu" },
+            { value: "Cơ bản",    text: "Cơ bản" },
+            { value: "Trung bình", text: "Trung bình" },
+            { value: "Khá",       text: "Khá" },
+            { value: "Nâng cao",  text: "Nâng cao / Thi đấu" }
+        ],
+        'default': [
+            { value: "Any",          text: "Tất cả trình độ" },
+            { value: "Mới",          text: "Mới bắt đầu" },
+            { value: "Trung bình",   text: "Trung bình" },
+            { value: "Khá",          text: "Khá" },
+            { value: "Nâng cao",     text: "Nâng cao" }
+        ]
+    };
 
-    const defaultSkills = [
-        { value: "Any",          text: "Tất cả trình độ" },
-        { value: "Beginner",     text: "Người mới (Beginner)" },
-        { value: "Intermediate", text: "Trung bình (Intermediate)" },
-        { value: "Advanced",     text: "Nâng cao (Advanced)" },
-        { value: "Professional", text: "Chuyên nghiệp (Professional)" }
-    ];
+    // Kept for backward compat references
+    const badmintonSkills = skillsBySport['Cầu Lông'];
+    const defaultSkills   = skillsBySport['default'];
 
     function updateSkillOptions() {
         const sportSelect = document.querySelector('select[name="Sport"]');
@@ -834,7 +1187,7 @@
         if (!sportSelect || !skillSelect) return;
 
         const selectedSport = sportSelect.value;
-        const options = selectedSport === 'Cầu Lông' ? badmintonSkills : defaultSkills;
+        const options = skillsBySport[selectedSport] || skillsBySport['default'];
 
         const currentValue = skillSelect.value;
         skillSelect.innerHTML = '';
@@ -845,6 +1198,9 @@
             if (opt.value === currentValue) option.selected = true;
             skillSelect.appendChild(option);
         });
+
+        // Cập nhật tiêu đề modal (i) theo môn đang chọn
+        updateSkillGuideTitle(selectedSport);
     }
 
     // --- DUAL SLIDER LOGIC ---
@@ -1076,18 +1432,23 @@
                     return;
                 }
                 debounceTimer = setTimeout(() => {
-                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&addressdetails=1&limit=5`, {
-                        headers: { 'Accept-Language': 'vi' }
-                    })
+                    fetch(`/geo/search?q=${encodeURIComponent(query)}&limit=6`)
                     .then(r => r.json())
                     .then(data => {
                         locationSuggestions.innerHTML = '';
-                        if (data.length > 0) {
+                        if (data && data.length > 0) {
                             data.forEach(item => {
                                 const div = document.createElement('div');
                                 div.className = 'p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm';
-                                div.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium">${item.display_name}</span></div>`;
-                                div.onclick = () => { locationInput.value = item.display_name; locationSuggestions.classList.add('hidden'); };
+                                const label = item.name || item.display_name || '';
+                                div.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium">${label}</span></div>`;
+                                div.onclick = () => {
+                                    locationInput.value = label;
+                                    // Lưu lat/lon nếu filter cần
+                                    if (item.lat) locationInput.dataset.lat = item.lat;
+                                    if (item.lon) locationInput.dataset.lon = item.lon;
+                                    locationSuggestions.classList.add('hidden');
+                                };
                                 locationSuggestions.appendChild(div);
                             });
                             locationSuggestions.classList.remove('hidden');
@@ -1096,7 +1457,7 @@
                         }
                     })
                     .catch(e => console.error(e));
-                }, 500);
+                }, 400);
             });
             document.addEventListener('click', e => {
                 if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
@@ -1408,6 +1769,31 @@
             setTimeout(() => map.invalidateSize(), 200);
         }
 
+        let _fsIndexMap = null;
+        window.openIndexMapFullscreen = async function () {
+            document.getElementById('indexMapFullscreenModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            if (!_fsIndexMap) {
+                let center = map ? map.getCenter() : {lat: 16.0544, lng: 108.2022};
+                _fsIndexMap = L.map('indexMapFullscreen').setView([center.lat, center.lng], map ? map.getZoom() : 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(_fsIndexMap);
+                // Copy markers from main map
+                if (matchMarkerLayer) {
+                    matchesData.forEach(function(m) {
+                        var lat = Number(m.Latitude), lon = Number(m.Longitude);
+                        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                            L.marker([lat, lon]).addTo(_fsIndexMap).bindPopup('<b>' + (m.Title || '') + '</b>');
+                        }
+                    });
+                }
+            }
+            setTimeout(function() { _fsIndexMap.invalidateSize(); }, 100);
+        };
+        window.closeIndexMapFullscreen = function () {
+            document.getElementById('indexMapFullscreenModal').style.display = 'none';
+            document.body.style.overflow = '';
+        };
+
         async function renderMapMarkers() {
             if (!map || !matchMarkerLayer) return;
             matchMarkerLayer.clearLayers();
@@ -1524,5 +1910,22 @@
                 }
             }
         }
+    </script>
+    <script>
+        // Match card drag & drop — send thẻ trận vào popup chat widget
+        document.querySelectorAll('.draggable-match-card').forEach(function(card) {
+            card.addEventListener('dragstart', function(e) {
+                var json = card.getAttribute('data-drag-match');
+                if (!json) return;
+                e.dataTransfer.setData('application/match-card', json);
+                e.dataTransfer.effectAllowed = 'copy';
+                card.style.opacity = '0.6';
+                card.style.outline = '2px solid #2560e9';
+            });
+            card.addEventListener('dragend', function() {
+                card.style.opacity = '';
+                card.style.outline = '';
+            });
+        });
     </script>
 }

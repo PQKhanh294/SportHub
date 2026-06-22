@@ -57,7 +57,7 @@
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center">
                 <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">block</span>
                 <p class="font-bold text-slate-700 dark:text-slate-300">Không thể đánh giá trận này.</p>
-                <p class="text-sm text-slate-500 mt-1">Bạn đã đánh giá rồi, hoặc đã quá 7 ngày sau trận, hoặc bạn chưa tham gia trận này.</p>
+                <p class="text-sm text-slate-500 mt-1">@(Model.CannotReviewReason ?? "Bạn đã đánh giá rồi, hoặc đã quá 7 ngày sau trận, hoặc bạn chưa tham gia trận này.")</p>
             </div>
         }
         else
@@ -170,7 +170,7 @@
                         @foreach (var player in Model.PlayersToRate)
                         {
                             <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                                <img src="@(player.AvatarUrl ?? "/images/default-avatar.png")" alt=""
+                                <img src="@(player.AvatarUrl ?? "/images/avatar-default.png")" alt=""
                                      class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                                 <div class="flex-1 min-w-0">
                                     <p class="font-semibold text-slate-900 dark:text-white text-sm">@player.FullName</p>
