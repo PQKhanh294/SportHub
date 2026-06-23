@@ -56,6 +56,13 @@ namespace SportHub.Data
         public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
         public DbSet<WalletTopUpRequest> WalletTopUpRequests { get; set; } = null!;
 
+        // Nhóm 9: Subscription
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
+        public DbSet<UserSubscription> UserSubscriptions { get; set; } = null!;
+        public DbSet<SubscriptionOrder> SubscriptionOrders { get; set; } = null!;
+        public DbSet<UserMatchCredit> UserMatchCredits { get; set; } = null!;
+        public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -234,7 +241,7 @@ namespace SportHub.Data
 
             modelBuilder.Entity<Match>().ToTable(t =>
             {
-                t.HasCheckConstraint("CK_Matches_MatchType", "MatchType IN ('Singles','Doubles','Mixed')");
+                // MatchType is sport-specific, no fixed constraint
                 t.HasCheckConstraint("CK_Matches_Status", "Status IN ('Open','Full','InProgress','Completed','Cancelled','PendingDeposit')");
                 t.HasCheckConstraint("CK_Matches_DepositStatus", "DepositStatus IN ('NotPaid','Paid')");
                 t.HasCheckConstraint("CK_Matches_RemainingFeeStatus", "RemainingFeeStatus IN ('NotDue','Notified','Paid')");
@@ -447,6 +454,12 @@ namespace SportHub.Data
                 .HasOne(m => m.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(m => m.CreatedByUserID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Match>()
+                .HasOne(m => m.ParentMatch)
+                .WithMany(m => m.RecurringChildren)
+                .HasForeignKey(m => m.ParentMatchId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // UserSportProfile relations
@@ -686,6 +699,127 @@ namespace SportHub.Data
                 .WithMany()
                 .HasForeignKey(b => b.ReportID)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // ---- Subscription ----
+
+            modelBuilder.Entity<SubscriptionPlan>().ToTable("SubscriptionPlans");
+            modelBuilder.Entity<SubscriptionPlan>().HasKey(p => p.PlanID);
+            modelBuilder.Entity<SubscriptionPlan>().HasIndex(p => p.PlanKey).IsUnique();
+            modelBuilder.Entity<SubscriptionPlan>().Property(p => p.PriceMonthly).HasPrecision(12, 2);
+            modelBuilder.Entity<SubscriptionPlan>().Property(p => p.PriceQuarterly).HasPrecision(12, 2);
+            modelBuilder.Entity<SubscriptionPlan>().Property(p => p.PriceAnnual).HasPrecision(12, 2);
+
+            modelBuilder.Entity<UserSubscription>().ToTable("UserSubscriptions");
+            modelBuilder.Entity<UserSubscription>().HasKey(us => us.UserSubscriptionID);
+            modelBuilder.Entity<UserSubscription>()
+                .HasOne(us => us.User)
+                .WithMany()
+                .HasForeignKey(us => us.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<UserSubscription>()
+                .HasIndex(us => new { us.UserID, us.Status });
+            modelBuilder.Entity<UserSubscription>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_UserSubscriptions_Status", "Status IN ('Active','Expired','Cancelled')");
+                t.HasCheckConstraint("CK_UserSubscriptions_BillingCycle", "BillingCycle IN ('Monthly','Quarterly','Annual','Trial')");
+            });
+
+            modelBuilder.Entity<SubscriptionOrder>().ToTable("SubscriptionOrders");
+            modelBuilder.Entity<SubscriptionOrder>().HasKey(o => o.SubscriptionOrderID);
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasIndex(o => o.TransactionRef)
+                .IsUnique();
+            modelBuilder.Entity<SubscriptionOrder>()
+                .HasIndex(o => new { o.UserID, o.Status });
+            modelBuilder.Entity<SubscriptionOrder>()
+                .Property(o => o.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<SubscriptionOrder>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_SubscriptionOrders_Status", "Status IN ('Pending','Confirmed','Expired')");
+            });
+
+            modelBuilder.Entity<UserMatchCredit>().ToTable("UserMatchCredits");
+            modelBuilder.Entity<UserMatchCredit>().HasKey(c => c.UserMatchCreditID);
+            modelBuilder.Entity<UserMatchCredit>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<UserMatchCredit>()
+                .HasIndex(c => c.TransactionRef)
+                .IsUnique();
+            modelBuilder.Entity<UserMatchCredit>()
+                .HasIndex(c => new { c.UserID, c.Status });
+            modelBuilder.Entity<UserMatchCredit>()
+                .Property(c => c.AmountPaid).HasPrecision(12, 2);
+            modelBuilder.Entity<UserMatchCredit>().ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_UserMatchCredits_Status", "Status IN ('Pending','Confirmed')");
+            });
+
+            modelBuilder.Entity<SubscriptionUsage>().ToTable("SubscriptionUsages");
+            modelBuilder.Entity<SubscriptionUsage>().HasKey(u => u.SubscriptionUsageID);
+            modelBuilder.Entity<SubscriptionUsage>()
+                .HasOne(u => u.User)
+                .WithMany()
+                .HasForeignKey(u => u.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<SubscriptionUsage>()
+                .HasIndex(u => new { u.UserID, u.YearMonth })
+                .IsUnique();
+
+            // Seed subscription plans
+            modelBuilder.Entity<SubscriptionPlan>().HasData(
+                new SubscriptionPlan
+                {
+                    PlanID = 1, PlanKey = "Free", Name = "Miễn phí", SortOrder = 0,
+                    Description = "Dành cho người mới bắt đầu",
+                    PriceMonthly = 0, PriceQuarterly = 0, PriceAnnual = 0,
+                    MonthlyJoinLimit = 3, MonthlyCreateLimit = 1,
+                    CanSeePhoneNumber = false, CanFilterByDistance = false,
+                    HasAiSuggestions = false, HasDetailedStats = false,
+                    HasPriorityListing = false, PriorityScore = 0,
+                    HasVerifiedBadge = false, HasPlayerFeeExempt = false
+                },
+                new SubscriptionPlan
+                {
+                    PlanID = 2, PlanKey = "Starter", Name = "Starter", SortOrder = 1,
+                    Description = "Cho người chơi thường xuyên",
+                    PriceMonthly = 39000, PriceQuarterly = 99000, PriceAnnual = 0,
+                    MonthlyJoinLimit = 10, MonthlyCreateLimit = 3,
+                    CanSeePhoneNumber = true, CanFilterByDistance = true,
+                    HasAiSuggestions = false, HasDetailedStats = false,
+                    HasPriorityListing = false, PriorityScore = 1,
+                    HasVerifiedBadge = false, HasPlayerFeeExempt = false
+                },
+                new SubscriptionPlan
+                {
+                    PlanID = 3, PlanKey = "Pro", Name = "Pro", SortOrder = 2,
+                    Description = "Cho người chơi nghiêm túc",
+                    PriceMonthly = 99000, PriceQuarterly = 249000, PriceAnnual = 890000,
+                    MonthlyJoinLimit = -1, MonthlyCreateLimit = -1,
+                    CanSeePhoneNumber = true, CanFilterByDistance = true,
+                    HasAiSuggestions = true, HasDetailedStats = true,
+                    HasPriorityListing = true, PriorityScore = 2,
+                    HasVerifiedBadge = false, HasPlayerFeeExempt = false
+                },
+                new SubscriptionPlan
+                {
+                    PlanID = 4, PlanKey = "Club", Name = "Club", SortOrder = 3,
+                    Description = "Dành cho đội nhóm & tổ chức",
+                    PriceMonthly = 199000, PriceQuarterly = 499000, PriceAnnual = 0,
+                    MonthlyJoinLimit = -1, MonthlyCreateLimit = -1,
+                    CanSeePhoneNumber = true, CanFilterByDistance = true,
+                    HasAiSuggestions = true, HasDetailedStats = true,
+                    HasPriorityListing = true, PriorityScore = 3,
+                    HasVerifiedBadge = true, HasPlayerFeeExempt = true
+                }
+            );
         }
     }
 }

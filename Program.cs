@@ -22,10 +22,27 @@ builder.Services.AddSignalR();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/Login";
+    })
+    .AddCookie("ExternalCookie", options =>
+    {
+        options.Cookie.Name = "SportHub.ExternalAuth";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    })
+    .AddGoogle(options =>
+    {
+        options.SignInScheme = "ExternalCookie";
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+    })
+    .AddFacebook(options =>
+    {
+        options.SignInScheme = "ExternalCookie";
+        options.AppId = builder.Configuration["Authentication:Facebook:AppId"] ?? "";
+        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"] ?? "";
     });
 
 // Cấu hình Entity Framework Core với chuỗi kết nối (Giai đoạn 1)
@@ -51,6 +68,7 @@ builder.Services.AddScoped<SportHub.Services.Interfaces.IAiChatService, SportHub
 builder.Services.AddScoped<SportHub.Services.Interfaces.IMessageReportService, SportHub.Services.Implementations.MessageReportService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IUserBanService, SportHub.Services.Implementations.UserBanService>();
 builder.Services.AddScoped<SportHub.Services.Implementations.ChatModerationService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.ISubscriptionService, SportHub.Services.Implementations.SubscriptionService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 builder.Services.AddControllers();
 

@@ -16,16 +16,17 @@ namespace SportHub.Pages.Profile
         private readonly ApplicationDbContext _context;
         private readonly IBadgeService _badgeService;
         private readonly IMatchReviewService _reviewService;
-
         private readonly IWalletService _walletService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService, IWalletService walletService)
+        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService, IWalletService walletService, ISubscriptionService subscriptionService)
         {
             _userService = userService;
             _context = context;
             _badgeService = badgeService;
             _reviewService = reviewService;
             _walletService = walletService;
+            _subscriptionService = subscriptionService;
         }
 
         public ProfileViewModel Profile { get; set; } = new();
@@ -36,6 +37,7 @@ namespace SportHub.Pages.Profile
         public List<MatchReviewHistoryItem> ReceivedReviews { get; set; } = new();
         public decimal WalletBalance { get; set; }
         public List<SportHub.Models.Entities.WalletTransaction> WalletHistory { get; set; } = new();
+        public string? CurrentPlanKey { get; set; }
 
         public class UserSportProfileItem
         {
@@ -110,6 +112,9 @@ namespace SportHub.Pages.Profile
 
             WalletBalance = await _walletService.GetBalanceAsync(userId);
             WalletHistory = await _walletService.GetHistoryAsync(userId, 10);
+
+            var activeSub = await _subscriptionService.GetActiveSubscriptionAsync(userId);
+            CurrentPlanKey = activeSub?.PlanKey ?? "Free";
 
             return Page();
         }

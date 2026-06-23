@@ -35,6 +35,26 @@ else
                                 <span>🏸 Cầu lông</span>
                             </span>
                         }
+                        @if (item.IsSplitFee)
+                        {
+                            <span class="px-3 py-1 bg-emerald-500 text-xs font-bold rounded-full flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">group</span>
+                                Chia đều phí
+                            </span>
+                        }
+                        @if (item.IsRecurring && !string.IsNullOrEmpty(item.RecurringDays))
+                        {
+                            var dayNames2 = new Dictionary<string, string> {
+                                {"0","CN"},{"1","T2"},{"2","T3"},{"3","T4"},{"4","T5"},{"5","T6"},{"6","T7"}
+                            };
+                            var dayLabels = item.RecurringDays!.Split(',')
+                                .Select(d => dayNames2.TryGetValue(d.Trim(), out var n) ? n : d)
+                                .ToList();
+                            <span class="px-3 py-1 bg-violet-500 text-xs font-bold rounded-full flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">repeat</span>
+                                Lặp lại @string.Join(", ", dayLabels)
+                            </span>
+                        }
                         @if (item.RequiresApproval)
                         {
                             <span class="px-3 py-1 bg-amber-500 text-xs font-bold rounded-full flex items-center gap-1">
@@ -212,13 +232,22 @@ else
             }
             else if (item.IsPending)
             {
-                <div class="mb-5 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-3">
+                <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-3">
                     <span class="material-symbols-outlined text-amber-500">schedule</span>
                     <div>
                         <p class="font-bold text-amber-700 dark:text-amber-400">Đang chờ duyệt</p>
                         <p class="text-xs text-amber-600 dark:text-amber-500">Host sẽ duyệt trong 1 giờ. Quá hạn yêu cầu tự hủy.</p>
                     </div>
                 </div>
+                <form method="post" asp-page-handler="Leave" asp-route-id="@item.MatchId"
+                      onsubmit="return confirm('Bạn có chắc muốn hủy yêu cầu tham gia không?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="w-full py-2.5 flex items-center justify-center gap-2 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 bg-white dark:bg-transparent rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 font-semibold text-sm transition-colors mb-5">
+                        <span class="material-symbols-outlined text-base">cancel</span>
+                        Hủy yêu cầu
+                    </button>
+                </form>
             }
             else if (item.IsApproved)
             {

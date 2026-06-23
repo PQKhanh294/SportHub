@@ -15,12 +15,15 @@ namespace SportHub.Controllers
         private readonly IAiChatService _aiChatService;
         private readonly ApplicationDbContext _context;
         private readonly IWalletService _walletService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public AiChatController(IAiChatService aiChatService, ApplicationDbContext context, IWalletService walletService)
+        public AiChatController(IAiChatService aiChatService, ApplicationDbContext context,
+            IWalletService walletService, ISubscriptionService subscriptionService)
         {
             _aiChatService = aiChatService;
             _context = context;
             _walletService = walletService;
+            _subscriptionService = subscriptionService;
         }
 
         [HttpPost("chat")]
@@ -35,6 +38,22 @@ namespace SportHub.Controllers
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return Unauthorized();
+
+            // Subscription gating
+            var activeSub = await _subscriptionService.GetActiveSubscriptionAsync(userId);
+            var planKey = activeSub?.PlanKey ?? "Free";
+            var canSeeMatches = planKey != "Free";
+            var canAnalyzeImage = planKey is "Pro" or "Club";
+            var canCoach = planKey is "Pro" or "Club";
+            var historyLimit = planKey switch { "Starter" => 10, "Pro" => 20, "Club" => 30, _ => 5 };
+
+            // Block image analysis for Free/Starter
+            if (request.ImageBase64 != null && !canAnalyzeImage)
+                return Ok(new { reply = "Phân tích hình ảnh chỉ dành cho gói Pro và Club. Nâng cấp tại trang Subscription nhé! ✨" });
+
+            // Truncate history by plan
+            if (request.History?.Count > historyLimit)
+                request.History = request.History.TakeLast(historyLimit).ToList();
 
             var hostedRaw = await _context.Matches
                 .Include(m => m.Participants)
@@ -86,6 +105,10 @@ Bạn hỗ trợ về:
 
 Khi người dùng hỏi về trận đấu của họ, hệ thống sẽ tự hiển thị thẻ trận — không cần liệt kê tên trận trong câu trả lời.
 Nếu câu hỏi không liên quan đến SportHub hoặc thể thao, hãy lịch sự từ chối.
+
+Gói đăng ký của người dùng: {planKey}.
+{(canSeeMatches ? "" : "Nếu người dùng hỏi về tìm kiếm hoặc gợi ý trận mới phù hợp với mô tả, hãy lịch sự thông báo tính năng này yêu cầu gói Starter trở lên và khuyến khích nâng cấp. Không cung cấp gợi ý trận cụ thể.")}
+{(canCoach ? "Bạn có thể tư vấn chiến thuật thi đấu, phân tích điểm mạnh/yếu, và coaching cá nhân hóa cho người dùng." : "Chỉ hỗ trợ câu hỏi cơ bản về nền tảng, không tư vấn chiến thuật chuyên sâu hay coaching cá nhân.")}
 """;
 
             var reply = await _aiChatService.ChatAsync(systemPrompt, request.History ?? new(), request.Message, request.ImageBase64, request.ImageMimeType);
@@ -95,7 +118,7 @@ Nếu câu hỏi không liên quan đến SportHub hoặc thể thao, hãy lịc
             var isMatchRelated = matchKeywords.Any(k => request.Message.Contains(k, StringComparison.OrdinalIgnoreCase));
 
             List<MatchCardDto>? matchCards = null;
-            if (isMatchRelated && (hostedRaw.Any() || joinedRaw.Any()))
+            if (canSeeMatches && isMatchRelated && (hostedRaw.Any() || joinedRaw.Any()))
             {
                 var hostedIds = hostedRaw.Select(m => m.MatchID).ToHashSet();
                 matchCards = hostedRaw.Select(m => new MatchCardDto

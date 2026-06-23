@@ -29,6 +29,14 @@ namespace SportHub.Pages.Admin
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
 
+        // Chart data
+        public int DismissedCount { get; set; }
+        public string ReportsByDayLabels { get; set; } = "[]";
+        public string ReportsByDayCounts { get; set; } = "[]";
+        public int HighScoreCount { get; set; }   // score >= 7
+        public int MedScoreCount { get; set; }    // 4-6
+        public int LowScoreCount { get; set; }    // 0-3
+
         [BindProperty(SupportsGet = true)]
         public int Page { get; set; } = 1;
 
@@ -48,6 +56,26 @@ namespace SportHub.Pages.Admin
                 Reports = await _reportService.GetProcessedReportsAsync(Page, 20);
             else
                 Reports = await _reportService.GetPendingReportsAsync(Page, 20);
+
+            // Chart aggregates — use all reports for stats
+            var allReports = await _context.MessageReports
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
+
+            DismissedCount = allReports.Count(r => r.Status == "Dismissed");
+            HighScoreCount = allReports.Count(r => r.AiViolationScore >= 7);
+            MedScoreCount  = allReports.Count(r => r.AiViolationScore >= 4 && r.AiViolationScore < 7);
+            LowScoreCount  = allReports.Count(r => r.AiViolationScore < 4);
+
+            var last7 = Enumerable.Range(0, 7)
+                .Select(i => DateTime.UtcNow.Date.AddDays(-6 + i))
+                .ToList();
+            var byDay = last7.Select(d => new {
+                label = d.ToString("dd/MM"),
+                count = allReports.Count(r => r.CreatedAt.Date == d)
+            }).ToList();
+            ReportsByDayLabels = System.Text.Json.JsonSerializer.Serialize(byDay.Select(x => x.label));
+            ReportsByDayCounts = System.Text.Json.JsonSerializer.Serialize(byDay.Select(x => x.count));
 
             return Page();
         }
