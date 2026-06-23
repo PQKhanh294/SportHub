@@ -1,5 +1,6 @@
 @page
 @model SportHub.Pages.Wallet.IndexModel
+@using SportHub.Models.Entities
 @{
     ViewData["Title"] = "Ví SportHub";
 }
@@ -33,7 +34,7 @@
             </a>
         </div>
         <p class="text-xs text-white/60 mb-1">Số dư khả dụng</p>
-        <p class="text-4xl font-black tracking-tight">@Model.Balance.ToString("N0") <span class="text-2xl font-semibold text-white/80">VND</span></p>
+        <p class="text-4xl font-black tracking-tight"><span id="wallet-balance-display">@Model.Balance.ToString("N0")</span> <span class="text-2xl font-semibold text-white/80">VND</span></p>
         <p class="text-xs text-white/50 mt-3">Dùng để thanh toán phí trận đấu ngay lập tức, không cần chờ admin duyệt.</p>
     </div>
 
@@ -67,9 +68,159 @@
                 </p>
                 <p class="text-xs text-amber-500 mt-0.5">Hết hạn: @expVn.ToString("HH:mm dd/MM")</p>
             </div>
-            <a href="/Wallet/TopUp" class="text-xs text-primary font-bold hover:underline shrink-0">Xem QR</a>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+                <a href="/Wallet/TopUp" class="text-xs text-primary font-bold hover:underline">Xem QR</a>
+                <form method="post" asp-page-handler="CancelTopUp">
+                    <button type="submit" class="text-xs text-rose-500 hover:underline font-medium">Hủy lệnh</button>
+                </form>
+            </div>
         </div>
     }
+
+    <!-- My Vouchers -->
+    @if (Model.MyVouchers.Any())
+    {
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-500 text-sm">redeem</span>
+                    Mã voucher của tôi
+                    <span class="text-xs font-normal text-slate-400">(@Model.MyVouchers.Count)</span>
+                </h2>
+                <!-- Filter tabs -->
+                <div class="flex gap-1" id="voucherFilterTabs">
+                    @foreach (var (tab, label) in new[] { ("all","Tất cả"), ("unused","Chưa dùng"), ("used","Đã dùng"), ("expired","Hết hạn") })
+                    {
+                        <button data-filter="@tab" onclick="filterVouchers('@tab')"
+                                class="voucher-tab px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors
+                                       @(tab == "all" ? "bg-purple-600 text-white border-purple-600" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-purple-400 hover:text-purple-600")">
+                            @label
+                        </button>
+                    }
+                </div>
+            </div>
+            <div id="voucherList" class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach (var v in Model.MyVouchers)
+                {
+                    var isExpired = v.ExpiresAt.HasValue && v.ExpiresAt < DateTime.UtcNow;
+                    var filterTag = v.IsUsed ? "used" : isExpired ? "expired" : "unused";
+                    var statusCss = v.IsUsed ? "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                        : isExpired ? "bg-rose-100 dark:bg-rose-900/30 text-rose-500"
+                        : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400";
+                    var statusText = v.IsUsed ? $"Đã dùng {v.UsedAt?.ToLocalTime().ToString("dd/MM")}"
+                        : isExpired ? "Hết hạn"
+                        : "Chưa dùng";
+
+                    <div class="voucher-item flex items-center gap-3 px-5 py-4" data-filter="@filterTag">
+                        <div class="size-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-sm text-purple-500">confirmation_number</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <!-- Code + copy -->
+                            <div class="flex items-center gap-1.5 mb-0.5">
+                                <span class="font-mono font-bold text-sm text-slate-800 dark:text-slate-200" id="vc-@v.VoucherID">@v.Code</span>
+                                <button onclick="copyVoucherCode('vc-@v.VoucherID')"
+                                        class="text-slate-300 hover:text-primary transition-colors" title="Sao chép mã">
+                                    <span class="material-symbols-outlined text-[14px]" id="vc-icon-@v.VoucherID">content_copy</span>
+                                </button>
+                            </div>
+                            <!-- Amount + note -->
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-base text-emerald-600 dark:text-emerald-400">+@v.Amount.ToString("N0")đ</span>
+                                @if (!string.IsNullOrEmpty(v.Note))
+                                {
+                                    <span class="text-xs text-slate-400 truncate max-w-[160px]">@v.Note</span>
+                                }
+                            </div>
+                            <!-- Expiry + countdown -->
+                            @if (v.ExpiresAt.HasValue && !v.IsUsed && !isExpired)
+                            {
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    HSD: @v.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy") —
+                                    <span class="voucher-countdown font-medium text-amber-600 dark:text-amber-400"
+                                          data-expires="@v.ExpiresAt.Value.ToString("yyyy-MM-ddTHH:mm:ssZ")"></span>
+                                </p>
+                            }
+                            else if (v.ExpiresAt.HasValue && !v.IsUsed)
+                            {
+                                <p class="text-xs text-rose-400 mt-0.5">Hết hạn @v.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy")</p>
+                            }
+                        </div>
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold @statusCss">@statusText</span>
+                            @if (!v.IsUsed && !isExpired)
+                            {
+                                <form method="post" asp-page-handler="UseVoucher">
+                                    <input type="hidden" name="voucherCode" value="@v.Code" />
+                                    <button type="submit"
+                                            class="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors">
+                                        Dùng ngay
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div id="voucherEmpty" class="hidden px-5 py-6 text-center text-sm text-slate-400">Không có mã nào trong mục này.</div>
+        </div>
+    }
+
+    <!-- Promo Code Input -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+        <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-primary text-sm">local_offer</span>
+            Nhập mã khuyến mãi
+        </h2>
+
+        <!-- Lookup result -->
+        <div id="promoLookupResult" class="hidden mb-3 p-3 rounded-lg border text-sm"></div>
+
+        <div class="flex gap-2">
+            <input type="text" id="promoCodeInput" placeholder="Ví dụ: SUMMER2026"
+                   class="flex-1 rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm font-mono uppercase"
+                   oninput="this.value=this.value.toUpperCase()"
+                   onkeydown="if(event.key==='Enter')lookupPromoCode()" />
+            <button type="button" onclick="lookupPromoCode()"
+                    class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                Tra cứu
+            </button>
+            <button type="button" id="applyPromoBtn" onclick="applyPromoCode()" disabled
+                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                Áp dụng
+            </button>
+        </div>
+        <div id="promoActionRow" class="hidden mt-2 flex gap-2">
+            <button type="button" id="savePromoBtn" onclick="savePromoCode()"
+                    class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-[14px]">bookmark</span>
+                Lưu mã để dùng sau
+            </button>
+        </div>
+
+        <!-- Promotion history -->
+        @if (Model.PromoRedemptions.Any())
+        {
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase mb-2">Lịch sử nhận ưu đãi</h3>
+                <div class="space-y-1.5">
+                    @foreach (var r in Model.PromoRedemptions.Take(5))
+                    {
+                        var label = r.PromoCodeID.HasValue ? $"Mã {r.PromoCode?.Code}"
+                            : r.VoucherID.HasValue ? $"Voucher {r.Voucher?.Code}"
+                            : r.Campaign?.Name ?? "Thưởng tự động";
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-600 dark:text-slate-400 truncate">@label</span>
+                            <div class="flex items-center gap-2 shrink-0 ml-2">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">+@r.AmountCredited.ToString("N0")đ</span>
+                                <span class="text-xs text-slate-400">@r.RedeemedAt.ToLocalTime().ToString("dd/MM")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 
     <!-- Transaction history -->
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -99,6 +250,7 @@
                         "MatchPayment" => ("sports_tennis", "text-blue-600 dark:text-blue-400", "bg-blue-50 dark:bg-blue-900/20"),
                         "Refund"       => ("undo", "text-emerald-600 dark:text-emerald-400", "bg-emerald-50 dark:bg-emerald-900/20"),
                         "AdminCredit"  => ("admin_panel_settings", "text-purple-600 dark:text-purple-400", "bg-purple-50 dark:bg-purple-900/20"),
+                        "Promotion"    => ("local_offer", "text-orange-600 dark:text-orange-400", "bg-orange-50 dark:bg-orange-900/20"),
                         _              => ("remove", "text-rose-600 dark:text-rose-400", "bg-rose-50 dark:bg-rose-900/20")
                     };
                     <div class="flex items-center gap-3 px-5 py-3.5">
@@ -119,3 +271,174 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+    // ---- Voucher filter + countdown + copy ----
+    function filterVouchers(filter) {
+        document.querySelectorAll('.voucher-tab').forEach(function (btn) {
+            var active = btn.dataset.filter === filter;
+            btn.classList.toggle('bg-purple-600', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('border-purple-600', active);
+            btn.classList.toggle('bg-white', !active);
+            btn.classList.toggle('dark:bg-slate-800', !active);
+            btn.classList.toggle('border-slate-200', !active);
+            btn.classList.toggle('dark:border-slate-700', !active);
+            btn.classList.toggle('text-slate-600', !active);
+            btn.classList.toggle('dark:text-slate-400', !active);
+        });
+        var items = document.querySelectorAll('.voucher-item');
+        var visible = 0;
+        items.forEach(function (item) {
+            var show = filter === 'all' || item.dataset.filter === filter;
+            item.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        var emptyEl = document.getElementById('voucherEmpty');
+        if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+    }
+
+    function copyVoucherCode(elemId) {
+        var el = document.getElementById(elemId);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent.trim()).then(function () {
+            var icon = document.getElementById('vc-icon-' + elemId.replace('vc-', ''));
+            if (icon) { icon.textContent = 'check'; setTimeout(function () { icon.textContent = 'content_copy'; }, 2000); }
+        });
+    }
+
+    // Real-time countdown for vouchers
+    function updateCountdowns() {
+        var now = new Date();
+        document.querySelectorAll('.voucher-countdown').forEach(function (el) {
+            var exp = new Date(el.dataset.expires);
+            var diff = exp - now;
+            if (diff <= 0) { el.textContent = 'Hết hạn'; el.classList.add('text-rose-500'); return; }
+            var d = Math.floor(diff / 86400000);
+            var h = Math.floor((diff % 86400000) / 3600000);
+            var m = Math.floor((diff % 3600000) / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
+            var parts = [];
+            if (d > 0) parts.push(d + ' ngày');
+            if (h > 0) parts.push(h + ' giờ');
+            if (d === 0 && m > 0) parts.push(m + ' phút');
+            if (d === 0 && h === 0) parts.push(s + ' giây');
+            el.textContent = 'còn ' + parts.join(' ');
+            if (diff < 86400000) el.classList.add('text-rose-500');
+        });
+    }
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+
+    // ---- Promo code lookup / apply / save ----
+    (function () {
+        var applyBtn = document.getElementById('applyPromoBtn');
+        var resultBox = document.getElementById('promoLookupResult');
+        var actionRow = document.getElementById('promoActionRow');
+        if (!applyBtn || !resultBox) return;
+
+        // Auto-fill from ?prefill= param (coming from profile page "Dùng ngay")
+        var params = new URLSearchParams(location.search);
+        var prefill = params.get('prefill');
+        if (prefill) {
+            var inp = document.getElementById('promoCodeInput');
+            if (inp) { inp.value = prefill.toUpperCase(); }
+            setTimeout(lookupPromoCode, 300);
+        }
+
+        window.lookupPromoCode = async function () {
+            var code = (document.getElementById('promoCodeInput').value || '').trim().toUpperCase();
+            if (!code) return;
+            resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400';
+            resultBox.textContent = 'Đang tra cứu...';
+            resultBox.classList.remove('hidden');
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Áp dụng';
+            if (actionRow) actionRow.classList.add('hidden');
+
+            try {
+                var res = await fetch('/api/wallet/lookup-code?code=' + encodeURIComponent(code));
+                var d = await res.json();
+                if (!d.found) {
+                    resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400';
+                    resultBox.innerHTML = '<strong>Không tìm thấy mã.</strong> ' + (d.blockReason || '');
+                } else if (!d.eligible) {
+                    resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400';
+                    resultBox.innerHTML = '<strong>' + d.campaignName + '</strong>: +' + Number(d.amount).toLocaleString('vi-VN') + 'đ — ' + (d.blockReason || 'Không đủ điều kiện.');
+                    // Still allow saving even if not eligible now
+                    if (actionRow) actionRow.classList.remove('hidden');
+                } else {
+                    var info = '<strong>' + d.campaignName + '</strong>: <span class="font-bold text-emerald-700">+' + Number(d.amount).toLocaleString('vi-VN') + 'đ</span>';
+                    if (d.remainingUses !== null && d.remainingUses !== undefined) info += ' · Còn ' + d.remainingUses + ' lượt';
+                    if (d.expiresAt) info += ' · HSD ' + new Date(d.expiresAt).toLocaleDateString('vi-VN');
+                    resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400';
+                    resultBox.innerHTML = info;
+                    applyBtn.disabled = false;
+                    if (actionRow) actionRow.classList.remove('hidden');
+                }
+            } catch {
+                resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400';
+                resultBox.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+            }
+        };
+
+        window.applyPromoCode = async function () {
+            var code = (document.getElementById('promoCodeInput').value || '').trim().toUpperCase();
+            if (!code) return;
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Đang xử lý...';
+
+            try {
+                var res = await fetch('/api/wallet/redeem-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                var d = await res.json();
+                if (d.success) {
+                    resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-bold';
+                    resultBox.textContent = d.message;
+                    document.getElementById('promoCodeInput').value = '';
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = 'Áp dụng';
+                    if (actionRow) actionRow.classList.add('hidden');
+                    setTimeout(function () { location.reload(); }, 1500);
+                } else {
+                    resultBox.className = 'mb-3 p-3 rounded-lg border text-sm bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400';
+                    resultBox.textContent = d.message;
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Áp dụng';
+                }
+            } catch {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Áp dụng';
+            }
+        };
+
+        window.savePromoCode = async function () {
+            var code = (document.getElementById('promoCodeInput').value || '').trim().toUpperCase();
+            if (!code) return;
+            var saveBtn = document.getElementById('savePromoBtn');
+            if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Đang lưu...'; }
+
+            try {
+                var res = await fetch('/api/wallet/save-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                var d = await res.json();
+                if (saveBtn) {
+                    saveBtn.textContent = d.success ? '✓ Đã lưu' : d.message;
+                    saveBtn.disabled = true;
+                }
+            } catch {
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">bookmark</span> Lưu mã để dùng sau'; }
+            }
+        };
+    })();
+    </script>
+}
+
+

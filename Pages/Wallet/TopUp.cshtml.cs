@@ -59,6 +59,14 @@ namespace SportHub.Pages.Wallet
             return Page();
         }
 
+        public async Task<IActionResult> OnPostCancelAsync()
+        {
+            var userId = GetUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+            await _walletService.CancelTopUpRequestAsync(userId);
+            return RedirectToPage();
+        }
+
         private void BuildQr(WalletTopUpRequest req)
         {
             var bankId     = _config["SportHubPayment:BankId"] ?? "TPB";

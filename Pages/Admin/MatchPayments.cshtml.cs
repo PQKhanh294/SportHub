@@ -118,6 +118,28 @@ namespace SportHub.Pages.Admin
             await _hubContext.Clients.Group("role:Admin")
                 .SendAsync("admin_counts_update", new { pendingPayments = countAfterConfirm });
 
+            // Push realtime to affected user
+            if (payment.PaymentType == "PlayerFee")
+            {
+                await _hubContext.Clients.Group($"user:{payment.PayerUserID}")
+                    .SendAsync("MatchPaymentConfirmed", new
+                    {
+                        matchId = payment.MatchID,
+                        matchTitle,
+                        paymentType = payment.PaymentType
+                    });
+            }
+            else if (payment.PaymentType is "HostDeposit" or "HostRemaining")
+            {
+                await _hubContext.Clients.Group($"user:{payment.PayerUserID}")
+                    .SendAsync("MatchPaymentConfirmed", new
+                    {
+                        matchId = payment.MatchID,
+                        matchTitle,
+                        paymentType = payment.PaymentType
+                    });
+            }
+
             SuccessMessage = $"Đã xác nhận giao dịch #{paymentId}.";
             return RedirectToPage();
         }
@@ -155,6 +177,14 @@ namespace SportHub.Pages.Admin
             var countAfterReject = (await _matchPaymentService.GetPendingPaymentsAsync()).Count;
             await _hubContext.Clients.Group("role:Admin")
                 .SendAsync("admin_counts_update", new { pendingPayments = countAfterReject });
+
+            // Push realtime rejection to user
+            await _hubContext.Clients.Group($"user:{payment.PayerUserID}")
+                .SendAsync("MatchPaymentRejected", new
+                {
+                    matchId = payment.MatchID,
+                    reason = "Biên lai không hợp lệ, vui lòng tải lại"
+                });
 
             return RedirectToPage();
         }

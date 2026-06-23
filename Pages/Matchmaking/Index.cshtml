@@ -370,7 +370,7 @@
                             <input id="locationInput" type="text" placeholder="Nhập địa chỉ chi tiết..." 
                                    class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium p-2.5 focus:border-primary focus:ring-1 focus:ring-primary" 
                                    autocomplete="off" />
-                            <div id="locationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-20 shadow-lg"></div>
+                            <div id="locationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-52 overflow-y-auto hidden z-[70] shadow-lg"></div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 mb-3">
@@ -489,15 +489,15 @@
             @if (Model.Matches.Count == 0)
             {
                 <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
-                    <p class="text-slate-500 text-lg">Không tìm thấy trận đấu phù hợp.</p>
-                    <p class="text-sm text-slate-400 mt-2">Hãy thử điều chỉnh bộ lọc hoặc <a asp-page="/Matchmaking/Create" class="text-primary font-semibold hover:underline">tạo trận mới</a></p>
+                    <p class="text-slate-500 text-lg">@(isEn ? "No matches found." : "Không tìm thấy trận đấu phù hợp.")</p>
+                    <p class="text-sm text-slate-400 mt-2">@(isEn ? "Try adjusting the filters or " : "Hãy thử điều chỉnh bộ lọc hoặc ")<a asp-page="/Matchmaking/Create" class="text-primary font-semibold hover:underline">@(isEn ? "create a new match" : "tạo trận mới")</a></p>
                 </div>
             }
             else
             {
                 @foreach (var match in Model.Matches)
                 {
-                    <div class="relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
+                    <div class="relative bg-white dark:bg-slate-900 p-3 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
                          draggable="true"
                          data-drag-match="@System.Text.Json.JsonSerializer.Serialize(new { id = match.MatchId, title = match.Title, type = match.MatchType, date = match.StartText, time = match.StartTime, venue = match.Venue, price = match.PriceDisplay, participants = match.Participants, max = match.MaxParticipants, skill = match.SkillRequired })">
                         <!-- Blurred Background -->
@@ -510,61 +510,70 @@
                             <div class="match-card-bg group-hover:scale-110 transition-transform duration-700"></div>
                         }
 
-                        <div class="match-card-content flex flex-col md:flex-row gap-5"
+                        <div class="match-card-content flex flex-row gap-3 sm:gap-5"
                              data-match-id="@match.MatchId"
                              data-latitude="@match.Latitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)"
                              data-longitude="@match.Longitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)"
                              data-venue-address="@match.VenueAddress">
                             <div class="relative flex-shrink-0">
-                                <img class="size-28 rounded-2xl object-cover shadow-md" src="@match.HostImage" alt="Host" />
-                                <div class="absolute -bottom-2 -right-2 bg-white dark:bg-slate-900 p-1 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
+                                <img class="size-12 sm:size-28 rounded-xl sm:rounded-2xl object-cover shadow-md" src="@match.HostImage" alt="Host" />
+                                <div class="hidden sm:block absolute -bottom-2 -right-2 bg-white dark:bg-slate-900 p-1 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
                                     <div class="bg-primary/10 text-primary p-1.5 rounded-full">
                                         <span class="material-symbols-outlined text-base">person</span>
                                     </div>
                                 </div>
                                 @if (match.ShowHostRating)
                                 {
-                                    <div class="absolute -top-2 -left-2 bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow flex items-center gap-0.5">
+                                    <div class="hidden sm:flex absolute -top-2 -left-2 bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow items-center gap-0.5">
                                         <span class="material-symbols-outlined text-[11px]" style="font-variation-settings:'FILL' 1">star</span>
                                         @match.HostRatingAvg!.Value.ToString("F1")
                                     </div>
                                 }
                             </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-wrap">
                                     <div class="flex gap-2 items-center flex-wrap">
-                                        <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-3 py-1.5 rounded-lg">@match.MatchType</span>
+                                        <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg">@match.MatchType</span>
                                         @if (match.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg flex items-center gap-1">
+                                            <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg flex items-center gap-1">
                                                 <span>🏸 Cầu lông</span>
                                             </span>
                                         }
                                         @if (match.IsJoinedByCurrentUser)
                                         {
-                                            <span class="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                                 <span class="material-symbols-outlined text-[14px]">check</span>
                                                 Đã được duyệt
                                             </span>
                                         }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <span class="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center gap-1">
                                                 <span class="material-symbols-outlined text-[14px]">schedule</span>
                                                 Chờ host duyệt
                                             </span>
                                         }
                                         else if (match.Participants >= match.MaxParticipants)
                                         {
-                                            <span class="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center gap-1">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center gap-1">
                                                 <span class="material-symbols-outlined text-[14px]">block</span>
                                                 Đã đầy
                                             </span>
                                         }
                                     </div>
-                                    <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">Độ phù hợp: @match.MatchScore%</span>
+                                    @if (Model.CanSeeMatchScore)
+                                    {
+                                        <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md flex items-center gap-1">
+                                            @if (Model.HasAiFeature)
+                                            {
+                                                <span class="material-symbols-outlined text-[12px]" title="AI gợi ý">auto_awesome</span>
+                                            }
+                                            Phù hợp: @match.MatchScore%
+                                        </span>
+                                    }
                                 </div>
-                                <div class="flex items-center gap-4 text-xs font-bold text-slate-500 mb-2">
+                                <div class="hidden sm:flex items-center gap-4 text-xs font-bold text-slate-500 mb-2">
                                     <div class="flex items-center gap-1 match-distance-display">
                                         <span class="material-symbols-outlined text-[14px]">distance</span>
                                         <span class="distance-text">@(match.DistanceDisplay ?? "Đang tính...")</span>
@@ -575,9 +584,20 @@
                                     </div>
                                 </div>
 
-                                <h3 class="text-xl font-extrabold mb-3 group-hover:text-primary transition-colors">@match.Title</h3>
+                                <h3 class="text-base sm:text-xl font-extrabold mb-1 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors">@match.Title</h3>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-4">
+                                <!-- Compact info row — mobile only -->
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mb-2 sm:hidden">
+                                    <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px] text-primary">event</span>@match.StartText</span>
+                                    <span class="text-slate-300">·</span>
+                                    <span>@match.StartTime</span>
+                                    <span class="text-slate-300">·</span>
+                                    <span class="flex items-center gap-0.5 match-distance-display"><span class="material-symbols-outlined text-[13px]">distance</span><span class="distance-text">@(match.DistanceDisplay ?? "...")</span></span>
+                                    <span class="flex items-center gap-0.5 w-full mt-0.5"><span class="material-symbols-outlined text-[13px] text-primary">location_on</span><span class="truncate max-w-[160px]">@match.Venue</span><span class="ml-2 flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">group</span>@match.Participants/@match.MaxParticipants</span></span>
+                                </div>
+
+                                <!-- Full info grid — desktop only -->
+                                <div class="hidden sm:grid sm:grid-cols-2 gap-x-6 gap-y-2 mb-4">
                                     <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                         <span class="material-symbols-outlined text-primary text-lg">event</span>
                                         <span class="font-medium">@match.StartText</span>
@@ -596,60 +616,69 @@
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    <div class="flex items-center gap-4">
-                                        <div class="text-lg font-black text-primary">
-                                            @match.PriceDisplay
-                                        </div>
+                                <div class="flex items-center gap-2 pt-2 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <div class="text-sm sm:text-lg font-black text-primary whitespace-nowrap">
+                                        @match.PriceDisplay
+                                    </div>
+                                    <div class="hidden sm:flex items-center gap-4 flex-shrink-0">
                                         <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
                                         <div class="flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400">
                                             <span class="material-symbols-outlined text-lg">group</span>
                                             @match.Participants/@match.MaxParticipants người
                                         </div>
                                     </div>
-                                    
-                                    <div class="flex gap-2 w-full sm:w-auto">
+                                    <div class="flex-1"></div>
+                                    <div class="flex gap-1.5 sm:gap-2">
                                         @if (!match.IsOwnedByCurrentUser && !match.IsJoinedByCurrentUser && !match.IsPendingByCurrentUser)
                                         {
-                                            <form method="post" asp-page-handler="Skip" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none">
-                                                <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                                                    <span class="material-symbols-outlined text-lg">close</span>
-                                                    Bỏ qua
+                                            <form method="post" asp-page-handler="Skip" asp-route-id="@match.MatchId" class="flex-none">
+                                                <button type="submit" class="px-2.5 sm:px-4 py-2 sm:py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-1">
+                                                    <span class="material-symbols-outlined text-[18px]">close</span>
+                                                    <span class="hidden sm:inline">Bỏ qua</span>
                                                 </button>
                                             </form>
                                         }
                                         @if (match.CanJoin)
                                         {
-                                            <form method="post" asp-page-handler="Join" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none">
-                                                <button type="submit" class="w-full px-6 py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                                                    <span class="material-symbols-outlined text-lg">send</span>
+                                            <form method="post" asp-page-handler="Join" asp-route-id="@match.MatchId" class="flex-none">
+                                                <button type="submit" class="px-3 sm:px-6 py-2 sm:py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-1.5">
+                                                    <span class="material-symbols-outlined text-[18px]">send</span>
                                                     Gửi yêu cầu
                                                 </button>
                                             </form>
                                         }
+                                        else if (match.IsApprovedByHost)
+                                        {
+                                            <a href="/Matchmaking/Payment?matchId=@match.MatchId"
+                                               class="flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl shadow-md shadow-amber-200 dark:shadow-amber-900/30 transition-all animate-pulse-subtle">
+                                                <span class="material-symbols-outlined text-base">payments</span>
+                                                <span class="hidden sm:inline">Thanh toán để vào trận</span>
+                                                <span class="sm:hidden">Thanh toán</span>
+                                            </a>
+                                        }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <div class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                                            <div class="flex-none flex items-center justify-center gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
                                                 <span class="material-symbols-outlined text-base">schedule</span>
-                                                Đang chờ duyệt
+                                                <span class="hidden sm:inline">Đang chờ duyệt</span>
                                             </div>
                                             <form method="post" action="/Matchmaking/Details?id=@match.MatchId&handler=Leave"
                                                   onsubmit="return confirm('Hủy yêu cầu tham gia?')" class="contents">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit"
-                                                        class="flex-shrink-0 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                                                        class="flex-shrink-0 flex items-center justify-center gap-1 px-2.5 py-2 sm:py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors"
                                                         title="Hủy yêu cầu">
                                                     <span class="material-symbols-outlined text-base">cancel</span>
                                                 </button>
                                             </form>
                                         }
-                                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center">
+                                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-none px-3 sm:px-6 py-2 sm:py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center">
                                             Chi tiết
                                         </a>
                                         @if (match.IsOwnedByCurrentUser)
                                         {
-                                            <a asp-page="/Matchmaking/Edit" asp-route-id="@match.MatchId" class="p-2.5 text-slate-400 hover:text-primary transition-colors">
-                                                <span class="material-symbols-outlined">edit</span>
+                                            <a asp-page="/Matchmaking/Edit" asp-route-id="@match.MatchId" class="p-2 sm:p-2.5 flex items-center text-slate-400 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit</span>
                                             </a>
                                         }
                                     </div>
@@ -658,6 +687,56 @@
                         </div>
                     </div>
                 }
+            }
+
+            @{
+                var totalPages = (int)Math.Ceiling(Model.TotalMatchCount / 12.0);
+            }
+            @if (totalPages > 1)
+            {
+                <div class="flex items-center justify-center gap-1 mt-6 flex-wrap">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <a asp-page="/Matchmaking/Index" asp-route-PageNumber="@(Model.PageNumber - 1)"
+                           asp-route-Sport="@Model.Sport" asp-route-Skill="@Model.Skill" asp-route-Time="@Model.Time"
+                           asp-route-StatusFilter="@Model.StatusFilter" asp-route-MinPrice="@Model.MinPrice" asp-route-MaxPrice="@Model.MaxPrice"
+                           asp-route-TimeFrom="@Model.TimeFrom" asp-route-TimeTo="@Model.TimeTo" asp-route-MatchDate="@Model.MatchDate"
+                           asp-route-Location="@Model.Location" asp-route-Radius="@Model.Radius" asp-route-District="@Model.District" asp-route-City="@Model.City"
+                           class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            @(isEn ? "← Prev" : "← Trước")
+                        </a>
+                    }
+                    @for (var p = Math.Max(1, Model.PageNumber - 2); p <= Math.Min(totalPages, Model.PageNumber + 2); p++)
+                    {
+                        if (p == Model.PageNumber)
+                        {
+                            <span class="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-bold">@p</span>
+                        }
+                        else
+                        {
+                            <a asp-page="/Matchmaking/Index" asp-route-PageNumber="@p"
+                               asp-route-Sport="@Model.Sport" asp-route-Skill="@Model.Skill" asp-route-Time="@Model.Time"
+                               asp-route-StatusFilter="@Model.StatusFilter" asp-route-MinPrice="@Model.MinPrice" asp-route-MaxPrice="@Model.MaxPrice"
+                               asp-route-TimeFrom="@Model.TimeFrom" asp-route-TimeTo="@Model.TimeTo" asp-route-MatchDate="@Model.MatchDate"
+                               asp-route-Location="@Model.Location" asp-route-Radius="@Model.Radius" asp-route-District="@Model.District" asp-route-City="@Model.City"
+                               class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                @p
+                            </a>
+                        }
+                    }
+                    @if (Model.PageNumber < totalPages)
+                    {
+                        <a asp-page="/Matchmaking/Index" asp-route-PageNumber="@(Model.PageNumber + 1)"
+                           asp-route-Sport="@Model.Sport" asp-route-Skill="@Model.Skill" asp-route-Time="@Model.Time"
+                           asp-route-StatusFilter="@Model.StatusFilter" asp-route-MinPrice="@Model.MinPrice" asp-route-MaxPrice="@Model.MaxPrice"
+                           asp-route-TimeFrom="@Model.TimeFrom" asp-route-TimeTo="@Model.TimeTo" asp-route-MatchDate="@Model.MatchDate"
+                           asp-route-Location="@Model.Location" asp-route-Radius="@Model.Radius" asp-route-District="@Model.District" asp-route-City="@Model.City"
+                           class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            @(isEn ? "Next →" : "Tiếp →")
+                        </a>
+                    }
+                    <span class="text-xs text-slate-400 ml-2">@(isEn ? $"Page {Model.PageNumber} of {totalPages} ({Model.TotalMatchCount} matches)" : $"Trang {Model.PageNumber} / {totalPages} ({Model.TotalMatchCount} trận)")</span>
+                </div>
             }
         </div>
     </div>
@@ -1516,7 +1595,7 @@
                                 const div = document.createElement('div');
                                 div.className = 'p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm';
                                 const label = item.name || item.display_name || '';
-                                div.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium">${label}</span></div>`;
+                                div.innerHTML = `<div class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-base flex-shrink-0">location_on</span><span class="font-medium whitespace-normal break-words">${label}</span></div>`;
                                 div.onclick = () => {
                                     locationInput.value = label;
                                     if (item.lat) locationInput.dataset.lat = item.lat;

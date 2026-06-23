@@ -14,6 +14,7 @@ namespace SportHub.Services.Interfaces
         Task<bool> ConfirmTopUpAsync(string transactionRef, decimal actualAmount);
         Task<WalletTopUpRequest?> GetPendingTopUpAsync(int userId);
         Task<List<WalletTopUpRequest>> GetTopUpHistoryAsync(int userId, int limit = 20);
+        Task CancelTopUpRequestAsync(int userId);
 
         // Pay match fee directly from wallet (skips admin approval)
         Task<bool> PayMatchFeeFromWalletAsync(int userId, int matchId, string paymentType);

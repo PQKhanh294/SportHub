@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
+using SportHub.Hubs;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
 
@@ -9,11 +11,13 @@ namespace SportHub.Services.Implementations
     {
         private readonly ApplicationDbContext _context;
         private readonly IMatchPaymentService _matchPaymentService;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public WalletService(ApplicationDbContext context, IMatchPaymentService matchPaymentService)
+        public WalletService(ApplicationDbContext context, IMatchPaymentService matchPaymentService, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _matchPaymentService = matchPaymentService;
+            _hubContext = hubContext;
         }
 
         public async Task<decimal> GetBalanceAsync(int userId)
@@ -38,6 +42,14 @@ namespace SportHub.Services.Implementations
                 CreatedAt = DateTime.UtcNow
             });
             await _context.SaveChangesAsync();
+
+            // Push realtime balance update to user
+            await _hubContext.Clients.Group($"user:{userId}").SendAsync("WalletCredited", new
+            {
+                amount,
+                description,
+                newBalance = user.WalletBalance
+            });
         }
 
         public async Task<bool> DeductAsync(int userId, decimal amount, string description, int? matchId = null, string type = "Deduction")
@@ -102,21 +114,10 @@ namespace SportHub.Services.Implementations
             req.Status = "Confirmed";
             req.ConfirmedAt = DateTime.UtcNow;
             req.ActualAmount = actualAmount;
-
-            var user = await _context.Users.FindAsync(req.UserID);
-            if (user == null) return false;
-            user.WalletBalance += actualAmount;
-
-            _context.WalletTransactions.Add(new WalletTransaction
-            {
-                UserID = req.UserID,
-                Amount = actualAmount,
-                Type = "TopUp",
-                Description = $"Nạp ví qua chuyển khoản ({transactionRef})",
-                CreatedAt = DateTime.UtcNow
-            });
-
             await _context.SaveChangesAsync();
+
+            // CreditAsync fires WalletCredited SignalR event + creates transaction
+            await CreditAsync(req.UserID, actualAmount, $"Nạp ví qua chuyển khoản ({transactionRef})", type: "TopUp");
             return true;
         }
 
@@ -135,6 +136,15 @@ namespace SportHub.Services.Implementations
                 .OrderByDescending(t => t.CreatedAt)
                 .Take(limit)
                 .ToListAsync();
+        }
+
+        public async Task CancelTopUpRequestAsync(int userId)
+        {
+            var pending = await _context.WalletTopUpRequests
+                .Where(t => t.UserID == userId && t.Status == "Pending")
+                .ToListAsync();
+            foreach (var t in pending) t.Status = "Expired";
+            if (pending.Count > 0) await _context.SaveChangesAsync();
         }
 
         // ---- Pay match fee from wallet ----

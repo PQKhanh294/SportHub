@@ -77,6 +77,35 @@ Stats hiện tại: {p1} người dùng, {p2} trận đấu, {p3} đánh giá.
             return Ok(new { insight });
         }
 
+        [HttpGet("suggest-promo-codes")]
+        public async Task<IActionResult> SuggestPromoCodes([FromQuery] string campaignName, [FromQuery] int count = 5)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            if (string.IsNullOrWhiteSpace(campaignName)) return BadRequest(new { codes = Array.Empty<string>() });
+
+            count = Math.Clamp(count, 1, 10);
+
+            var prompt = $"""
+Bạn là AI tạo mã khuyến mãi cho ứng dụng thể thao SportHub (Việt Nam).
+Tạo đúng {count} mã khuyến mãi cho chiến dịch: "{campaignName}".
+Yêu cầu:
+- Mỗi mã tối đa 10 ký tự, CHỈ gồm chữ IN HOA (A-Z) và chữ số (0-9), KHÔNG dấu gạch ngang, KHÔNG khoảng trắng, KHÔNG ký tự đặc biệt
+- Mã phải có ý nghĩa liên quan đến tên chiến dịch, dễ nhớ, ví dụ: SUMMER26, NEWUSER, BIRTHDAY, SPORTWL
+- Trả về đúng {count} mã, mỗi mã trên 1 dòng, không đánh số, không giải thích
+""";
+
+            var result = await _aiChatService.ChatAsync(prompt, new(), "Tạo mã ngay.", null, null);
+            var codes = (result ?? "")
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(l => l.Trim().ToUpper())
+                .Where(l => l.Length >= 4 && l.Length <= 10 && l.All(c => char.IsLetterOrDigit(c)))
+                .Distinct()
+                .Take(count)
+                .ToList();
+
+            return Ok(new { codes });
+        }
+
         private async Task<bool> IsAdminAsync()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

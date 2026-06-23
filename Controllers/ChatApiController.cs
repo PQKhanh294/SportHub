@@ -21,10 +21,11 @@ namespace SportHub.Controllers
         private readonly IMessageReportService _reportService;
         private readonly ChatModerationService _moderation;
         private readonly IHubContext<ChatHub> _chatHub;
+        private readonly IAiChatService _aiChat;
 
         public ChatApiController(IChatService chatService, IFriendshipService friendshipService,
             ApplicationDbContext context, IMessageReportService reportService,
-            ChatModerationService moderation, IHubContext<ChatHub> chatHub)
+            ChatModerationService moderation, IHubContext<ChatHub> chatHub, IAiChatService aiChat)
         {
             _chatService = chatService;
             _friendshipService = friendshipService;
@@ -32,6 +33,7 @@ namespace SportHub.Controllers
             _reportService = reportService;
             _moderation = moderation;
             _chatHub = chatHub;
+            _aiChat = aiChat;
         }
 
         [HttpGet("conversations")]
@@ -237,6 +239,22 @@ namespace SportHub.Controllers
                 msg.SenderID,
                 senderName = msg.Sender?.FullName ?? ""
             });
+        }
+
+        [HttpGet("match-desc")]
+        public async Task<IActionResult> GenerateMatchDescription([FromQuery] string? sport, [FromQuery] string? skill, [FromQuery] string? type, [FromQuery] string? date)
+        {
+            try
+            {
+                var systemPrompt = "Bạn là trợ lý thể thao. Viết mô tả ngắn gọn (2-3 câu tiếng Việt) cho một trận đấu. Chỉ trả về nội dung mô tả, không thêm gì khác.";
+                var userMessage = $"Tạo mô tả trận đấu:\n- Môn: {sport ?? "thể thao"}\n- Trình độ: {skill ?? "mọi trình độ"}\n- Thể thức: {type ?? "thi đấu"}\n- Ngày: {date ?? "sắp tới"}";
+                var description = await _aiChat.ChatAsync(systemPrompt, new List<AiChatHistoryItem>(), userMessage);
+                return Ok(new { description = description?.Trim() });
+            }
+            catch
+            {
+                return StatusCode(500, new { error = "AI không phản hồi" });
+            }
         }
 
         public class ReportRequest

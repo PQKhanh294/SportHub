@@ -5,16 +5,19 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Services.Interfaces;
+using SportHub.Models.Entities;
 
 namespace SportHub.Pages.Auth
 {
     public class LoginModel : PageModel
     {
         private readonly IUserService _userService;
+        private readonly IPromotionService _promotionService;
 
-        public LoginModel(IUserService userService)
+        public LoginModel(IUserService userService, IPromotionService promotionService)
         {
             _userService = userService;
+            _promotionService = promotionService;
         }
 
         [BindProperty]
@@ -85,7 +88,16 @@ namespace SportHub.Pages.Auth
             var principal = new ClaimsPrincipal(identity);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            var prevLoginCount = user.LoginCount;
             await _userService.IncrementLoginCountAsync(user.UserID);
+
+            try
+            {
+                if (prevLoginCount == 0)
+                    await _promotionService.TriggerFirstLoginAsync(user.UserID);
+                await _promotionService.TriggerBirthdayAsync(user.UserID);
+            }
+            catch { /* non-critical, không break login */ }
 
             TempData["SuccessMessage"] = "Logged in successfully.";
 

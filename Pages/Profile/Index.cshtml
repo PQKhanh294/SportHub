@@ -238,6 +238,138 @@
                 </div>
             </div>
 
+            <!-- Mã của tôi -->
+            @{
+                var totalCodes = Model.SavedCodes.Count + Model.MyVouchers.Count;
+                var validCodes = Model.SavedCodes.Count(c => c.IsValid) + Model.MyVouchers.Count(v => !v.IsUsed && (v.ExpiresAt == null || v.ExpiresAt > DateTime.UtcNow));
+            }
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-symbols-outlined text-primary text-lg">local_offer</span>
+                        Mã của tôi
+                    </h3>
+                    @if (validCodes > 0)
+                    {
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">@validCodes khả dụng</span>
+                    }
+                </div>
+
+                @if (totalCodes == 0)
+                {
+                    <div class="text-center py-4">
+                        <span class="material-symbols-outlined text-slate-300 text-2xl">confirmation_number</span>
+                        <p class="text-xs text-slate-400 mt-1">Chưa có mã nào được lưu.</p>
+                        <a href="/Wallet" class="mt-1 inline-block text-xs font-semibold text-primary hover:underline">Nhập mã tại Ví</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-2" id="profile-codes-list">
+                        @foreach (var c in Model.SavedCodes)
+                        {
+                            var isValid = c.IsValid;
+                            var borderCls = isValid ? "border-primary/20 bg-primary/3" : "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 opacity-60";
+                            var expiryText = c.ExpiresAt.HasValue ? c.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "Không hết hạn";
+                            <div class="rounded-xl border @borderCls p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 mb-0.5">
+                                            <span class="font-mono font-bold text-sm text-slate-800 dark:text-slate-200">@c.Code</span>
+                                            <button onclick="copyCode('@c.Code')" title="Sao chép"
+                                                    class="text-slate-300 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                            </button>
+                                        </div>
+                                        @if (c.CampaignName != null)
+                                        {
+                                            <p class="text-[10px] text-slate-400 truncate">@c.CampaignName</p>
+                                        }
+                                        <div class="flex items-center gap-2 mt-1">
+                                            @if (c.Amount.HasValue && isValid)
+                                            {
+                                                <span class="text-xs font-bold text-emerald-600">+@c.Amount.Value.ToString("N0")đ</span>
+                                            }
+                                            @if (c.StatusMessage != null)
+                                            {
+                                                <span class="text-[10px] text-rose-400 font-medium">@c.StatusMessage</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-[10px] text-slate-400" data-expires="@(c.ExpiresAt?.ToString("o"))">
+                                                    HSD: @expiryText
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                        @if (isValid)
+                                        {
+                                            <a href="/Wallet?code=@c.Code" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">
+                                                Dùng ngay
+                                            </a>
+                                        }
+                                        <button onclick="removeSavedCode('@c.Code', this)"
+                                                class="text-[10px] text-slate-400 hover:text-rose-400 transition-colors">
+                                            Bỏ lưu
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @foreach (var v in Model.MyVouchers)
+                        {
+                            var isUsed = v.IsUsed;
+                            var isExpired = v.ExpiresAt.HasValue && v.ExpiresAt < DateTime.UtcNow;
+                            var vValid = !isUsed && !isExpired;
+                            var vBorder = vValid ? "border-violet-200 bg-violet-50/50 dark:bg-violet-900/10" : "border-slate-100 dark:border-slate-800 opacity-60";
+                            var vStatus = isUsed ? "Đã dùng" : isExpired ? "Hết hạn" : null;
+                            var vExpiry = v.ExpiresAt.HasValue ? v.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "Không hết hạn";
+                            <div class="rounded-xl border @vBorder p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 mb-0.5">
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-600 dark:bg-violet-900/30">VOUCHER</span>
+                                            <span class="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">@v.Code</span>
+                                            <button onclick="copyCode('@v.Code')" title="Sao chép"
+                                                    class="text-slate-300 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+                                            </button>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(v.Note))
+                                        {
+                                            <p class="text-[10px] text-slate-400 truncate">@v.Note</p>
+                                        }
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs font-bold text-violet-600">+@v.Amount.ToString("N0")đ</span>
+                                            @if (vStatus != null)
+                                            {
+                                                <span class="text-[10px] text-slate-400 font-medium">@vStatus</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-[10px] text-slate-400">HSD: @vExpiry</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (vValid)
+                                    {
+                                        <a href="/Wallet?voucher=@v.Code" class="shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors">
+                                            Dùng ngay
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <a href="/Wallet" class="mt-3 flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
+                        Nhập thêm mã tại Ví
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                }
+            </div>
+
             <!-- Huy hiệu -->
             <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
@@ -413,3 +545,44 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+<script>
+function copyCode(code) {
+    navigator.clipboard.writeText(code).then(function () {
+        showToast('Đã sao chép: ' + code);
+    });
+}
+
+async function removeSavedCode(code, btn) {
+    if (!confirm('Bỏ lưu mã ' + code + '?')) return;
+    btn.disabled = true;
+    try {
+        await fetch('/api/wallet/unsave-code/' + encodeURIComponent(code), { method: 'DELETE' });
+        var card = btn.closest('.rounded-xl');
+        if (card) card.remove();
+        showToast('Đã bỏ lưu mã ' + code);
+    } catch {
+        btn.disabled = false;
+    }
+}
+
+function showToast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2 rounded-full bg-slate-800 text-white text-xs font-semibold shadow-lg transition-all';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2500);
+}
+
+// Auto-fill code from URL param and switch to wallet page
+(function () {
+    var params = new URLSearchParams(location.search);
+    var code = params.get('code') || params.get('voucher');
+    if (code) {
+        window.location.href = '/Wallet?prefill=' + encodeURIComponent(code);
+    }
+})();
+</script>
+}
+

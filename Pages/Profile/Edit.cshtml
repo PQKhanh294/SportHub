@@ -42,7 +42,7 @@
         <div class="relative">
             <label class="block text-sm font-semibold mb-2">Địa chỉ mặc định</label>
             <input asp-for="Input.DefaultAddress" id="profileAddressInput" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary" placeholder="Ví dụ: 81 Lê Văn Hiến, Đà Nẵng" autocomplete="off" />
-            <div id="profileLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg"></div>
+            <div id="profileLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-[1000] shadow-lg"></div>
             <input type="hidden" asp-for="Input.DefaultLatitude" id="profileLatitude" />
             <input type="hidden" asp-for="Input.DefaultLongitude" id="profileLongitude" />
             <div class="mt-2 flex items-center gap-2">
@@ -57,6 +57,39 @@
         <div id="profileMapContainer" class="hidden">
             <label class="block text-sm font-semibold mb-2">Vị trí của bạn trên bản đồ</label>
             <div id="profileMap" class="h-56 w-full rounded-lg border border-slate-200 dark:border-slate-800"></div>
+        </div>
+
+        @* --- Gender & DateOfBirth --- *@
+        @{
+            var hasDobGender = !string.IsNullOrEmpty(Model.Input.Gender) && Model.Input.DateOfBirth.HasValue;
+        }
+        @if (!hasDobGender)
+        {
+            <div class="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <span class="material-symbols-outlined text-amber-500 mt-0.5 text-sm">stars</span>
+                <p class="text-xs text-amber-700 dark:text-amber-400">
+                    Điền <strong>giới tính</strong> và <strong>ngày sinh</strong> để nhận thưởng sinh nhật, Ngày Quốc tế Phụ nữ 8/3, Ngày Đàn ông 19/11 và các chương trình khuyến mãi khác!
+                </p>
+            </div>
+        }
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Giới tính</label>
+                <select asp-for="Input.Gender" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary">
+                    <option value="">Không khai báo</option>
+                    <option value="F">Nữ</option>
+                    <option value="M">Nam</option>
+                    <option value="O">Khác</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Ngày sinh</label>
+                <input asp-for="Input.DateOfBirth" type="date"
+                       max="@DateTime.Today.AddYears(-13).ToString("yyyy-MM-dd")"
+                       min="1920-01-01"
+                       class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary" />
+                <p class="text-xs text-slate-400 mt-1">Dùng để nhận thưởng sinh nhật hàng năm.</p>
+            </div>
         </div>
 
         @* --- Sport Skills Section --- *@

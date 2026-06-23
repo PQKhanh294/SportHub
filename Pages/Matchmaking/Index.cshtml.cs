@@ -18,6 +18,7 @@ namespace SportHub.Pages.Matchmaking
         private readonly IGeocodingService _geocoding;
         private readonly IMatchReviewService _reviewService;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IAiChatService _aiChat;
 
         public IndexModel(
             IMatchService matchService,
@@ -25,7 +26,8 @@ namespace SportHub.Pages.Matchmaking
             ApplicationDbContext context,
             IGeocodingService geocoding,
             IMatchReviewService reviewService,
-            ISubscriptionService subscriptionService)
+            ISubscriptionService subscriptionService,
+            IAiChatService aiChat)
         {
             _matchService = matchService;
             _notificationService = notificationService;
@@ -33,6 +35,7 @@ namespace SportHub.Pages.Matchmaking
             _geocoding = geocoding;
             _reviewService = reviewService;
             _subscriptionService = subscriptionService;
+            _aiChat = aiChat;
         }
 
         [TempData]
@@ -91,6 +94,8 @@ namespace SportHub.Pages.Matchmaking
         public double? UserLon { get; set; }
 
         public bool CanFilterByDistance { get; set; }
+        public bool CanSeeMatchScore { get; set; }
+        public bool HasAiFeature { get; set; }
 
         public List<string> SportOptions { get; set; } = new();
 
@@ -102,12 +107,20 @@ namespace SportHub.Pages.Matchmaking
         public decimal? UserDefaultLatitude { get; set; }
         public decimal? UserDefaultLongitude { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public int PageNumber { get; set; } = 1;
+
+        public int TotalMatchCount { get; set; }
+        private const int PageSize = 12;
+
         public async Task OnGetAsync()
         {
             ViewData["ActivePage"] = "Matchmaking";
             var currentUserId = GetCurrentUserId();
 
             CanFilterByDistance = currentUserId > 0 && await _subscriptionService.CanFilterByDistanceAsync(currentUserId);
+            CanSeeMatchScore = CanFilterByDistance;
+            HasAiFeature = currentUserId > 0 && await _subscriptionService.HasAiSuggestionsAsync(currentUserId);
 
             if (currentUserId > 0)
             {
@@ -131,8 +144,8 @@ namespace SportHub.Pages.Matchmaking
                 : null;
 
             var matches = currentUserId > 0
-                ? await _matchService.GetRecommendedMatchesForUserAsync(currentUserId, 50)
-                : await _matchService.GetRecommendedMatchesAsync(50);
+                ? await _matchService.GetRecommendedMatchesForUserAsync(currentUserId, 200)
+                : await _matchService.GetRecommendedMatchesAsync(200);
 
             SportOptions = matches
                 .Select(m => NormalizeSportName(m.Sport?.SportName))
@@ -245,6 +258,7 @@ namespace SportHub.Pages.Matchmaking
                     : null;
                 var isJoined = myParticipation?.JoinStatus == "Accepted";
                 var isPending = myParticipation?.JoinStatus == "Pending";
+                var isApproved = myParticipation?.JoinStatus == "Approved";
                 var venue = BuildVenueName(m);
                 var venueAddress = m.CustomCourtAddress
                     ?? ExtractCustomCourtAddress(m.Description)
@@ -269,6 +283,7 @@ namespace SportHub.Pages.Matchmaking
                     MaxParticipants = m.MaxParticipants,
                     IsJoinedByCurrentUser = isJoined,
                     IsPendingByCurrentUser = isPending,
+                    IsApprovedByHost = isApproved,
                     IsOwnedByCurrentUser = currentUserId > 0 && m.CreatedByUserID == currentUserId,
                     CanJoin = currentUserId > 0 && myParticipation == null && m.Status == "Open" && acceptedCount < m.MaxParticipants,
                     HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl)
@@ -282,6 +297,21 @@ namespace SportHub.Pages.Matchmaking
             }).ToList();
 
             await ApplyProfileBasedDistancesAsync(currentUserId);
+
+            // For users without location, sort purely by score
+            if (Matches.All(m => m.DistanceKm == null))
+                Matches = Matches.OrderByDescending(m => m.MatchScore).ToList();
+
+            // AI boost for Pro/Club users
+            if (HasAiFeature && Matches.Count >= 3)
+                await ApplyAiBoostAsync(currentUserId);
+
+            TotalMatchCount = Matches.Count;
+            if (PageNumber < 1) PageNumber = 1;
+            Matches = Matches
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
 
             await LoadJoinedMatchesAsync(currentUserId);
         }
@@ -409,9 +439,55 @@ namespace SportHub.Pages.Matchmaking
             }
 
             Matches = Matches
-                .OrderBy(m => m.DistanceKm ?? double.MaxValue)
-                .ThenByDescending(m => m.MatchScore)
+                .OrderByDescending(m => m.MatchScore)
+                .ThenBy(m => m.DistanceKm ?? double.MaxValue)
                 .ToList();
+        }
+
+        private async Task ApplyAiBoostAsync(int userId)
+        {
+            try
+            {
+                var top5 = Matches.Take(5).ToList();
+                var matchSummaries = string.Join("\n", top5.Select((m, i) =>
+                    $"[{i}] id={m.MatchId} sport={m.SportName} skill={m.SkillRequired} score={m.MatchScore} dist={m.DistanceDisplay}"));
+
+                var systemPrompt = "You are a sports match recommender. Return ONLY a JSON array, no other text.";
+                var userMessage = $"Given these matches, return a JSON array of objects {{idx, boost}} where boost is -5 to 10 (higher=better fit):\n{matchSummaries}";
+
+                var json = await _aiChat.ChatAsync(systemPrompt, new List<AiChatHistoryItem>(), userMessage);
+                if (string.IsNullOrWhiteSpace(json)) return;
+
+                // Parse JSON array of {idx, boost}
+                var start = json.IndexOf('[');
+                var end = json.LastIndexOf(']');
+                if (start < 0 || end <= start) return;
+
+                var arr = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(json[start..(end + 1)]);
+                if (arr == null) return;
+
+                foreach (var el in arr)
+                {
+                    if (!el.TryGetProperty("idx", out var idxEl) || !el.TryGetProperty("boost", out var boostEl)) continue;
+                    var idx = idxEl.GetInt32();
+                    var boost = boostEl.GetInt32();
+                    if (idx >= 0 && idx < top5.Count)
+                    {
+                        var blended = (int)Math.Round(top5[idx].MatchScore * 0.75 + boost * 2.5);
+                        top5[idx].MatchScore = Math.Clamp(blended, 35, 99);
+                    }
+                }
+
+                // Re-sort after boost
+                Matches = Matches
+                    .OrderByDescending(m => m.MatchScore)
+                    .ThenBy(m => m.DistanceKm ?? double.MaxValue)
+                    .ToList();
+            }
+            catch
+            {
+                // AI boost is best-effort — ignore errors silently
+            }
         }
 
         private async Task<(double Lat, double Lon)?> ResolveUserOriginAsync(int userId)
@@ -449,13 +525,13 @@ namespace SportHub.Pages.Matchmaking
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
+            if (match.IsSplitFee) return "Chia đều cuối buổi";
+
             var amount = BuildMatchPriceAmount(match);
             if (amount.HasValue)
             {
                 if (match.Booking?.FinalAmount > 0)
-                {
                     return $"Tổng: {amount.Value:N0} VNĐ";
-                }
 
                 return $"Từ {amount.Value:N0} VNĐ/giờ";
             }
@@ -729,6 +805,7 @@ namespace SportHub.Pages.Matchmaking
             public int MaxParticipants { get; set; }
             public bool IsJoinedByCurrentUser { get; set; }
             public bool IsPendingByCurrentUser { get; set; }
+            public bool IsApprovedByHost { get; set; }
             public bool IsOwnedByCurrentUser { get; set; }
             public bool CanJoin { get; set; }
             public string HostImage { get; set; } = string.Empty;

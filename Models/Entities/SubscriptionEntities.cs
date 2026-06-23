@@ -64,6 +64,15 @@ namespace SportHub.Models.Entities
         public DateTime ExpiresAt { get; set; }
     }
 
+    public class SavedPromoCode
+    {
+        public int SavedCodeID { get; set; }
+        public int UserID { get; set; }
+        public User User { get; set; } = null!;
+        public string Code { get; set; } = "";
+        public DateTime SavedAt { get; set; } = DateTime.UtcNow;
+    }
+
     // Tracks monthly create/join usage per user for Free/Starter gating
     public class SubscriptionUsage
     {

@@ -5,7 +5,8 @@
     var navInactive = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary hover:border-primary/40";
 }
 <!-- Mobile: horizontal scroll (hidden on lg+ because sidebar takes over) -->
-<nav class="lg:hidden overflow-x-auto flex gap-2 mb-4 pb-1 [&::-webkit-scrollbar]:hidden" style="-ms-overflow-style:none;scrollbar-width:none">
+<div class="relative lg:hidden mb-4">
+<nav class="overflow-x-auto flex gap-2 pb-1 [&::-webkit-scrollbar]:hidden" id="admin-mobile-nav" style="-ms-overflow-style:none;scrollbar-width:none">
     <a asp-page="/Admin/Index" class="@navItemBase @(current == "Dashboard" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[18px]">dashboard</span>
         Dashboard
@@ -40,7 +41,18 @@
         <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
         Gói đăng ký
     </a>
+    <a asp-page="/Admin/Wallet" class="@navItemBase @(current == "Wallet" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+        Ví ảo
+    </a>
+    <a asp-page="/Admin/Promotions" class="@navItemBase @(current == "Promotions" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">local_offer</span>
+        Khuyến mãi
+    </a>
 </nav>
+<!-- Gradient fade hint — more items to scroll -->
+<div class="absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-slate-100 dark:from-slate-950 to-transparent pointer-events-none"></div>
+</div>
 <script>
     (function () {
         function applyAdminCounts(data) {
@@ -76,5 +88,12 @@
         window.addEventListener('sporthub:admin_counts', function (e) {
             applyAdminCounts(e.detail);
         });
+
+        // Auto-scroll active nav item into center view on mobile
+        var mobileNav = document.getElementById('admin-mobile-nav');
+        if (mobileNav) {
+            var activeItem = mobileNav.querySelector('a[class*="bg-primary text-white"]');
+            if (activeItem) activeItem.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' });
+        }
     })();
 </script>

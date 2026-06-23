@@ -24,47 +24,47 @@
     @await Html.PartialAsync("_AdminNav")
 
     <!-- Revenue cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tổng doanh thu</p>
-            <p class="text-2xl font-black text-primary">@s.TotalRevenue.ToString("N0") ₫</p>
-            <p class="text-xs text-slate-400 mt-1">@s.TotalConfirmedPayments giao dịch</p>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1">Tổng doanh thu</p>
+            <p class="text-lg sm:text-2xl font-black text-primary leading-tight">@s.TotalRevenue.ToString("N0") ₫</p>
+            <p class="text-xs text-slate-400 mt-1">@s.TotalConfirmedPayments GD</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Hôm nay</p>
-            <p class="text-2xl font-black text-emerald-600">@s.TodayRevenue.ToString("N0") ₫</p>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1">Hôm nay</p>
+            <p class="text-lg sm:text-2xl font-black text-emerald-600 leading-tight">@s.TodayRevenue.ToString("N0") ₫</p>
             <p class="text-xs text-slate-400 mt-1">Đã xác nhận</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tháng này</p>
-            <p class="text-2xl font-black text-blue-600">@s.ThisMonthRevenue.ToString("N0") ₫</p>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1">Tháng này</p>
+            <p class="text-lg sm:text-2xl font-black text-blue-600 leading-tight">@s.ThisMonthRevenue.ToString("N0") ₫</p>
             <p class="text-xs text-slate-400 mt-1">@DateTime.Now.ToString("MM/yyyy")</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800 p-5 shadow-sm bg-amber-50 dark:bg-amber-900/10">
-            <p class="text-xs text-amber-600 uppercase tracking-wider mb-1">Chờ xác nhận</p>
-            <p class="text-2xl font-black text-amber-600">@s.PendingPaymentsCount</p>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800 p-3 sm:p-5 shadow-sm bg-amber-50 dark:bg-amber-900/10">
+            <p class="text-[10px] sm:text-xs text-amber-600 uppercase tracking-wider mb-1">Chờ xác nhận</p>
+            <p class="text-lg sm:text-2xl font-black text-amber-600 leading-tight">@s.PendingPaymentsCount</p>
             <a asp-page="/Admin/MatchPayments" class="text-xs text-amber-500 hover:underline mt-1 block">Xem ngay →</a>
         </div>
     </div>
 
     <!-- System stats -->
-    <div class="grid grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4">
-            <div class="size-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary">group</span>
+    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div class="size-9 sm:size-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-[18px] sm:text-[24px]">group</span>
             </div>
             <div>
-                <p class="text-2xl font-black text-slate-900 dark:text-white">@s.TotalUsers</p>
-                <p class="text-sm text-slate-500">Người dùng</p>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">@s.TotalUsers</p>
+                <p class="text-xs sm:text-sm text-slate-500">Người dùng</p>
             </div>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4">
-            <div class="size-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                <span class="material-symbols-outlined text-emerald-600">sports</span>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm flex items-center gap-3 sm:gap-4">
+            <div class="size-9 sm:size-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-emerald-600 text-[18px] sm:text-[24px]">sports</span>
             </div>
             <div>
-                <p class="text-2xl font-black text-slate-900 dark:text-white">@s.ActiveMatchesCount</p>
-                <p class="text-sm text-slate-500">Trận đang mở</p>
+                <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">@s.ActiveMatchesCount</p>
+                <p class="text-xs sm:text-sm text-slate-500">Trận đang mở</p>
             </div>
         </div>
     </div>
@@ -76,7 +76,7 @@
                 <span class="material-symbols-outlined text-primary">show_chart</span>
                 Doanh thu 7 ngày gần nhất
             </h2>
-            <canvas id="revenueChart" height="120"></canvas>
+            <canvas id="revenueChart" height="150"></canvas>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
             <h2 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
