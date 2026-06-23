@@ -17,6 +17,7 @@ namespace SportHub.Controllers
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly INotificationService _notificationService;
         private readonly IWalletService _walletService;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly IConfiguration _config;
         private readonly ILogger<SepayWebhookController> _logger;
 
@@ -25,6 +26,7 @@ namespace SportHub.Controllers
             IMatchPaymentService matchPaymentService,
             INotificationService notificationService,
             IWalletService walletService,
+            ISubscriptionService subscriptionService,
             IConfiguration config,
             ILogger<SepayWebhookController> logger)
         {
@@ -32,6 +34,7 @@ namespace SportHub.Controllers
             _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
             _walletService = walletService;
+            _subscriptionService = subscriptionService;
             _config = config;
             _logger = logger;
         }
@@ -47,17 +50,21 @@ namespace SportHub.Controllers
             if (!string.IsNullOrEmpty(expectedSecret) &&
                 !string.Equals(expectedSecret, "ĐIỀN_SECRET_TOKEN_CỦA_BẠN_VÀO_ĐÂY", StringComparison.Ordinal))
             {
-                // SePay sends: Authorization: Bearer {token}
+                // SePay gửi: Authorization: Apikey {token} hoặc Bearer {token}
                 var authHeader = Request.Headers["Authorization"].ToString();
-                var bearerToken = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-                    ? authHeader["Bearer ".Length..].Trim()
-                    : authHeader.Trim();
+                string extractedToken;
+                if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    extractedToken = authHeader["Bearer ".Length..].Trim();
+                else if (authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase))
+                    extractedToken = authHeader["Apikey ".Length..].Trim();
+                else
+                    extractedToken = authHeader.Trim();
 
-                // Fallback: some SePay versions use x-sepay-secret header
+                // Fallback: x-sepay-secret header
                 if (!Request.Headers.TryGetValue("x-sepay-secret", out var legacySecret))
                     legacySecret = default;
 
-                var isValid = string.Equals(bearerToken, expectedSecret, StringComparison.Ordinal)
+                var isValid = string.Equals(extractedToken, expectedSecret, StringComparison.Ordinal)
                            || string.Equals(legacySecret.ToString(), expectedSecret, StringComparison.Ordinal);
 
                 if (!isValid)
@@ -78,26 +85,32 @@ namespace SportHub.Controllers
             if (string.IsNullOrWhiteSpace(payload.Content))
                 return Ok(new { success = true, message = "no content" });
 
+            // Normalize: banks sometimes strip dashes (TOPUP-14-xxx → TOPUP14xxx)
+            static string Norm(string? s) => (s ?? "").Replace("-", "").Replace(" ", "").ToUpperInvariant();
+
             var words = payload.Content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            MatchPayment? matched = null;
-            foreach (var word in words)
-            {
-                matched = await _context.MatchPayments
-                    .Include(p => p.Match)
-                    .FirstOrDefaultAsync(p => p.TransactionRef == word && p.Status == "Pending");
-                if (matched != null) break;
-            }
+            var normalizedWords = words.Select(Norm).ToHashSet();
+
+            // Match MatchPayment — load pending then compare normalized on both sides
+            var pendingPayments = await _context.MatchPayments
+                .Include(p => p.Match)
+                .Where(p => p.Status == "Pending")
+                .ToListAsync();
+
+            MatchPayment? matched = pendingPayments.FirstOrDefault(p =>
+                words.Any(w => w.Equals(p.TransactionRef, StringComparison.OrdinalIgnoreCase)) ||
+                normalizedWords.Contains(Norm(p.TransactionRef)));
 
             if (matched == null)
             {
                 // Fallback: check WalletTopUpRequest
-                WalletTopUpRequest? topUp = null;
-                foreach (var word in words)
-                {
-                    topUp = await _context.WalletTopUpRequests
-                        .FirstOrDefaultAsync(t => t.TransactionRef == word && t.Status == "Pending");
-                    if (topUp != null) break;
-                }
+                var pendingTopUps = await _context.WalletTopUpRequests
+                    .Where(t => t.Status == "Pending")
+                    .ToListAsync();
+
+                var topUp = pendingTopUps.FirstOrDefault(t =>
+                    words.Any(w => w.Equals(t.TransactionRef, StringComparison.OrdinalIgnoreCase)) ||
+                    normalizedWords.Contains(Norm(t.TransactionRef)));
 
                 if (topUp != null)
                 {
@@ -114,6 +127,56 @@ namespace SportHub.Controllers
                             "/Wallet");
                     }
                     return Ok(new { success = credited, type = "topup" });
+                }
+
+                // Check SubscriptionOrder
+                var pendingSubs = await _context.SubscriptionOrders
+                    .Where(o => o.Status == "Pending")
+                    .ToListAsync();
+
+                var subOrder = pendingSubs.FirstOrDefault(o =>
+                    words.Any(w => w.Equals(o.TransactionRef, StringComparison.OrdinalIgnoreCase)) ||
+                    normalizedWords.Contains(Norm(o.TransactionRef)));
+
+                if (subOrder != null)
+                {
+                    _logger.LogInformation("SePay webhook: matched SubscriptionOrder {Ref}", subOrder.TransactionRef);
+                    var activated = await _subscriptionService.ConfirmOrderAsync(subOrder.TransactionRef, payload.TransferAmount);
+                    if (activated)
+                    {
+                        await _notificationService.CreateAsync(
+                            subOrder.UserID,
+                            "System",
+                            $"Đăng ký gói {subOrder.PlanKey} thành công!",
+                            $"Gói {subOrder.PlanKey} đã được kích hoạt. Tận hưởng các tính năng cao cấp ngay nhé!",
+                            "/Subscription");
+                    }
+                    return Ok(new { success = activated, type = "subscription" });
+                }
+
+                // Check UserMatchCredit
+                var pendingCredits = await _context.UserMatchCredits
+                    .Where(c => c.Status == "Pending")
+                    .ToListAsync();
+
+                var creditOrder = pendingCredits.FirstOrDefault(c =>
+                    words.Any(w => w.Equals(c.TransactionRef, StringComparison.OrdinalIgnoreCase)) ||
+                    normalizedWords.Contains(Norm(c.TransactionRef)));
+
+                if (creditOrder != null)
+                {
+                    _logger.LogInformation("SePay webhook: matched CreditOrder {Ref}", creditOrder.TransactionRef);
+                    var credited2 = await _subscriptionService.ConfirmCreditOrderAsync(creditOrder.TransactionRef, payload.TransferAmount);
+                    if (credited2)
+                    {
+                        await _notificationService.CreateAsync(
+                            creditOrder.UserID,
+                            "System",
+                            "Mua credit trận đấu thành công!",
+                            "Bạn vừa nhận 5 credit trận đấu. Dùng để tham gia thêm các trận nhé!",
+                            "/Subscription");
+                    }
+                    return Ok(new { success = credited2, type = "credit" });
                 }
 
                 _logger.LogInformation("SePay webhook: no matching pending payment found for content '{Content}'.", payload.Content);

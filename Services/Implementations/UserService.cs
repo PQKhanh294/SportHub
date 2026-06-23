@@ -228,5 +228,57 @@ namespace SportHub.Services.Implementations
                 && !string.IsNullOrWhiteSpace(u.FavoriteSport)
                 && !string.IsNullOrWhiteSpace(u.DefaultAddress);
         }
+
+        public async Task<User> GetOrCreateGoogleUserAsync(string googleId, string email, string fullName, string? avatarUrl)
+        {
+            // Tìm theo GoogleId trước
+            var user = await _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.GoogleId == googleId);
+
+            if (user != null) return user;
+
+            // Liên kết tài khoản cũ cùng email
+            user = await _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+
+            if (user != null)
+            {
+                user.GoogleId = googleId;
+                if (string.IsNullOrWhiteSpace(user.AvatarUrl) && avatarUrl != null)
+                    user.AvatarUrl = avatarUrl;
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return user;
+            }
+
+            // Tạo tài khoản mới từ Google
+            var playerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Player");
+            var newUser = new User
+            {
+                GoogleId = googleId,
+                Email = email,
+                FullName = fullName,
+                AvatarUrl = avatarUrl,
+                PasswordHash = string.Empty,
+                IsActive = true,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            if (playerRole != null)
+            {
+                _context.Set<UserRole>().Add(new UserRole { UserID = newUser.UserID, RoleID = playerRole.RoleID });
+                await _context.SaveChangesAsync();
+            }
+
+            return await _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .FirstAsync(u => u.UserID == newUser.UserID);
+        }
     }
 }

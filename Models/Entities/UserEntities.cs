@@ -15,6 +15,7 @@ namespace SportHub.Models.Entities
         public string? DefaultAddress { get; set; }
         public decimal? DefaultLatitude { get; set; }
         public decimal? DefaultLongitude { get; set; }
+        public string? GoogleId { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsVerified { get; set; } = false;
         public bool IsBanned { get; set; } = false;

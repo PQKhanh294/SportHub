@@ -4,7 +4,7 @@
     ViewData["Title"] = "Tin nhắn";
 }
 
-<div class="max-w-6xl mx-auto h-[calc(100vh-140px)] min-h-[600px] flex bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="max-w-6xl mx-auto h-[calc(100svh-140px)] md:h-[calc(100svh-140px)] min-h-[500px] flex bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
 
     <!-- Cột trái: Danh sách bạn bè -->
     <div class="w-full md:w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col @(Model.ActiveChatUser != null ? "hidden md:flex" : "flex")">
@@ -58,7 +58,8 @@
                     string statusClass = "";
                     if (lastMsg != null)
                     {
-                        previewText = lastMsg.MessageType == "Image" ? "Đã gửi một ảnh"
+                        previewText = lastMsg.IsDeleted ? "Tin nhắn đã bị xóa"
+                            : lastMsg.MessageType == "Image" ? "Đã gửi một ảnh"
                             : lastMsg.MessageType == "MatchCard" ? "Đã chia sẻ thẻ trận"
                             : (lastMsg.Content.Length > 35 ? lastMsg.Content[..35] + "…" : lastMsg.Content);
 
@@ -68,7 +69,7 @@
                         if (theySentLast && unreadCount > 0)
                         {
                             statusLabel = "· Chưa trả lời";
-                            statusClass = "text-blue-500 font-semibold";
+                            statusClass = "text-primary font-semibold";
                         }
                         else if (iSentLast && lastMsg.IsRead == false)
                         {
@@ -311,14 +312,14 @@
                                 }
                             </div>
                             <div class="msg-menu hidden absolute bottom-full mb-2 right-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
-                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
-                                    <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
-                                </button>
-                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
-                                    <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
-                                </button>
                                 @if (!msg.IsDeleted)
                                 {
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
+                                        <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
+                                    </button>
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
+                                        <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
+                                    </button>
                                     <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 delete-btn" data-mid="@msg.MessageID">
                                         <span class="material-symbols-outlined text-[14px]">delete</span> Xóa
                                     </button>
@@ -366,14 +367,16 @@
                                 <div class="bg-primary text-white px-4 py-2 rounded-2xl rounded-br-sm shadow-sm">
                                     @if (msg.ReplyToMessage != null)
                                     {
-                                        <div class="text-[10px] text-blue-100 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-white/60 truncate">
-                                            ↩ @(msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content)
+                                        var replyText = msg.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" :
+                                            (msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content);
+                                        <div class="text-[10px] text-white/80 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-white/60 truncate">
+                                            ↩ @replyText
                                         </div>
                                     }
                                     <p class="text-sm">@msg.Content</p>
                                     <p class="text-[10px] mt-1 opacity-70 text-right flex items-center justify-end gap-1">
                                         @msg.CreatedAt.ToString("HH:mm")
-                                        <span class="read-receipt @(msg.IsRead ? "text-sky-300" : "opacity-70")" data-mid="@msg.MessageID">@(msg.IsRead ? "✓✓" : "✓")</span>
+                                        <span class="read-receipt @(msg.IsRead ? "text-primary/80" : "opacity-70")" data-mid="@msg.MessageID">@(msg.IsRead ? "✓✓" : "✓")</span>
                                     </p>
                                 </div>
                             }
@@ -422,8 +425,10 @@
                                 <div class="bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2 rounded-2xl rounded-bl-sm shadow-sm">
                                     @if (msg.ReplyToMessage != null)
                                     {
+                                        var replyText2 = msg.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" :
+                                            (msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content);
                                         <div class="text-[10px] text-slate-500 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-primary truncate">
-                                            ↩ @(msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content)
+                                            ↩ @replyText2
                                         </div>
                                     }
                                     <p class="text-sm">@msg.Content</p>
@@ -451,14 +456,14 @@
                                 }
                             </div>
                             <div class="msg-menu hidden absolute bottom-full mb-2 left-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
-                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
-                                    <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
-                                </button>
-                                <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
-                                    <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
-                                </button>
                                 @if (!msg.IsDeleted)
                                 {
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
+                                        <span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim
+                                    </button>
+                                    <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 forward-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
+                                        <span class="material-symbols-outlined text-[14px]">forward</span> Chuyển tiếp
+                                    </button>
                                     <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-rose-500 report-btn" data-mid="@msg.MessageID" data-content="@System.Web.HttpUtility.HtmlAttributeEncode(prevContent)">
                                         <span class="material-symbols-outlined text-[14px]">flag</span> Báo cáo
                                     </button>
@@ -492,13 +497,13 @@
             </div>
 
             <!-- Reply preview bar -->
-            <div id="reply-bar" class="hidden px-4 py-2 bg-blue-50 dark:bg-blue-950 border-t border-blue-200 dark:border-blue-900 flex items-center gap-2">
+            <div id="reply-bar" class="hidden px-4 py-2 bg-primary/10 dark:bg-primary/20 border-t border-primary/20 dark:border-primary/30 flex items-center gap-2">
                 <div class="w-0.5 h-8 bg-primary rounded"></div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-bold text-primary">Đang trả lời</p>
                     <p id="reply-preview-text" class="text-xs text-slate-500 truncate"></p>
                 </div>
-                <button onclick="cancelReply()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors text-slate-400">
+                <button onclick="cancelReply()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors text-slate-400">
                     <span class="material-symbols-outlined text-[14px]">close</span>
                 </button>
             </div>
@@ -639,6 +644,24 @@
     }
 }
 
+<!-- Custom delete confirm modal -->
+<div id="delete-confirm-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDeleteConfirm()"></div>
+    <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xs p-6 transform transition-all duration-200 scale-95 opacity-0" id="delete-confirm-box">
+        <div class="flex flex-col items-center gap-3 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                <span class="material-symbols-outlined text-rose-500 text-2xl">delete</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Xóa tin nhắn?</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Tin nhắn sẽ bị xóa với tất cả mọi người. Không thể hoàn tác.</p>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeDeleteConfirm()" class="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Hủy</button>
+            <button onclick="confirmDelete()" class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Xóa</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         if (typeof setChatBadge === 'function') setChatBadge(0);
@@ -741,9 +764,15 @@
                 if (payload.conversationWith === activeReceiverId) {
                     document.querySelectorAll('.read-receipt').forEach(function(el) {
                         el.textContent = '✓✓';
-                        el.classList.add('text-sky-300');
+                        el.classList.remove('opacity-70');
+                        el.classList.add('text-primary/80');
                     });
                 }
+            });
+
+            chatConnection.on("ForwardError", function(payload) {
+                showToast(payload.error || "Không thể chuyển tiếp tin nhắn này.", true);
+                closeForwardModal();
             });
 
             chatConnection.start().then(function() {
@@ -865,9 +894,8 @@
                     return;
                 }
                 if (deleteBtn) {
-                    if (!confirm('Xóa tin nhắn này?')) return;
                     var mid = parseInt(deleteBtn.dataset.mid);
-                    chatConnection.invoke('DeleteMessage', mid, activeReceiverId).catch(()=>{});
+                    openDeleteConfirm(mid);
                     closeMsgMenu();
                     return;
                 }
@@ -1144,7 +1172,19 @@
                 var bubbleCol = document.createElement("div");
                 bubbleCol.className = "bubble-col flex flex-col " + (isMine ? "items-end" : "items-start") + " max-w-[65%]";
 
-                if (msg.messageType === "Image" && msg.imageUrl) {
+                if (msg.isDeleted || msg.messageType === "Deleted") {
+                    var delBubble = document.createElement("div");
+                    delBubble.className = "px-4 py-2 rounded-2xl " + (isMine ? "rounded-br-sm" : "rounded-bl-sm") +
+                        " bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600";
+                    delBubble.innerHTML = '<p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>' +
+                        '<p class="text-[10px] mt-1 opacity-50 ' + (isMine ? "text-right" : "") + '">' + formatTime(msg.createdAt) + '</p>';
+                    bubbleCol.appendChild(delBubble);
+                    // No actions for deleted messages
+                    if (isMine) { container.appendChild(bubbleCol); }
+                    else { container.appendChild(bubbleCol); }
+                    chatMessages.appendChild(container);
+                    return;
+                } else if (msg.messageType === "Image" && msg.imageUrl) {
                     var wrap = document.createElement("div");
                     if (msg.replyPreview) {
                         var rq = document.createElement("div");
@@ -1214,11 +1254,11 @@
             function renderMatchCardHtml(jsonStr, isMine) {
                 try {
                     var m = JSON.parse(jsonStr);
-                    var border = isMine ? "border-blue-200 dark:border-blue-900" : "border-slate-200 dark:border-slate-700";
-                    var bg = isMine ? "background:rgba(59,130,246,0.05)" : "";
-                    var link = m.id ? `<a href="/Matchmaking/Details?id=${m.id}" style="display:block;text-align:center;background:#3b82f6;color:white;border-radius:8px;padding:4px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>` : "";
+                    var border = isMine ? "border-primary/20 dark:border-primary/30" : "border-slate-200 dark:border-slate-700";
+                    var bg = isMine ? "background:rgba(80,165,177,0.05)" : "";
+                    var link = m.id ? `<a href="/Matchmaking/Details?id=${m.id}" style="display:block;text-align:center;background:#50A5B1;color:white;border-radius:8px;padding:4px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>` : "";
                     return `<div class="rounded-2xl ${isMine?'rounded-br-sm':'rounded-bl-sm'} border ${border} p-3 shadow-sm" style="${bg}">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="material-symbols-outlined" style="font-size:14px;color:#3b82f6">sports</span>
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="material-symbols-outlined" style="font-size:14px;color:#50A5B1">sports</span>
                         <strong style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(m.title||m.type||"")}</strong></div>
                         <p style="font-size:11px;color:#64748b">📅 ${m.date||""} · ${m.time||""}</p>
                         ${m.venue?`<p style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📍 ${escHtml(m.venue)}</p>`:""}
@@ -1266,3 +1306,37 @@
         </script>
     }
 }
+
+<script>
+    var _pendingDeleteMid = null;
+    function openDeleteConfirm(mid) {
+        _pendingDeleteMid = mid;
+        var modal = document.getElementById('delete-confirm-modal');
+        var box = document.getElementById('delete-confirm-box');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        requestAnimationFrame(function() {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+        });
+    }
+    function closeDeleteConfirm() {
+        var modal = document.getElementById('delete-confirm-modal');
+        var box = document.getElementById('delete-confirm-box');
+        box.classList.remove('scale-100', 'opacity-100');
+        box.classList.add('scale-95', 'opacity-0');
+        setTimeout(function() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            _pendingDeleteMid = null;
+        }, 180);
+    }
+    function confirmDelete() {
+        if (_pendingDeleteMid == null) return;
+        var mid = _pendingDeleteMid;
+        closeDeleteConfirm();
+        if (typeof chatConnection !== 'undefined' && typeof activeReceiverId !== 'undefined') {
+            chatConnection.invoke('DeleteMessage', mid, activeReceiverId).catch(function(){});
+        }
+    }
+</script>

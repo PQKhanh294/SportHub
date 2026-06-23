@@ -1,0 +1,159 @@
+@page
+@model SportHub.Pages.Stats.IndexModel
+@{
+    ViewData["Title"] = "Thống kê của tôi";
+    Layout = "_Layout";
+}
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-600">bar_chart</span>
+            Thống kê chi tiết
+        </h1>
+        <a href="/Profile" class="text-sm text-slate-500 hover:text-slate-700">← Hồ sơ</a>
+    </div>
+
+    @if (!Model.HasAccess)
+    {
+        <div class="rounded-2xl border border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-8 text-center">
+            <span class="material-symbols-outlined text-5xl text-purple-400 mb-4 block">lock</span>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Tính năng Pro</h2>
+            <p class="text-slate-500 mb-6">Thống kê chi tiết chỉ dành cho người dùng gói <strong>Pro</strong> và <strong>Club</strong>.</p>
+            <a href="/Subscription" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-colors">
+                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                Nâng cấp lên Pro
+            </a>
+        </div>
+        return;
+    }
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        @foreach (var (label, value, icon, color) in new[] {
+            ("Trận tham gia", Model.TotalMatchesJoined.ToString(), "sports_tennis", "blue"),
+            ("Trận tạo", Model.TotalMatchesCreated.ToString(), "add_circle", "green"),
+            ("Đánh giá nhận", Model.ReviewsReceived.ToString(), "star", "amber"),
+            ("Bạn bè", Model.FriendsCount.ToString(), "group", "purple")
+        })
+        {
+            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                <span class="material-symbols-outlined text-@color-500 mb-1 block text-2xl">@icon</span>
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">@value</div>
+                <div class="text-xs text-slate-500 mt-0.5">@label</div>
+            </div>
+        }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Rating -->
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-sm">star</span>
+                Đánh giá trung bình
+            </h3>
+            <div class="flex items-end gap-2 mb-2">
+                <span class="text-4xl font-extrabold text-slate-900 dark:text-white">@Model.AverageRating</span>
+                <span class="text-slate-400 mb-1">/ 5.0</span>
+            </div>
+            <div class="flex gap-1">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <span class="text-xl @(i <= (int)Model.AverageRating ? "text-amber-400" : "text-slate-200")">★</span>
+                }
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Dựa trên @Model.ReviewsReceived đánh giá</p>
+        </div>
+
+        <!-- Tháng này -->
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-500 text-sm">calendar_month</span>
+                Tháng này
+            </h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-500">Trận tham gia</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            @{ var joinPct = Model.MonthlyJoinCount > 0 ? Math.Min(100, Model.MonthlyJoinCount * 10) : 0; }
+                            <div class="h-full bg-blue-500 rounded-full" style="width:@joinPct%"></div>
+                        </div>
+                        <span class="text-sm font-bold text-slate-900 dark:text-white">@Model.MonthlyJoinCount</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-500">Trận tạo</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            @{ var createPct = Model.MonthlyCreateCount > 0 ? Math.Min(100, Model.MonthlyCreateCount * 20) : 0; }
+                            <div class="h-full bg-green-500 rounded-full" style="width:@createPct%"></div>
+                        </div>
+                        <span class="text-sm font-bold text-slate-900 dark:text-white">@Model.MonthlyCreateCount</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-500">Credit còn lại</span>
+                    <span class="text-sm font-bold text-green-600">@Model.MatchCredits</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Sports -->
+    @if (Model.TopSports.Any())
+    {
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 mb-6">
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-500 text-sm">sports</span>
+                Môn thể thao chơi nhiều nhất
+            </h3>
+            <div class="space-y-3">
+                @{ int maxCount = Model.TopSports.First().Count; }
+                @foreach (var sport in Model.TopSports)
+                {
+                    var pct = maxCount > 0 ? (sport.Count * 100 / maxCount) : 0;
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300 w-28 shrink-0">@sport.SportName</span>
+                        <div class="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width:@pct%"></div>
+                        </div>
+                        <span class="text-sm font-bold text-slate-900 dark:text-white w-8 text-right">@sport.Count</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Monthly Activity -->
+    @if (Model.MonthlyActivities.Any())
+    {
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-500 text-sm">trending_up</span>
+                Hoạt động 6 tháng gần nhất
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100 dark:border-slate-800">
+                            <th class="text-left py-2 text-slate-500 font-medium">Tháng</th>
+                            <th class="text-center py-2 text-slate-500 font-medium">Trận tham gia</th>
+                            <th class="text-center py-2 text-slate-500 font-medium">Trận tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.MonthlyActivities)
+                        {
+                            <tr class="border-b border-slate-50 dark:border-slate-800/50">
+                                <td class="py-2 text-slate-700 dark:text-slate-300 font-mono">@a.YearMonth</td>
+                                <td class="py-2 text-center font-bold text-blue-600">@a.Joins</td>
+                                <td class="py-2 text-center font-bold text-green-600">@a.Creates</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

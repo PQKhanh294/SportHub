@@ -29,10 +29,11 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary":            "#2560e9",  /* Màu brand chính */
-                        "accent":             "#f97316",  /* Màu accent thể thao */
-                        "background-light":   "#f6f6f8",
-                        "background-dark":    "#111621",
+                        "primary":            "#50A5B1",  /* Teal Refresh — màu brand chính */
+                        "accent":             "#F1600D",  /* Cam đỏ thể thao */
+                        "navy":               "#1A265A",  /* Navy đậm */
+                        "background-light":   "#f5f4f0",  /* Warm off-white */
+                        "background-dark":    "#0d1520",  /* Navy tối */
                     },
                     fontFamily: {
                         "display": ["Inter", "sans-serif"],
@@ -101,12 +102,14 @@
 @inject SportHub.Services.Interfaces.IUserService UserService
 @inject SportHub.Services.Interfaces.INotificationService NotificationService
 @inject SportHub.Services.Interfaces.IWalletService WalletService
+@inject SportHub.Services.Interfaces.ISubscriptionService SubscriptionService
 
 @{
     string? currentUserAvatar = null;
     var unreadNotificationCount = 0;
     var unreadChatCount = 0;
     decimal currentWalletBalance = 0m;
+    string? currentPlanKey = null;
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var showProfileBanner = false;
     var redirectToProfile = false;
@@ -121,6 +124,8 @@
             unreadNotificationCount = await NotificationService.GetUnreadCountAsync(currentUserId);
             unreadChatCount = await NotificationService.GetUnreadChatCountAsync(currentUserId);
             currentWalletBalance = currentUser?.WalletBalance ?? 0m;
+            var activeSub = await SubscriptionService.GetActiveSubscriptionAsync(currentUserId);
+            currentPlanKey = activeSub?.PlanKey;
 
             // Ban enforcement redirect (JS redirect để tránh lỗi "section not rendered")
             if (currentUser?.IsBanned == true && (currentUser.BanEndAt == null || currentUser.BanEndAt > DateTime.UtcNow))
@@ -188,174 +193,313 @@
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
 <!-- ================================================================
-     NAVBAR — Thanh điều hướng cố định trên đầu
+     NAVBAR — Teal Refresh design
      ================================================================ -->
-<header class="sticky top-0 z-50 w-full bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<header class="sticky top-0 z-50 w-full bg-white/95 dark:bg-background-dark/95 backdrop-blur-md shadow-sm border-b border-slate-100 dark:border-slate-800/60">
+    <!-- Teal top accent bar -->
+    <div class="h-[3px] bg-gradient-to-r from-primary via-primary/60 to-accent"></div>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex items-center justify-between h-15 py-2.5">
 
             <!-- Logo -->
-            <div class="flex items-center gap-2">
-                <a asp-page="/Index" class="flex items-center gap-2">
-                    <img src="/images/logo sporthub.png" alt="Sport Hub" class="h-9 w-9 object-contain" />
-                    <span class="font-sport text-2xl font-bold tracking-widest uppercase text-slate-900 dark:text-white">Sport Hub</span>
-                </a>
-            </div>
+            <a asp-page="/Index" class="flex items-center gap-2 shrink-0">
+                <img src="/images/logo sporthub.png" alt="Sport Hub" class="h-9 w-9 object-contain" />
+                <span class="font-sport text-xl font-bold tracking-widest uppercase text-navy dark:text-white hidden sm:block">Sport Hub</span>
+            </a>
 
-            <!-- Navigation Links (Desktop) -->
-            <nav class="hidden lg:flex items-center space-x-7">
-                <a asp-page="/Index"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Home" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    @navHome
-                </a>
-                <a asp-page="/Matchmaking/Index"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Matchmaking" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    @navMatchmaking
-                </a>
-                <a asp-page="/Users/Index"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Community" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    @navCommunity
-                </a>
-                <a asp-page="/Profile/Index"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Profile" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    @navProfile
-                </a>
-                <a asp-page="/Settings/Index"
-                   class="@(ViewData["ActivePage"]?.ToString() == "Settings" ? "text-primary font-semibold border-b-2 border-primary pb-1" : "text-slate-600 dark:text-slate-400 hover:text-primary") text-sm font-medium transition-colors">
-                    @navSettings
-                </a>
+            <!-- Navigation Links (Desktop) — pill style -->
+            <nav class="hidden lg:flex items-center gap-1">
+                @{
+                    var activePage = ViewData["ActivePage"]?.ToString() ?? "";
+                    var navItems = new[] {
+                        (navHome,        "/Index",            "Home"),
+                        (navMatchmaking, "/Matchmaking/Index","Matchmaking"),
+                        (navCommunity,   "/Users/Index",      "Community"),
+                    };
+                }
+                @foreach (var (label, url, key) in navItems)
+                {
+                    var isActive = activePage == key;
+                    <a href="@url"
+                       class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-all @(isActive ? "bg-primary/10 text-primary font-semibold" : "text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800/60")">
+                        @label
+                    </a>
+                }
                 @if (User.IsInRole("Admin"))
                 {
                     <a asp-page="/Admin/Index"
-                       class="@(ViewData["ActivePage"]?.ToString() == "Admin" ? "text-amber-600 font-semibold border-b-2 border-amber-500 pb-1" : "text-amber-600 dark:text-amber-400 hover:text-amber-700") text-sm font-medium transition-colors flex items-center gap-1">
+                       class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-all @(activePage == "Admin" ? "bg-accent/10 text-accent font-semibold" : "text-accent/80 hover:text-accent hover:bg-accent/10") flex items-center gap-1">
                         <span class="material-symbols-outlined text-base">admin_panel_settings</span>
                         Admin
                     </a>
                 }
             </nav>
 
-            <!-- User Actions -->
-            <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Right Actions -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Tạo trận button -->
                 <a asp-page="/Matchmaking/Create"
-                   class="hidden xl:inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm shadow-accent/20 transition-all hover:bg-accent/90 hover:-translate-y-0.5">
-                    <span class="material-symbols-outlined text-base">bolt</span>
+                   class="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-accent/90 hover:shadow-md transition-all active:scale-95">
+                    <span class="material-symbols-outlined text-base">add</span>
                     @createMatchText
                 </a>
+
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <!-- Wallet -->
-                    <a href="/Wallet" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary text-slate-600 dark:text-slate-400 transition-colors text-sm font-semibold" title="Ví SportHub" id="nav-wallet-btn">
+                    <!-- Wallet pill -->
+                    <a href="/Wallet" id="nav-wallet-btn"
+                       class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/20 hover:border-primary hover:bg-primary/15 text-primary text-sm font-bold transition-all"
+                       title="Ví SportHub">
                         <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
                         <span id="nav-wallet-balance">@currentWalletBalance.ToString("N0") ₫</span>
                     </a>
 
-                    <!-- Friends -->
-                    <a asp-page="/Users/Friends" class="hidden md:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="@navFriends">
-                        <span class="material-symbols-outlined">group</span>
+                    <!-- Subscription badge -->
+                    @if (currentPlanKey == null || currentPlanKey == "Free")
+                    {
+                        <a href="/Subscription"
+                           class="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-primary/30 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all"
+                           title="Nâng cấp">
+                            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                            <span class="hidden lg:inline">Nâng cấp</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Subscription"
+                           class="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all @(currentPlanKey == "Club" ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : currentPlanKey == "Pro" ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-primary/10 text-primary hover:bg-primary/20")"
+                           title="Gói @currentPlanKey">
+                            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                            @currentPlanKey
+                        </a>
+                    }
+
+                    <!-- Icon actions -->
+                    <a asp-page="/Users/Friends" class="p-2 text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all hidden md:flex" title="@navFriends">
+                        <span class="material-symbols-outlined text-[22px]">group</span>
                     </a>
-                    
-                    <!-- Chat -->
-                    <a asp-page="/Messages/Index" class="hidden md:flex relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors items-center" title="@navMessages">
-                        <span class="material-symbols-outlined">chat</span>
+
+                    <a asp-page="/Messages/Index" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all hidden md:flex" title="@navMessages">
+                        <span class="material-symbols-outlined text-[22px]">chat_bubble</span>
                         <span id="chat-badge"
-                              class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none @(unreadChatCount > 0 ? "" : "hidden")">
+                              class="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none @(unreadChatCount > 0 ? "" : "hidden")">
                             @(unreadChatCount > 9 ? "9+" : unreadChatCount.ToString())
                         </span>
                     </a>
                 }
 
-                <!-- Notification Bell -->
-                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center" title="@navNotifications">
-                    <span class="material-symbols-outlined">notifications</span>
+                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all flex" title="@navNotifications">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span>
                     <span id="notification-badge"
-                          class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none @(unreadNotificationCount > 0 ? "" : "hidden")">
+                          class="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none @(unreadNotificationCount > 0 ? "" : "hidden")">
                         @(unreadNotificationCount > 9 ? "9+" : unreadNotificationCount.ToString())
                     </span>
                 </a>
 
-                <!-- Avatar người dùng hiện tại -->
+                <!-- Avatar + logout -->
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <div class="flex items-center gap-2">
-                        <a asp-page="/Profile/Index" class="size-10 rounded-full bg-primary/10 border-2 border-primary/20 overflow-hidden block">
-                            <img class="w-full h-full object-cover"
+                    <div class="relative group">
+                        <a asp-page="/Profile/Index" class="block relative">
+                            <img class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30 hover:ring-primary transition-all"
                                  src="@(string.IsNullOrWhiteSpace(currentUserAvatar) ? "/images/avatar-default.png" : currentUserAvatar)"
                                  onerror="this.onerror=null;this.src='/images/avatar-default.png';"
-                                 alt="@(User.Identity?.Name ?? "Sport Hub")" />
+                                 alt="@(User.Identity?.Name ?? "Avatar")" />
+                            @if (currentPlanKey == "Pro")
+                            {
+                                <span class="absolute -bottom-0.5 -right-0.5 bg-purple-600 text-white text-[8px] font-black px-1 rounded-full leading-tight z-10">PRO</span>
+                            }
+                            else if (currentPlanKey == "Club")
+                            {
+                                <span class="absolute -bottom-0.5 -right-0.5 bg-amber-500 text-white text-[8px] font-black px-1 rounded-full leading-tight z-10">CLUB</span>
+                            }
+                            else if (currentPlanKey == "Starter")
+                            {
+                                <span class="absolute -bottom-0.5 -right-0.5 bg-primary text-white text-[8px] font-black px-1 rounded-full leading-tight z-10">S+</span>
+                            }
                         </a>
-                        <form method="post" asp-page="/Auth/Logout">
-                            <button type="submit" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                                @logoutText
-                            </button>
-                        </form>
+                        <!-- Dropdown on hover -->
+                        <div class="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                            <a href="/Profile" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-t-xl">
+                                <span class="material-symbols-outlined text-sm text-primary">person</span> @navProfile
+                            </a>
+                            <a href="/Settings" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <span class="material-symbols-outlined text-sm text-slate-400">settings</span> @navSettings
+                            </a>
+                            <a href="/Wallet" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span> Ví
+                            </a>
+                            <div class="border-t border-slate-100 dark:border-slate-800">
+                                <form method="post" asp-page="/Auth/Logout">
+                                    <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-b-xl transition-colors">
+                                        <span class="material-symbols-outlined text-sm">logout</span> @logoutText
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 }
                 else
                 {
-                    <div class="flex items-center gap-2">
-                        <a asp-page="/Auth/Login"
-                           class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                            @loginText
-                        </a>
-                        <a asp-page="/Auth/Register"
-                           class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all">
-                            @registerText
-                        </a>
-                    </div>
+                    <a asp-page="/Auth/Login" class="h-9 px-3 sm:px-4 flex items-center justify-center text-xs sm:text-sm font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary hover:text-primary rounded-full transition-all">@loginText</a>
+                    <a asp-page="/Auth/Register" class="h-9 px-3 sm:px-4 flex items-center justify-center bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold rounded-full transition-all shadow-sm">@registerText</a>
                 }
 
-                <!-- Hamburger Mobile -->
-                <button id="mobile-menu-btn" class="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full" aria-label="@openMenuText">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
+                <!-- Hamburger Mobile — hidden, replaced by bottom nav -->
+                <button id="mobile-menu-btn" class="hidden" aria-label="@openMenuText"></button>
             </div>
-
         </div>
 
-        <!-- Mobile Nav Dropdown -->
-        <div id="mobile-menu" class="hidden lg:hidden pb-4">
-            <div class="grid grid-cols-2 gap-2 py-3">
-                <a asp-page="/Matchmaking/Index" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-black text-white shadow-sm">
-                    <span class="material-symbols-outlined text-lg">person_search</span>
-                    @findMatchText
+        <!-- Mobile Nav Dropdown — replaced by bottom nav; kept only for wallet balance JS ref -->
+        <div id="mobile-menu" class="hidden" style="display:none!important">
+            <div class="pt-3 pb-2">
+                <a asp-page="/Matchmaking/Create" class="flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-white shadow-sm mb-3">
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    @createMatchText
                 </a>
             </div>
-            <nav class="flex flex-col space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <a asp-page="/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navHome</a>
-                <a asp-page="/Matchmaking/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navMatchmaking</a>
-                <a asp-page="/Users/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navCommunity</a>
+            <nav class="flex flex-col space-y-0.5">
+                <a asp-page="/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Home" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navHome</a>
+                <a asp-page="/Matchmaking/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Matchmaking" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navMatchmaking</a>
+                <a asp-page="/Users/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Community" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navCommunity</a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a href="/Wallet" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between">
+                    <a href="/Wallet" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300 flex items-center justify-between">
                         <span class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span>
                             Ví SportHub
                         </span>
                         <span class="text-xs font-bold text-primary" id="nav-wallet-balance-mobile">@currentWalletBalance.ToString("N0") ₫</span>
                     </a>
-                    <a asp-page="/Users/Friends" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navFriends</a>
-                    <a asp-page="/Messages/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navMessages</a>
+                    <a asp-page="/Users/Friends" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navFriends</a>
+                    <a asp-page="/Messages/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navMessages</a>
                 }
-                <a asp-page="/Profile/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navProfile</a>
-                <a asp-page="/Settings/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">@navSettings</a>
                 @if (User.IsInRole("Admin"))
                 {
-                    <a asp-page="/Admin/Index" class="px-3 py-2 text-sm font-medium rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <a asp-page="/Admin/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-accent/10 text-accent flex items-center gap-1">
                         <span class="material-symbols-outlined text-base">admin_panel_settings</span>
                         Admin
                     </a>
                 }
+                @if (!User.Identity?.IsAuthenticated ?? true)
+                {
+                    <div class="pt-2 flex gap-2">
+                        <a asp-page="/Auth/Login" class="flex-1 text-center py-2.5 text-sm font-semibold border border-slate-300 rounded-xl text-slate-700 hover:border-primary hover:text-primary transition-colors">@loginText</a>
+                        <a asp-page="/Auth/Register" class="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors">@registerText</a>
+                    </div>
+                }
             </nav>
         </div>
-
     </div>
-    <div class="h-0.5 bg-gradient-to-r from-primary via-accent to-transparent"></div>
 </header>
 
 <!-- ================================================================
      MAIN CONTENT — Từng trang Razor sẽ render vào đây
      ================================================================ -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@{
+    var _adminSection = ViewData["AdminPage"]?.ToString();
+    var _isAdminLayout = !string.IsNullOrEmpty(_adminSection);
+}
+@{
+    // Helper: admin nav item class
+    string AdminNavCls(string page) => _adminSection == page
+        ? "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold bg-primary/10 text-primary"
+        : "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+}
+
+@if (_isAdminLayout)
+{
+<div class="flex min-h-[calc(100svh-64px)]">
+    <!-- Admin Sidebar — desktop only -->
+    <aside class="hidden lg:flex flex-col w-56 xl:w-60 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 sticky top-16 self-start overflow-y-auto" style="height:calc(100svh - 64px)">
+        <div class="px-4 py-4 border-b border-slate-100 dark:border-slate-800">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Admin Panel</p>
+        </div>
+        <nav class="flex-1 p-3 space-y-0.5">
+            <a asp-page="/Admin/Index"          class="@AdminNavCls("Dashboard")"><span class="material-symbols-outlined text-[18px]">dashboard</span>Dashboard</a>
+            <a asp-page="/Admin/Transactions"   class="@AdminNavCls("Transactions")"><span class="material-symbols-outlined text-[18px]">receipt_long</span>Lịch sử GD</a>
+            <a asp-page="/Admin/MatchPayments"  class="@AdminNavCls("Payments") relative">
+                <span class="material-symbols-outlined text-[18px]">pending_actions</span>Chờ xác nhận
+                <span id="sb-badge-payments" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
+            </a>
+            <a asp-page="/Admin/Users"          class="@AdminNavCls("Users")"><span class="material-symbols-outlined text-[18px]">manage_accounts</span>Người dùng</a>
+            <a asp-page="/Admin/Matches"        class="@AdminNavCls("Matches")"><span class="material-symbols-outlined text-[18px]">sports</span>Trận đấu</a>
+            <a asp-page="/Admin/Reviews"        class="@AdminNavCls("Reviews")"><span class="material-symbols-outlined text-[18px]">rate_review</span>Đánh giá</a>
+            <a asp-page="/Admin/ReportedMessages" class="@AdminNavCls("ReportedMessages") relative">
+                <span class="material-symbols-outlined text-[18px]">flag</span>Báo cáo
+                <span id="sb-badge-reports" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
+            </a>
+            <a asp-page="/Admin/Subscriptions"  class="@AdminNavCls("Subscriptions")"><span class="material-symbols-outlined text-[18px]">workspace_premium</span>Gói đăng ký</a>
+        </nav>
+        <div class="p-3 border-t border-slate-100 dark:border-slate-800">
+            <a href="/" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-primary rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>Về trang chính
+            </a>
+        </div>
+    </aside>
+
+    <!-- Admin Content -->
+    <main class="flex-1 min-w-0 px-4 sm:px-6 py-6 pb-20 lg:pb-6 overflow-x-hidden">
+        @* Toast Notifications (TempData) *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-pulse" id="toast-success">
+                <span class="material-symbols-outlined">check_circle</span>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2" id="toast-error">
+                <span class="material-symbols-outlined">error</span>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+        @RenderBody()
+    </main>
+</div>
+<script>
+// Sync sidebar badges with _AdminNav badges
+(function() {
+    function syncBadge(from, to) {
+        var src = document.getElementById(from);
+        var dst = document.getElementById(to);
+        if (!src || !dst) return;
+        var observer = new MutationObserver(function() {
+            dst.textContent = src.textContent;
+            src.classList.contains('hidden') ? dst.classList.add('hidden') : dst.classList.remove('hidden');
+        });
+        observer.observe(src, { childList: true, attributes: true, attributeFilter: ['class'] });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        syncBadge('admin-badge-payments', 'sb-badge-payments');
+        syncBadge('admin-badge-reports',  'sb-badge-reports');
+    });
+})();
+
+// Shared AI Insight loader for all admin pages
+window.loadAiInsight = function(section, p1, p2, p3, p4) {
+    var el = document.getElementById('ai-insight-' + section);
+    if (!el) return;
+    if (!el.classList.contains('hidden')) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.innerHTML = '<span style="opacity:0.6">Đang phân tích AI...</span>';
+    var url = '/api/admin-insight?section=' + encodeURIComponent(section)
+        + '&p1=' + encodeURIComponent(p1 || '')
+        + '&p2=' + encodeURIComponent(p2 || '')
+        + '&p3=' + encodeURIComponent(p3 || '')
+        + '&p4=' + encodeURIComponent(p4 || '');
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(d) { el.innerHTML = d ? (d.insight || 'Không có dữ liệu.') : 'Lỗi khi phân tích.'; })
+        .catch(function() { el.innerHTML = 'Không thể kết nối AI.'; });
+};
+</script>
+}
+else
+{
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">
     @* Profile completion banner *@
     @if (showProfileBanner)
     {
@@ -386,6 +530,7 @@
 
     @RenderBody()
 </main>
+}
 
 <!-- ================================================================
      FOOTER — Trích xuất 1:1 từ Stitch MCP Home Page
@@ -623,9 +768,30 @@ body { transition: margin-right 0.32s cubic-bezier(0.4,0,0.2,1), margin-left 0.3
     transform: translateX(100%);
     transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
 }
+@@media (max-width: 1023px) {
+    #ai-sidebar { width: 100vw !important; }
+    /* Hide chat FAB entirely on mobile — use Messages page instead */
+    #chat-popup-wrap { display: none !important; }
+    /* AI FAB: lift above bottom nav, smaller */
+    #ai-chat-wrap { bottom: 80px !important; right: 16px !important; }
+    /* AI popup: anchor left+right so it never clips */
+    #ai-panel {
+        position: fixed !important;
+        left: 12px !important; right: 12px !important;
+        bottom: 148px !important;
+        width: auto !important; max-width: none !important;
+        height: 420px !important;
+    }
+    /* AI FAB smaller on mobile */
+    #ai-fab { width: 48px !important; height: 48px !important; }
+}
 .dark #ai-sidebar { background: #0f172a; border-left-color: rgba(51,65,85,0.8); }
 #ai-sidebar.open { transform: translateX(0); }
-#ai-chat-wrap, #chat-popup-wrap { transition: right 0.32s cubic-bezier(0.4,0,0.2,1); }
+#ai-chat-wrap, #chat-popup-wrap { transition: right 0.32s cubic-bezier(0.4,0,0.2,1), bottom 0.2s; }
+/* Bottom nav safe area */
+#mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Hide footer on mobile to save space */
+@@media (max-width: 1023px) { footer { display: none; } }
 </style>
 <script>
 // Shared right-sidebar state manager
@@ -653,11 +819,11 @@ window.updateRightSidebarState = function () {
 
 <!-- AI Sidebar (expanded mode) -->
 <div id="ai-sidebar">
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#2560e9;flex-shrink:0;min-height:57px;box-sizing:border-box">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#50A5B1;flex-shrink:0;min-height:57px;box-sizing:border-box">
         <img src="/images/logo sporthub.png" style="width:28px;height:28px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.2);padding:2px;flex-shrink:0" />
         <div style="flex:1">
             <p style="font-size:14px;font-weight:600;color:white;margin:0;line-height:1.2">SportHub AI</p>
-            <p style="font-size:11px;color:#bfdbfe;margin:0">Trợ lý hỗ trợ</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.65);margin:0">Trợ lý hỗ trợ</p>
         </div>
         <button onclick="clearAiChat()" title="Xóa cuộc trò chuyện" style="background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%;display:flex" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
             <span class="material-symbols-outlined" style="font-size:20px">delete_sweep</span>
@@ -676,7 +842,7 @@ window.updateRightSidebarState = function () {
     <div id="ai-img-preview-full" style="display:none;padding:8px 16px 0;flex-shrink:0">
         <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 10px">
             <img id="ai-img-thumb-full" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0" src="" alt="" />
-            <span id="ai-img-name-full" style="font-size:11px;color:#1e40af;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+            <span id="ai-img-name-full" style="font-size:11px;color:#50A5B1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
             <button onclick="clearPendingImage()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1;padding:0 2px">✕</button>
         </div>
     </div>
@@ -688,7 +854,7 @@ window.updateRightSidebarState = function () {
         <input id="ai-input-full" type="text" maxlength="500" placeholder="Nhập câu hỏi hoặc đính kèm ảnh..."
             style="flex:1;font-size:13px;border-radius:999px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
             onkeydown="if(event.key==='Enter')sendAiMsg('full')" />
-        <button id="ai-send-full" onclick="sendAiMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#2560e9;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#1d4ed8'" onmouseout="if(!aiSending)this.style.background='#2560e9'">
+        <button id="ai-send-full" onclick="sendAiMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#3d8a95'" onmouseout="if(!aiSending)this.style.background='#50A5B1'">
             <span class="material-symbols-outlined" style="font-size:18px">send</span>
         </button>
     </div>
@@ -697,11 +863,11 @@ window.updateRightSidebarState = function () {
 <!-- AI Popup + FAB -->
 <div id="ai-chat-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
     <div id="ai-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
-        <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#2560e9;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <img src="/images/logo sporthub.png" style="width:26px;height:26px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.2);padding:2px;flex-shrink:0" />
             <div style="flex:1">
                 <p style="font-size:13px;font-weight:600;color:white;margin:0;line-height:1.2">SportHub AI</p>
-                <p style="font-size:10px;color:#bfdbfe;margin:0">Trợ lý hỗ trợ</p>
+                <p style="font-size:10px;color:rgba(255,255,255,0.65);margin:0">Trợ lý hỗ trợ</p>
             </div>
             <button onclick="clearAiChat()" title="Xóa cuộc trò chuyện" style="background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%;display:flex" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
                 <span class="material-symbols-outlined" style="font-size:18px">delete_sweep</span>
@@ -720,7 +886,7 @@ window.updateRightSidebarState = function () {
         <div id="ai-img-preview-popup" style="display:none;padding:6px 12px 0;flex-shrink:0">
             <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
                 <img id="ai-img-thumb-popup" style="width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0" src="" alt="" />
-                <span id="ai-img-name-popup" style="font-size:11px;color:#1e40af;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <span id="ai-img-name-popup" style="font-size:11px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearPendingImage()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1;padding:0 2px">✕</button>
             </div>
         </div>
@@ -733,12 +899,12 @@ window.updateRightSidebarState = function () {
                 style="flex:1;font-size:13px;border-radius:999px;padding:8px 14px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                 class="dark:!bg-slate-800 dark:!text-white"
                 onkeydown="if(event.key==='Enter')sendAiMsg('popup')" />
-            <button id="ai-send-popup" onclick="sendAiMsg('popup')" style="width:34px;height:34px;border-radius:50%;background:#2560e9;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#1d4ed8'" onmouseout="if(!aiSending)this.style.background='#2560e9'">
+            <button id="ai-send-popup" onclick="sendAiMsg('popup')" style="width:34px;height:34px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#3d8a95'" onmouseout="if(!aiSending)this.style.background='#50A5B1'">
                 <span class="material-symbols-outlined" style="font-size:16px">send</span>
             </button>
         </div>
     </div>
-    <button onclick="toggleAiChat()" id="ai-fab" style="width:56px;height:56px;border-radius:50%;background:#2560e9;border:none;color:white;box-shadow:0 10px 25px rgba(37,96,233,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s;overflow:hidden" onmouseover="this.style.transform='scale(1.1)';this.style.background='#1d4ed8'" onmouseout="this.style.transform='scale(1)';this.style.background='#2560e9'">
+    <button onclick="toggleAiChat()" id="ai-fab" style="width:56px;height:56px;border-radius:50%;background:#50A5B1;border:none;color:white;box-shadow:0 10px 25px rgba(80,165,177,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s;overflow:hidden" onmouseover="this.style.transform='scale(1.1)';this.style.background='#3d8a95'" onmouseout="this.style.transform='scale(1)';this.style.background='#50A5B1'">
         <img src="/images/logo sporthub.png" style="width:32px;height:32px;object-fit:contain" />
     </button>
 </div>
@@ -957,7 +1123,7 @@ window.updateRightSidebarState = function () {
         var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
             .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
         var html = role === 'user'
-            ? '<div style="display:flex;justify-content:flex-end"><div style="background:#2560e9;color:white;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:13px;max-width:85%">' + safe + '</div></div>'
+            ? '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:13px;max-width:85%">' + safe + '</div></div>'
             : '<div style="display:flex;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(37,96,233,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px"><img src="/images/logo sporthub.png" style="width:16px;height:16px;object-fit:contain"/></div><div style="background:#f1f5f9;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;max-width:85%;color:#334155">' + safe + '</div></div>';
         c.insertAdjacentHTML('beforeend', html);
         c.scrollTop = c.scrollHeight;
@@ -968,7 +1134,7 @@ window.updateRightSidebarState = function () {
         if (!c) return;
         var safeText = text ? '<div style="font-size:13px;margin-top:4px">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' : '';
         c.insertAdjacentHTML('beforeend',
-            '<div style="display:flex;justify-content:flex-end"><div style="background:#2560e9;color:white;border-radius:16px 16px 4px 16px;padding:8px 10px;max-width:85%">'
+            '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:16px 16px 4px 16px;padding:8px 10px;max-width:85%">'
             + '<img src="' + dataUrl + '" style="max-width:180px;max-height:120px;border-radius:8px;display:block"/>'
             + safeText + '</div></div>');
         c.scrollTop = c.scrollHeight;
@@ -976,7 +1142,7 @@ window.updateRightSidebarState = function () {
 
     var sportIcon   = {'Cầu lông':'🏸','Bóng đá':'⚽','Bóng rổ':'🏀','Bóng bàn':'🏓','Tennis':'🎾','Pickleball':'🏓','Volleyball':'🏐'};
     var statusLabel = {'Open':'Đang mở','Full':'Đã đầy','InProgress':'Đang diễn ra'};
-    var statusColor = {'Open':'#16a34a','Full':'#dc2626','InProgress':'#2560e9'};
+    var statusColor = {'Open':'#16a34a','Full':'#dc2626','InProgress':'#50A5B1'};
 
     function appendMatchCards(cId, matches) {
         var c = document.getElementById(cId);
@@ -986,7 +1152,7 @@ window.updateRightSidebarState = function () {
             var sLabel = statusLabel[m.status]  || m.status;
             var sColor = statusColor[m.status]  || '#64748b';
             var roleBadge = m.isHost
-                ? '<span style="font-size:10px;background:#eff6ff;color:#2560e9;border-radius:999px;padding:2px 8px;font-weight:600">Chủ kèo</span>'
+                ? '<span style="font-size:10px;background:#eff6ff;color:#50A5B1;border-radius:999px;padding:2px 8px;font-weight:600">Chủ kèo</span>'
                 : m.isJoined ? '<span style="font-size:10px;background:#f0fdf4;color:#16a34a;border-radius:999px;padding:2px 8px;font-weight:600">Đã tham gia</span>' : '';
             var loc = m.location ? '<div style="font-size:11px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ' + m.location + '</div>' : '';
             var skill = m.skillRequired ? '<span style="font-size:10px;color:#64748b">· ' + m.skillRequired + '</span>' : '';
@@ -998,7 +1164,7 @@ window.updateRightSidebarState = function () {
                 + '<div style="font-size:11px;color:#334155;margin-bottom:2px">👥 ' + m.currentParticipants + '/' + m.maxParticipants + ' ' + skill + '</div>'
                 + loc
                 + '<div style="font-size:10px;font-weight:600;margin:6px 0 8px"><span style="color:' + sColor + '">● ' + sLabel + '</span></div>'
-                + '<a href="/Matchmaking/Details?id=' + m.matchId + '" style="display:block;text-align:center;padding:6px 0;background:#2560e9;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none">' + btnLabel + '</a>'
+                + '<a href="/Matchmaking/Details?id=' + m.matchId + '" style="display:block;text-align:center;padding:6px 0;background:#50A5B1;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none">' + btnLabel + '</a>'
                 + '</div>';
         });
         scroll += '</div>';
@@ -1039,7 +1205,7 @@ window.updateRightSidebarState = function () {
 
 <!-- Chat Sidebar (expanded) -->
 <div id="chat-sidebar-widget">
-    <div id="chat-sw-header" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#2560e9;flex-shrink:0;min-height:57px;box-sizing:border-box">
+    <div id="chat-sw-header" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#50A5B1;flex-shrink:0;min-height:57px;box-sizing:border-box">
         <span class="material-symbols-outlined" style="color:white;font-size:22px;flex-shrink:0">chat</span>
         <div style="flex:1" id="chat-sw-header-title">
             <p style="font-size:14px;font-weight:600;color:white;margin:0">Tin nhắn</p>
@@ -1075,9 +1241,9 @@ window.updateRightSidebarState = function () {
         </div>
         <!-- Reply bar (shared) -->
         <div id="cw-reply-bar" style="display:none;padding:5px 14px;background:#eff6ff;border-top:1px solid #bfdbfe;flex-direction:row;align-items:center;gap:6px;flex-shrink:0">
-            <div style="width:2px;height:28px;background:#2560e9;border-radius:2px;flex-shrink:0"></div>
+            <div style="width:2px;height:28px;background:#50A5B1;border-radius:2px;flex-shrink:0"></div>
             <div style="flex:1;min-width:0">
-                <p style="font-size:10px;font-weight:600;color:#2560e9;margin:0">Đang trả lời</p>
+                <p style="font-size:10px;font-weight:600;color:#50A5B1;margin:0">Đang trả lời</p>
                 <p id="cw-reply-text" style="font-size:10px;color:#64748b;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></p>
             </div>
             <button onclick="cwCancelReply()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;flex-shrink:0">✕</button>
@@ -1085,14 +1251,14 @@ window.updateRightSidebarState = function () {
         <div id="chat-sw-img-preview" style="display:none;padding:6px 14px 0;flex-shrink:0">
             <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
                 <img id="chat-sw-img-thumb" style="width:32px;height:32px;object-fit:cover;border-radius:6px" src="" />
-                <span id="chat-sw-img-name" style="font-size:11px;color:#1e40af;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <span id="chat-sw-img-name" style="font-size:11px;color:#50A5B1;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearChatWidgetImage('full')" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1">✕</button>
             </div>
         </div>
         <div id="chat-sw-match-preview" style="display:none;padding:6px 14px 0;flex-shrink:0">
             <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
-                <span class="material-symbols-outlined" style="color:#2560e9;font-size:16px">sports</span>
-                <span id="chat-sw-match-title" style="font-size:11px;color:#1e40af;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                <span class="material-symbols-outlined" style="color:#50A5B1;font-size:16px">sports</span>
+                <span id="chat-sw-match-title" style="font-size:11px;color:#50A5B1;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearChatWidgetMatch()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1">✕</button>
             </div>
         </div>
@@ -1107,7 +1273,7 @@ window.updateRightSidebarState = function () {
                 onpaste="handleChatWidgetPaste(event,'full')"
                 oninput="cwInputKeyup('full')"
                 onkeydown="if(event.key==='Enter')sendChatWidgetMsg('full')" />
-            <button onclick="sendChatWidgetMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#2560e9;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2560e9'">
+            <button onclick="sendChatWidgetMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.background='#3d8a95'" onmouseout="this.style.background='#50A5B1'">
                 <span class="material-symbols-outlined" style="font-size:18px">send</span>
             </button>
         </div>
@@ -1118,7 +1284,7 @@ window.updateRightSidebarState = function () {
 <div id="chat-popup-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
     <div id="chat-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
         <!-- Panel header -->
-        <div id="chat-panel-header" style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#2560e9;flex-shrink:0">
+        <div id="chat-panel-header" style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <span class="material-symbols-outlined" style="color:white;font-size:20px;flex-shrink:0">chat</span>
             <div style="flex:1" id="chat-panel-header-title"><p style="font-size:13px;font-weight:600;color:white;margin:0">Tin nhắn</p></div>
             <button onclick="chatBackToList('popup')" id="chat-panel-back-btn" style="display:none;background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%" title="Quay lại" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
@@ -1140,14 +1306,14 @@ window.updateRightSidebarState = function () {
             <div id="chat-panel-img-preview" style="display:none;padding:4px 10px 0;flex-shrink:0">
                 <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:4px 8px">
                     <img id="chat-panel-img-thumb" style="width:28px;height:28px;object-fit:cover;border-radius:4px" src="" />
-                    <span id="chat-panel-img-name" style="font-size:10px;color:#1e40af;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                    <span id="chat-panel-img-name" style="font-size:10px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                     <button onclick="clearChatWidgetImage('popup')" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:12px;line-height:1">✕</button>
                 </div>
             </div>
             <div id="chat-panel-match-preview" style="display:none;padding:4px 10px 0;flex-shrink:0">
                 <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:4px 8px">
-                    <span class="material-symbols-outlined" style="color:#2560e9;font-size:14px">sports</span>
-                    <span id="chat-panel-match-title" style="font-size:10px;color:#1e40af;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                    <span class="material-symbols-outlined" style="color:#50A5B1;font-size:14px">sports</span>
+                    <span id="chat-panel-match-title" style="font-size:10px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                     <button onclick="clearChatWidgetMatch()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:12px;line-height:1">✕</button>
                 </div>
             </div>
@@ -1162,7 +1328,7 @@ window.updateRightSidebarState = function () {
                     onpaste="handleChatWidgetPaste(event,'popup')"
                     oninput="cwInputKeyup('popup')"
                     onkeydown="if(event.key==='Enter')sendChatWidgetMsg('popup')" />
-                <button onclick="sendChatWidgetMsg('popup')" style="width:32px;height:32px;border-radius:50%;background:#2560e9;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2560e9'">
+                <button onclick="sendChatWidgetMsg('popup')" style="width:32px;height:32px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="this.style.background='#3d8a95'" onmouseout="this.style.background='#50A5B1'">
                     <span class="material-symbols-outlined" style="font-size:15px">send</span>
                 </button>
             </div>
@@ -1254,8 +1420,23 @@ window.updateRightSidebarState = function () {
                 updateChatWidgetReactions(payload.messageId, payload.reactions);
             });
             chatHubConnection.on('MessageDeleted', function(payload) {
-                var el = document.querySelector('[data-cw-mid="' + payload.messageId + '"]');
-                if (el) el.innerHTML = '<span style="font-size:12px;color:#94a3b8;font-style:italic">Tin nhắn đã bị xóa</span>';
+                var row = document.querySelector('[data-cw-row="' + payload.messageId + '"]');
+                if (row) {
+                    // Remove action buttons entirely
+                    var actWrap = row.querySelector('.cw-actions-wrap');
+                    if (actWrap) actWrap.remove();
+                    row.removeAttribute('onmouseenter');
+                    row.removeAttribute('onmouseleave');
+                    // Replace bubble content with placeholder
+                    var bubble = row.querySelector('[data-cw-mid="' + payload.messageId + '"]');
+                    if (bubble) {
+                        bubble.style.cssText = 'padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic';
+                        bubble.textContent = 'Tin nhắn đã bị xóa';
+                    }
+                    // Hide react bar
+                    var reactBar = row.querySelector('.cw-react-bar');
+                    if (reactBar) reactBar.style.display = 'none';
+                }
             });
             chatHubConnection.on('MessagePinned', function(payload) {
                 var banner = document.getElementById('cw-pinned-banner');
@@ -1266,7 +1447,7 @@ window.updateRightSidebarState = function () {
             });
             chatHubConnection.on('MessagesRead', function(payload) {
                 if (payload.conversationWith === popupChatUserId) {
-                    document.querySelectorAll('.cw-read-receipt').forEach(function(el) { el.textContent = '✓✓'; el.style.color = '#93c5fd'; });
+                    document.querySelectorAll('.cw-read-receipt').forEach(function(el) { el.textContent = '✓✓'; el.style.color = '#50A5B1'; });
                 }
             });
 
@@ -1580,7 +1761,7 @@ window.updateRightSidebarState = function () {
         var deleted = msg.isDeleted;
         var replyHtml = '';
         if (msg.replyPreview) {
-            replyHtml = '<div style="font-size:10px;color:' + (isMine?'rgba(255,255,255,0.7)':'#64748b') + ';background:rgba(0,0,0,0.08);border-radius:8px;padding:3px 8px;margin-bottom:5px;border-left:2px solid ' + (isMine?'rgba(255,255,255,0.5)':'#3b82f6') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            replyHtml = '<div style="font-size:10px;color:' + (isMine?'rgba(255,255,255,0.7)':'#64748b') + ';background:rgba(0,0,0,0.08);border-radius:8px;padding:3px 8px;margin-bottom:5px;border-left:2px solid ' + (isMine?'rgba(255,255,255,0.5)':'#50A5B1') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
                 + '↩ ' + escHtml(msg.replyPreview.content || '') + '</div>';
         }
         var receiptHtml = isMine ? '<span class="cw-read-receipt" style="font-size:9px;margin-left:3px;opacity:0.7">' + (msg.isRead ? '✓✓' : '✓') + '</span>' : '';
@@ -1627,7 +1808,7 @@ window.updateRightSidebarState = function () {
                 + '<div class="cw-react-bar" data-mid="' + mid + '" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px"></div>';
         } else {
             bubbleContent = '<div style="padding:8px 12px;border-radius:16px ' + (isMine?'16px 4px 16px':'16px 16px 4px') + ';font-size:13px;word-break:break-word;'
-                + (isMine?'background:#2560e9;color:white':'background:#f1f5f9;color:#0f172a') + '" data-cw-mid="' + mid + '">'
+                + (isMine?'background:#50A5B1;color:white':'background:#f1f5f9;color:#0f172a') + '" data-cw-mid="' + mid + '">'
                 + replyHtml
                 + escHtml(msg.content || '')
                 + '<div style="font-size:10px;margin-top:3px;opacity:0.7;display:flex;align-items:center;justify-content:flex-end;gap:2px">' + timeStr + receiptHtml + '</div>'
@@ -1741,10 +1922,10 @@ window.updateRightSidebarState = function () {
     function renderChatWidgetMatchCard(jsonStr, isMine) {
         try {
             var m = JSON.parse(jsonStr);
-            var link = m.id ? '<a href="/Matchmaking/Details?id=' + m.id + '" style="display:block;text-align:center;background:#2560e9;color:white;border-radius:8px;padding:5px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>' : '';
+            var link = m.id ? '<a href="/Matchmaking/Details?id=' + m.id + '" style="display:block;text-align:center;background:#50A5B1;color:white;border-radius:8px;padding:5px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>' : '';
             var bg = isMine ? 'background:rgba(37,96,233,0.06)' : 'background:#f8fafc';
             return '<div style="border:1px solid ' + (isMine ? '#bfdbfe' : '#e2e8f0') + ';border-radius:12px;padding:10px;' + bg + '">'
-                + '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span class="material-symbols-outlined" style="font-size:13px;color:#2560e9">sports</span><strong style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(m.title || m.type || '') + '</strong></div>'
+                + '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span class="material-symbols-outlined" style="font-size:13px;color:#50A5B1">sports</span><strong style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(m.title || m.type || '') + '</strong></div>'
                 + '<p style="font-size:11px;color:#64748b;margin:0">📅 ' + (m.date || '') + ' · ' + (m.time || '') + '</p>'
                 + (m.venue ? '<p style="font-size:11px;color:#64748b;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📍 ' + escHtml(m.venue) + '</p>' : '')
                 + '<p style="font-size:11px;color:#64748b;margin:0">👥 ' + (m.participants || 0) + '/' + (m.max || 0) + '</p>'
@@ -1907,6 +2088,143 @@ window.updateRightSidebarState = function () {
         if (needsSync) syncDefaultAvatars();
     }).observe(document.body || document.documentElement, { childList: true, subtree: true });
 })();
+</script>
+
+@* ================================================================
+   MOBILE BOTTOM NAVIGATION — lg:hidden
+   ================================================================ *@
+<nav id="mobile-bottom-nav" class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800">
+    <div class="flex items-center justify-around h-14 max-w-lg mx-auto">
+        @{
+            var bnActivePage = ViewData["ActivePage"]?.ToString() ?? "";
+        }
+        <!-- Home -->
+        <a asp-page="/Index" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Home" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Home" ? "1" : "0")">home</span>
+            <span class="text-[10px] font-semibold">@navHome</span>
+        </a>
+        <!-- Ghép trận -->
+        <a asp-page="/Matchmaking/Index" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Matchmaking" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Matchmaking" ? "1" : "0")">sports</span>
+            <span class="text-[10px] font-semibold">Ghép trận</span>
+        </a>
+        @if (isAuthenticated)
+        {
+            <!-- Tin nhắn -->
+            <a asp-page="/Messages/Index" class="relative flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Messages" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
+                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Messages" ? "1" : "0")">chat_bubble</span>
+                <span id="bn-chat-badge" class="absolute top-0 right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none @(unreadChatCount > 0 ? "" : "hidden")">@(unreadChatCount > 9 ? "9+" : unreadChatCount.ToString())</span>
+                <span class="text-[10px] font-semibold">Tin nhắn</span>
+            </a>
+            <!-- Bạn bè -->
+            <a asp-page="/Users/Friends" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Friends" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
+                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Friends" ? "1" : "0")">group</span>
+                <span class="text-[10px] font-semibold">@navFriends</span>
+            </a>
+        }
+        <!-- Thêm -->
+        <button onclick="openMoreSheet()" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] text-slate-400 dark:text-slate-500 bg-transparent border-none cursor-pointer">
+            <span class="material-symbols-outlined text-[24px]">more_horiz</span>
+            <span class="text-[10px] font-semibold">Thêm</span>
+        </button>
+    </div>
+</nav>
+
+@* More Sheet (slide-up) *@
+<div id="more-sheet-overlay" class="fixed inset-0 z-50 lg:hidden hidden bg-black/40 backdrop-blur-sm" onclick="closeMoreSheet()">
+</div>
+<div id="more-sheet" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl transform translate-y-full transition-transform duration-300 ease-out" style="padding-bottom: env(safe-area-inset-bottom, 16px)">
+    <!-- Handle bar -->
+    <div class="flex justify-center pt-3 pb-2">
+        <div class="w-10 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+    </div>
+    @if (isAuthenticated)
+    {
+        <!-- User info row -->
+        <div class="flex items-center gap-3 px-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <img class="w-11 h-11 rounded-full object-cover ring-2 ring-primary/30"
+                 src="@(string.IsNullOrWhiteSpace(currentUserAvatar) ? "/images/avatar-default.png" : currentUserAvatar)"
+                 onerror="this.onerror=null;this.src='/images/avatar-default.png';" alt="Avatar" />
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-900 dark:text-white truncate">@(User.Identity?.Name ?? "Người dùng")</p>
+                @if (currentPlanKey != null && currentPlanKey != "Free")
+                {
+                    <span class="text-xs font-semibold text-primary">@currentPlanKey</span>
+                }
+            </div>
+            <a href="/Wallet" onclick="closeMoreSheet()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold">
+                <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+                @currentWalletBalance.ToString("N0")₫
+            </a>
+        </div>
+        <div class="py-2 px-2">
+            <a href="/Profile" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-primary">person</span>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navProfile</span>
+            </a>
+            <a href="/Users/Index" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-slate-400">groups</span>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navCommunity</span>
+            </a>
+            <a href="/Matchmaking/Create" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-accent">add_circle</span>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@createMatchText</span>
+            </a>
+            <a href="/Subscription" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-amber-500">workspace_premium</span>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Gói đăng ký</span>
+            </a>
+            <a href="/Settings" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-slate-400">settings</span>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navSettings</span>
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Admin" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent/5 transition-colors">
+                    <span class="material-symbols-outlined text-accent">admin_panel_settings</span>
+                    <span class="text-sm font-medium text-accent">Admin</span>
+                </a>
+            }
+            <div class="border-t border-slate-100 dark:border-slate-800 mt-1 pt-1">
+                <form method="post" asp-page="/Auth/Logout">
+                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                        <span class="material-symbols-outlined text-rose-500">logout</span>
+                        <span class="text-sm font-medium text-rose-600">@logoutText</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="px-5 py-4 flex flex-col gap-3">
+            <a asp-page="/Auth/Login" onclick="closeMoreSheet()" class="block text-center py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300">@loginText</a>
+            <a asp-page="/Auth/Register" onclick="closeMoreSheet()" class="block text-center py-3 rounded-xl bg-primary text-white text-sm font-semibold">@registerText</a>
+        </div>
+    }
+</div>
+<script>
+function openMoreSheet() {
+    document.getElementById('more-sheet-overlay').classList.remove('hidden');
+    requestAnimationFrame(function() {
+        document.getElementById('more-sheet').style.transform = 'translateY(0)';
+    });
+}
+function closeMoreSheet() {
+    document.getElementById('more-sheet').style.transform = 'translateY(100%)';
+    setTimeout(function() {
+        document.getElementById('more-sheet-overlay').classList.add('hidden');
+    }, 300);
+}
+// Sync chat badge on bottom nav
+window._origSetChatBadge = window.setChatBadge;
+window.setChatBadge = function(n) {
+    if (window._origSetChatBadge) window._origSetChatBadge(n);
+    var bn = document.getElementById('bn-chat-badge');
+    if (!bn) return;
+    if (n > 0) { bn.textContent = n > 9 ? '9+' : String(n); bn.classList.remove('hidden'); }
+    else { bn.classList.add('hidden'); }
+};
 </script>
 </body>
 </html>
