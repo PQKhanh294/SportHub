@@ -129,8 +129,7 @@ BEGIN
 
     -- Self-reference FK cho ChatMessages.ReplyToMessageID
     IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_NAME = 'FK_ChatMessages_ChatMessages_ReplyToMessageID')
-        ALTER TABLE [ChatMessages] ADD CONSTRAINT [FK_ChatMessages_ChatMessages_ReplyToMessageID]
-            FOREIGN KEY ([ReplyToMessageID]) REFERENCES [ChatMessages] ([MessageID]);
+        EXEC('ALTER TABLE [ChatMessages] ADD CONSTRAINT [FK_ChatMessages_ChatMessages_ReplyToMessageID] FOREIGN KEY ([ReplyToMessageID]) REFERENCES [ChatMessages] ([MessageID])');
 
     IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_ChatMessages_ReplyToMessageID' AND object_id = OBJECT_ID('ChatMessages'))
         CREATE INDEX [IX_ChatMessages_ReplyToMessageID] ON [ChatMessages] ([ReplyToMessageID]);

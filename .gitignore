@@ -368,3 +368,5 @@ appsettings.json
 
 # User-uploaded files
 wwwroot/uploads/
+
+appsettings.Production.json
