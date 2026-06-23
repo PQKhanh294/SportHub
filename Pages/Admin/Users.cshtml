@@ -47,8 +47,61 @@
         }
     </form>
 
-    <!-- Users table -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <!-- Users card list — mobile only -->
+    <div class="sm:hidden space-y-2">
+        @foreach (var user in Model.Users)
+        {
+            var mobileRoles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null);
+            var mobileAvatar = string.IsNullOrWhiteSpace(user.AvatarUrl) ? "/images/avatar-default.png" : user.AvatarUrl;
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <img src="@mobileAvatar" class="size-10 rounded-full object-cover flex-shrink-0" alt="@user.FullName" />
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-semibold text-slate-900 dark:text-white text-sm truncate">@user.FullName</span>
+                            @foreach (var role in mobileRoles)
+                            {
+                                var mrc = role switch {
+                                    "Admin"      => "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+                                    "CourtOwner" => "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+                                    _            => "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                                };
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold @mrc">@role</span>
+                            }
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span class="text-xs text-slate-400">#@user.UserID</span>
+                            @if (user.IsActive)
+                            {
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400">Đã khóa</span>
+                            }
+                            <span class="text-xs font-bold @(user.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@user.WalletBalance.ToString("N0") ₫</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 flex-shrink-0">
+                        <form method="post" asp-page-handler="ToggleActive">
+                            <input type="hidden" name="userId" value="@user.UserID" />
+                            <input type="hidden" name="currentActive" value="@user.IsActive.ToString().ToLower()" />
+                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
+                                @(user.IsActive ? "Khóa" : "Mở khóa")
+                            </button>
+                        </form>
+                        <button type="button" onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
+                                class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
+                            + Ví
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Users table — desktop only -->
+    <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800 text-xs text-slate-500 uppercase tracking-wider">

@@ -69,7 +69,9 @@ builder.Services.AddScoped<SportHub.Services.Interfaces.IMessageReportService, S
 builder.Services.AddScoped<SportHub.Services.Interfaces.IUserBanService, SportHub.Services.Implementations.UserBanService>();
 builder.Services.AddScoped<SportHub.Services.Implementations.ChatModerationService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.ISubscriptionService, SportHub.Services.Implementations.SubscriptionService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IPromotionService, SportHub.Services.Implementations.PromotionService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
+builder.Services.AddHostedService<SportHub.Services.PromotionSchedulerService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -116,7 +118,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/geo/search", async (string q, int limit, IGeocodingService geo) =>
 {
     var results = await geo.SearchAsync(q, Math.Clamp(limit, 1, 10));
-    return Results.Json(results.Select(r => new { lat = r.Lat, lon = r.Lon, name = r.DisplayName }));
+    return Results.Json(results.Select(r => new { lat = r.Lat, lon = r.Lon, display_name = r.DisplayName, source = r.Source }));
 });
 
 app.MapGet("/geo/reverse", async (double lat, double lon, IHttpClientFactory clientFactory) =>

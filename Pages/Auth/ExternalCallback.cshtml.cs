@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Services.Interfaces;
+using SportHub.Models.Entities;
 
 namespace SportHub.Pages.Auth
 {
@@ -12,10 +13,12 @@ namespace SportHub.Pages.Auth
     public class ExternalCallbackModel : PageModel
     {
         private readonly IUserService _userService;
+        private readonly IPromotionService _promotionService;
 
-        public ExternalCallbackModel(IUserService userService)
+        public ExternalCallbackModel(IUserService userService, IPromotionService promotionService)
         {
             _userService = userService;
+            _promotionService = promotionService;
         }
 
         public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
@@ -61,7 +64,16 @@ namespace SportHub.Pages.Auth
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
             await HttpContext.SignOutAsync("ExternalCookie");
+            var prevLoginCount = user.LoginCount;
             await _userService.IncrementLoginCountAsync(user.UserID);
+
+            try
+            {
+                if (prevLoginCount == 0)
+                    await _promotionService.TriggerFirstLoginAsync(user.UserID);
+                await _promotionService.TriggerBirthdayAsync(user.UserID);
+            }
+            catch { /* non-critical, không break login */ }
 
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return LocalRedirect(returnUrl);

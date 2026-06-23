@@ -1,0 +1,210 @@
+@page
+@model SportHub.Pages.Admin.WalletModel
+@{
+    ViewData["Title"] = "Quản lý Ví người dùng";
+}
+
+<div class="space-y-5">
+    <partial name="_AdminNav" />
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white">Quản lý Ví ảo</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Cộng tiền thủ công và phát voucher cho người dùng.</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium text-sm">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium text-sm">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Search -->
+    <form method="get" class="flex gap-2">
+        <input name="Search" value="@Model.Search" placeholder="Tìm theo tên hoặc email..."
+               class="flex-1 rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90">Tìm</button>
+        @if (!string.IsNullOrEmpty(Model.Search))
+        {
+            <a asp-page="/Admin/Wallet" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">Xóa</a>
+        }
+    </form>
+
+    <!-- User List -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+            @Model.TotalCount người dùng
+            @if (!string.IsNullOrEmpty(Model.Search)) { <text> — kết quả cho "@Model.Search"</text> }
+        </div>
+
+        @if (!Model.Users.Any())
+        {
+            <div class="p-10 text-center">
+                <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">manage_search</span>
+                <p class="text-slate-400 text-sm">Không tìm thấy người dùng.</p>
+            </div>
+        }
+        else
+        {
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                @foreach (var user in Model.Users)
+                {
+                    <div class="flex items-center gap-4 px-5 py-4">
+                        <!-- Avatar -->
+                        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                            <span class="text-primary font-bold text-sm">@user.FullName[..1].ToUpper()</span>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-slate-800 dark:text-slate-200 truncate">@user.FullName</p>
+                            <p class="text-xs text-slate-400 truncate">@user.Email</p>
+                        </div>
+
+                        <!-- Balance -->
+                        <div class="text-right shrink-0">
+                            <p class="font-bold text-sm text-emerald-600 dark:text-emerald-400">@user.WalletBalance.ToString("N0") đ</p>
+                            <p class="text-xs text-slate-400">số dư ví</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-2 shrink-0">
+                            <button type="button"
+                                    onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
+                                    class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+                                Cộng tiền
+                            </button>
+                            <button type="button"
+                                    onclick="openVoucherModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
+                                    class="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800 rounded-lg text-xs font-semibold hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">redeem</span>
+                                Voucher
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="flex items-center justify-center gap-1">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                var isActive = i == Model.PageNumber;
+                <a asp-page="/Admin/Wallet" asp-route-Search="@Model.Search" asp-route-PageNumber="@i"
+                   class="@(isActive ? "bg-primary text-white" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary") w-9 h-9 rounded-lg text-sm font-semibold flex items-center justify-center transition-colors">
+                    @i
+                </a>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal: Cộng tiền -->
+<div id="creditModal" class="hidden fixed inset-0 z-[1200]">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeCreditModal()"></div>
+    <div class="relative mx-auto mt-20 w-[92%] max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
+        <h3 class="text-lg font-black text-slate-900 dark:text-white mb-1">Cộng tiền vào ví</h3>
+        <p id="creditUserName" class="text-sm text-slate-500 mb-5"></p>
+
+        <form method="post" asp-page-handler="Credit">
+            <input type="hidden" id="creditUserId" name="userId" value="" />
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Số tiền (VND)</label>
+                    <input type="number" name="amount" min="1000" step="1000" placeholder="50000"
+                           class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Nội dung thông báo <span class="text-rose-500">*</span></label>
+                    <input type="text" name="note" maxlength="200" placeholder="Ví dụ: Thưởng dùng thử tháng 6"
+                           class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" required />
+                    <p class="text-xs text-slate-400 mt-1">Người dùng sẽ nhận được thông báo với nội dung này.</p>
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" onclick="closeCreditModal()"
+                        class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Hủy</button>
+                <button type="submit"
+                        class="px-5 py-2 rounded-lg bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700">Cộng tiền</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Phát Voucher -->
+<div id="voucherModal" class="hidden fixed inset-0 z-[1200]">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeVoucherModal()"></div>
+    <div class="relative mx-auto mt-20 w-[92%] max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
+        <h3 class="text-lg font-black text-slate-900 dark:text-white mb-1">Phát Voucher cá nhân</h3>
+        <p id="voucherUserName" class="text-sm text-slate-500 mb-5"></p>
+
+        <form method="post" asp-page-handler="IssueVoucher">
+            <input type="hidden" id="voucherUserId" name="userId" value="" />
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Giá trị voucher (VND)</label>
+                    <input type="number" name="voucherAmount" min="1000" step="1000" placeholder="30000"
+                           class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Hạn sử dụng (để trống = không giới hạn)</label>
+                    <input type="date" name="voucherExpiry"
+                           class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Ghi chú</label>
+                    <input type="text" name="voucherNote" maxlength="200" placeholder="Ví dụ: Thưởng khách VIP tháng 6"
+                           class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" onclick="closeVoucherModal()"
+                        class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Hủy</button>
+                <button type="submit"
+                        class="px-5 py-2 rounded-lg bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">Phát Voucher</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openCreditModal(userId, name) {
+            document.getElementById('creditUserId').value = userId;
+            document.getElementById('creditUserName').textContent = 'Người nhận: ' + name;
+            document.getElementById('creditModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeCreditModal() {
+            document.getElementById('creditModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        function openVoucherModal(userId, name) {
+            document.getElementById('voucherUserId').value = userId;
+            document.getElementById('voucherUserName').textContent = 'Người nhận: ' + name;
+            document.getElementById('voucherModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeVoucherModal() {
+            document.getElementById('voucherModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    </script>
+}

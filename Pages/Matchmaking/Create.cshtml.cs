@@ -93,6 +93,8 @@ namespace SportHub.Pages.Matchmaking
             public bool IsRecurring { get; set; }
             public string? RecurringDays { get; set; }
             public DateTime? RecurringUntil { get; set; }
+
+            public bool HostJoins { get; set; } = false;
         }
 
         public async Task OnGetAsync()
@@ -216,7 +218,7 @@ namespace SportHub.Pages.Matchmaking
                 RecurringUntil = Input.IsRecurring ? Input.RecurringUntil : null,
             };
 
-            var matchId = await _matchService.CreateMatchAsync(match, userId);
+            var matchId = await _matchService.CreateMatchAsync(match, userId, Input.HostJoins);
             await _matchPaymentService.CreateHostDepositAsync(matchId, userId);
             await _subscriptionService.RecordCreateAsync(userId);
             TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} VND để đăng trận.";

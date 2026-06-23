@@ -389,6 +389,8 @@ namespace SportHub.Pages.Matchmaking
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
+            if (match.IsSplitFee) return "Chia đều cuối buổi";
+
             var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
             if (customPrice.HasValue) return $"{customPrice.Value:N0} VND";
             if (match.Booking?.FinalAmount > 0) return $"{match.Booking.FinalAmount:N0} VND";

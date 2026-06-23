@@ -62,6 +62,13 @@ namespace SportHub.Data
         public DbSet<SubscriptionOrder> SubscriptionOrders { get; set; } = null!;
         public DbSet<UserMatchCredit> UserMatchCredits { get; set; } = null!;
         public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; } = null!;
+        public DbSet<SavedPromoCode> SavedPromoCodes { get; set; } = null!;
+
+        // Nhóm 10: Promotions & Vouchers
+        public DbSet<PromotionCampaign> PromotionCampaigns { get; set; } = null!;
+        public DbSet<PromoCode> PromoCodes { get; set; } = null!;
+        public DbSet<UserVoucher> UserVouchers { get; set; } = null!;
+        public DbSet<PromotionRedemption> PromotionRedemptions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -587,7 +594,7 @@ namespace SportHub.Data
 
             modelBuilder.Entity<WalletTransaction>().ToTable(t =>
             {
-                t.HasCheckConstraint("CK_WalletTransactions_Type", "Type IN ('Refund','Deduction','AdminCredit','TopUp','MatchPayment')");
+                t.HasCheckConstraint("CK_WalletTransactions_Type", "Type IN ('Refund','Deduction','AdminCredit','TopUp','MatchPayment','Promotion')");
             });
 
             // WalletTopUpRequest
@@ -629,7 +636,7 @@ namespace SportHub.Data
             modelBuilder.Entity<Notification>().ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Notifications_Type",
-                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder','RemainingFeeReminder','WalletCredit')");
+                    "Type IN ('MatchJoin','MatchApprove','MatchReject','MatchJoinExpired','BookingConfirmed','BookingCancelled','System','Chat','MatchPaymentRequired','MatchRemainingFeeRequired','MatchPaymentConfirmed','MatchCompleted','MatchReviewReminder','RemainingFeeReminder','WalletCredit','Promotion','AdminCredit','Voucher')");
             });
 
             // ---- Chat Enhancement Phase 2 ----
@@ -762,6 +769,17 @@ namespace SportHub.Data
                 t.HasCheckConstraint("CK_UserMatchCredits_Status", "Status IN ('Pending','Confirmed')");
             });
 
+            modelBuilder.Entity<SavedPromoCode>().ToTable("SavedPromoCodes");
+            modelBuilder.Entity<SavedPromoCode>().HasKey(s => s.SavedCodeID);
+            modelBuilder.Entity<SavedPromoCode>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<SavedPromoCode>()
+                .HasIndex(s => new { s.UserID, s.Code })
+                .IsUnique();
+
             modelBuilder.Entity<SubscriptionUsage>().ToTable("SubscriptionUsages");
             modelBuilder.Entity<SubscriptionUsage>().HasKey(u => u.SubscriptionUsageID);
             modelBuilder.Entity<SubscriptionUsage>()
@@ -820,6 +838,84 @@ namespace SportHub.Data
                     HasVerifiedBadge = true, HasPlayerFeeExempt = true
                 }
             );
+
+            // ---- Promotion & Voucher ----
+
+            modelBuilder.Entity<PromotionCampaign>().ToTable("PromotionCampaigns");
+            modelBuilder.Entity<PromotionCampaign>().HasKey(c => c.CampaignID);
+            modelBuilder.Entity<PromotionCampaign>().Property(c => c.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<PromotionCampaign>()
+                .HasOne(c => c.CreatedByAdmin)
+                .WithMany()
+                .HasForeignKey(c => c.CreatedByAdminID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PromoCode>().ToTable("PromoCodes");
+            modelBuilder.Entity<PromoCode>().HasKey(p => p.PromoCodeID);
+            modelBuilder.Entity<PromoCode>()
+                .HasIndex(p => p.Code)
+                .IsUnique();
+            modelBuilder.Entity<PromoCode>()
+                .HasOne(p => p.Campaign)
+                .WithMany(c => c.PromoCodes)
+                .HasForeignKey(p => p.CampaignID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserVoucher>().ToTable("UserVouchers");
+            modelBuilder.Entity<UserVoucher>().HasKey(v => v.VoucherID);
+            modelBuilder.Entity<UserVoucher>()
+                .HasIndex(v => v.Code)
+                .IsUnique();
+            modelBuilder.Entity<UserVoucher>().Property(v => v.Amount).HasPrecision(12, 2);
+            modelBuilder.Entity<UserVoucher>()
+                .HasOne(v => v.User)
+                .WithMany(u => u.Vouchers)
+                .HasForeignKey(v => v.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<UserVoucher>()
+                .HasOne(v => v.Campaign)
+                .WithMany(c => c.UserVouchers)
+                .HasForeignKey(v => v.CampaignID)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<UserVoucher>()
+                .HasOne(v => v.IssuedByAdmin)
+                .WithMany()
+                .HasForeignKey(v => v.IssuedByAdminID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PromotionRedemption>().ToTable("PromotionRedemptions");
+            modelBuilder.Entity<PromotionRedemption>().HasKey(r => r.RedemptionID);
+            modelBuilder.Entity<PromotionRedemption>().Property(r => r.AmountCredited).HasPrecision(12, 2);
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasOne(r => r.Campaign)
+                .WithMany(c => c.Redemptions)
+                .HasForeignKey(r => r.CampaignID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasOne(r => r.PromoCode)
+                .WithMany()
+                .HasForeignKey(r => r.PromoCodeID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasOne(r => r.Voucher)
+                .WithMany()
+                .HasForeignKey(r => r.VoucherID)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasOne(r => r.WalletTransaction)
+                .WithMany()
+                .HasForeignKey(r => r.WalletTransactionID)
+                .OnDelete(DeleteBehavior.NoAction);
+            // Unique: mỗi user chỉ nhận auto-trigger (FirstLogin/Birthday...) 1 lần / campaign
+            modelBuilder.Entity<PromotionRedemption>()
+                .HasIndex(r => new { r.UserID, r.CampaignID })
+                .HasFilter("[PromoCodeID] IS NULL AND [VoucherID] IS NULL")
+                .IsUnique();
         }
     }
 }

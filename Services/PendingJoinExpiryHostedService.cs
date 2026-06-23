@@ -89,6 +89,7 @@ namespace SportHub.Services
         private async Task AutoCompleteMatchesAsync(IServiceScope scope, INotificationService notificationService, CancellationToken ct)
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
             var nowUtc = DateTime.UtcNow;
             // Vietnam is UTC+7; match end time stored as local time, so we compare with nowUtc + 7h
             var nowLocal = nowUtc.AddHours(7);
@@ -107,6 +108,44 @@ namespace SportHub.Services
 
                 var acceptedPlayers = match.Participants.Where(p => p.JoinStatus == "Accepted").ToList();
                 var matchTitle = match.Title ?? match.MatchType;
+
+                // Auto-refund host deposit when no players joined
+                if (acceptedPlayers.Count == 0 && match.DepositStatus == "Paid")
+                {
+                    var deposit = await db.MatchPayments
+                        .FirstOrDefaultAsync(p => p.MatchID == match.MatchID
+                            && p.PaymentType == "HostDeposit"
+                            && p.Status == "Confirmed", ct);
+
+                    if (deposit != null)
+                    {
+                        // Dedup: check if refund already issued for this match
+                        var alreadyRefunded = await db.WalletTransactions
+                            .AnyAsync(t => t.UserID == match.CreatedByUserID
+                                && t.RelatedMatchID == match.MatchID
+                                && t.Type == "Refund", ct);
+
+                        if (!alreadyRefunded)
+                        {
+                            await walletService.CreditAsync(
+                                match.CreatedByUserID,
+                                deposit.Amount,
+                                $"Hoàn đặt cọc — trận \"{matchTitle}\" không có người tham gia",
+                                match.MatchID,
+                                "Refund");
+
+                            await notificationService.CreateAsync(
+                                match.CreatedByUserID,
+                                "WalletCredit",
+                                "Hoàn tiền đặt cọc",
+                                $"Trận \"{matchTitle}\" kết thúc mà không có người tham gia. {deposit.Amount:N0} VND đã được hoàn vào ví.",
+                                "/Wallet");
+
+                            _logger.LogInformation("Refunded {Amount} to host {HostId} for empty match {MatchId}.",
+                                deposit.Amount, match.CreatedByUserID, match.MatchID);
+                        }
+                    }
+                }
 
                 // Notify host to rate players
                 if (acceptedPlayers.Count > 0)

@@ -280,5 +280,12 @@ namespace SportHub.Services.Implementations
                 .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
                 .FirstAsync(u => u.UserID == newUser.UserID);
         }
+
+        public Task<bool> IsAdminAsync(int userId)
+        {
+            return _context.UserRoles
+                .Include(ur => ur.Role)
+                .AnyAsync(ur => ur.UserID == userId && ur.Role.RoleName == "Admin");
+        }
     }
 }

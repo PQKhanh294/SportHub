@@ -13,7 +13,7 @@ namespace SportHub.Services.Interfaces
         Task<Match?> GetMatchDetailsAsync(int matchId);
         Task<bool> JoinMatchAsync(int matchId, int userId);
         Task<bool> SkipMatchAsync(int matchId, int userId);
-        Task<int> CreateMatchAsync(Match match, int createdByUserId);
+        Task<int> CreateMatchAsync(Match match, int createdByUserId, bool hostJoins = false);
         Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
         Task<bool> DeleteMatchAsync(int matchId, int userId);
         Task<bool> ApproveParticipantAsync(int matchId, int participantId, int hostUserId);
@@ -205,7 +205,7 @@ namespace SportHub.Services.Implementations
             return true;
         }
 
-        public async Task<int> CreateMatchAsync(Match match, int createdByUserId)
+        public async Task<int> CreateMatchAsync(Match match, int createdByUserId, bool hostJoins = false)
         {
             match.CreatedByUserID = createdByUserId;
             match.Status = "PendingDeposit"; // Becomes Open after host deposit confirmed
@@ -215,16 +215,18 @@ namespace SportHub.Services.Implementations
             _context.Matches.Add(match);
             await _context.SaveChangesAsync();
 
-            // Host tự động là Accepted
-            _context.MatchParticipants.Add(new MatchParticipant
+            if (hostJoins)
             {
-                MatchID = match.MatchID,
-                UserID = createdByUserId,
-                JoinStatus = "Accepted",
-                JoinedAt = DateTime.UtcNow
-            });
+                _context.MatchParticipants.Add(new MatchParticipant
+                {
+                    MatchID = match.MatchID,
+                    UserID = createdByUserId,
+                    JoinStatus = "Accepted",
+                    JoinedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
 
-            await _context.SaveChangesAsync();
             return match.MatchID;
         }
 

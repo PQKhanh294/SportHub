@@ -45,7 +45,7 @@
                 <label class="block text-sm font-semibold mb-2">Địa chỉ sân (tùy chọn)</label>
                 <input asp-for="Input.CourtAddress" id="courtAddressInput" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập địa chỉ sân" autocomplete="off" />
                 <span asp-validation-for="Input.CourtAddress" class="text-xs text-red-500"></span>
-                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg"></div>
+                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-52 overflow-y-auto hidden z-[1000] shadow-lg"></div>
                 <input type="hidden" asp-for="Input.Latitude" id="courtLatitude" />
                 <input type="hidden" asp-for="Input.Longitude" id="courtLongitude" />
                 <p class="mt-1 text-[11px] text-amber-700 dark:text-amber-400">Gợi ý tự động có thể chỉ tới mức đường. Sau khi chọn, <strong>kéo ghim đỏ</strong> đúng cổng sân để khoảng cách chính xác.</p>
@@ -165,8 +165,15 @@
         </div>
 
         <div>
-            <label class="block text-sm font-semibold mb-2">Mô tả trận</label>
-            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Mô tả thêm về trận đấu..."></textarea>
+            <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-semibold">Mô tả trận</label>
+                <button type="button" id="aiDescBtn" onclick="generateAiDesc()"
+                        class="flex items-center gap-1 px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors">
+                    <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                    <span id="aiDescBtnText">Gợi ý AI</span>
+                </button>
+            </div>
+            <textarea id="descriptionTextarea" asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Mô tả thêm về trận đấu..."></textarea>
         </div>
 
         <!-- Lặp lại hàng tuần (tùy chọn) -->
@@ -200,6 +207,14 @@
             </div>
             <input type="hidden" name="Input.IsRecurring" id="isRecurringHidden" value="false" />
             <input type="hidden" name="Input.RecurringDays" id="recurringDaysHidden" value="" />
+        </div>
+
+        <div class="pt-1">
+            <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input type="checkbox" asp-for="Input.HostJoins" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600" style="accent-color:#50A5B1" />
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Tôi cũng sẽ tham gia trận này với tư cách người chơi</span>
+            </label>
+            <p class="text-xs text-slate-400 mt-1 ml-6.5">Bỏ chọn nếu bạn chỉ tạo và quản lý trận, không tham gia thi đấu.</p>
         </div>
 
         <div class="flex gap-3">
@@ -470,5 +485,39 @@
             searchUrl: '/geo/search'
         });
     });
+
+    async function generateAiDesc() {
+        const btn = document.getElementById('aiDescBtn');
+        const btnText = document.getElementById('aiDescBtnText');
+        const textarea = document.getElementById('descriptionTextarea');
+
+        const sportSelect = document.querySelector('[name="Input.SportId"]');
+        const skillSelect = document.querySelector('[name="Input.SkillRequired"]');
+        const typeSelect = document.querySelector('[name="Input.MatchType"]');
+        const dateInput = document.querySelector('[name="Input.MatchDate"]');
+
+        const sportText = sportSelect ? sportSelect.options[sportSelect.selectedIndex]?.text : '';
+        const skillText = skillSelect ? skillSelect.options[skillSelect.selectedIndex]?.text : '';
+        const typeText = typeSelect ? typeSelect.options[typeSelect.selectedIndex]?.text : '';
+        const dateVal = dateInput ? dateInput.value : '';
+
+        btnText.textContent = 'Đang tạo...';
+        btn.disabled = true;
+
+        try {
+            const params = new URLSearchParams({ sport: sportText, skill: skillText, type: typeText, date: dateVal });
+            const res = await fetch('/api/chat/match-desc?' + params.toString());
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            if (data.description) {
+                textarea.value = data.description;
+            }
+        } catch (e) {
+            alert('Không thể tạo mô tả AI. Vui lòng thử lại.');
+        } finally {
+            btnText.textContent = 'Gợi ý AI';
+            btn.disabled = false;
+        }
+    }
     </script>
 }

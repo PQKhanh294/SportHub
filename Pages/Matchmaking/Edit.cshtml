@@ -45,7 +45,7 @@
                 <label class="block text-sm font-semibold mb-2">Địa chỉ sân (tùy chọn)</label>
                 <input asp-for="Input.CourtAddress" id="courtAddressInput" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập địa chỉ sân" autocomplete="off" />
                 <span asp-validation-for="Input.CourtAddress" class="text-xs text-red-500"></span>
-                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-50 shadow-lg"></div>
+                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-[1000] shadow-lg"></div>
                 <input type="hidden" asp-for="Input.Latitude" id="courtLatitude" />
                 <input type="hidden" asp-for="Input.Longitude" id="courtLongitude" />
                 <p class="mt-1 text-[11px] text-amber-700 dark:text-amber-400">Gợi ý tự động có thể chỉ tới mức đường. Sau khi chọn, <strong>kéo ghim đỏ</strong> đúng cổng sân.</p>

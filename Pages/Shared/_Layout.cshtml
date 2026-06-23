@@ -170,12 +170,14 @@
     var navFriends = isEnglish ? "Friends" : "Bạn bè";
     var navMessages = isEnglish ? "Messages" : "Tin nhắn";
     var navNotifications = isEnglish ? "Notifications" : "Thông báo";
+    var navMore = isEnglish ? "More" : "Thêm";
     var createMatchText = isEnglish ? "Create match" : "Tạo trận đấu";
     var findMatchText = isEnglish ? "Find match now" : "Tìm trận ngay";
     var loginText = isEnglish ? "Log in" : "Đăng nhập";
     var registerText = isEnglish ? "Register" : "Đăng ký";
     var logoutText = isEnglish ? "Log out" : "Đăng xuất";
     var openMenuText = isEnglish ? "Open menu" : "Mở menu";
+    var upgradeText = isEnglish ? "Upgrade" : "Nâng cấp";
     var footerAbout = isEnglish ? "About us" : "Về chúng tôi";
     var footerRules = isEnglish ? "Community rules" : "Quy tắc cộng đồng";
     var footerPrivacy = isEnglish ? "Privacy policy" : "Chính sách bảo mật";
@@ -183,9 +185,20 @@
     var footerSupport = isEnglish ? "Support" : "Hỗ trợ";
     var footerCopyright = isEnglish ? "All rights reserved by the development team." : "Bản quyền thuộc về đội ngũ phát triển.";
     var toastDetailText = isEnglish ? "View details" : "Xem chi tiết";
+    var aiSubtitleText = isEnglish ? "AI Assistant" : "Trợ lý hỗ trợ";
+    var msgDeletedText = isEnglish ? "Message deleted" : "Tin nhắn đã bị xóa";
+    var msgInputPlaceholder = isEnglish ? "Type a message..." : "Nhập tin nhắn...";
+    var aiInputPlaceholder = isEnglish ? "Ask a question..." : "Nhập câu hỏi...";
+    var pinMsgText = isEnglish ? "Pin message" : "Ghim tin nhắn";
+    var deleteMsgText = isEnglish ? "Delete message" : "Xóa tin nhắn";
+    var reportMsgText = isEnglish ? "Report" : "Báo cáo";
+    var reportMsgModalTitle = isEnglish ? "Report message" : "Báo cáo tin nhắn";
+    var reportReasonPlaceholder = isEnglish ? "Reason (optional)..." : "Lý do (không bắt buộc)...";
+    var cancelText = isEnglish ? "Cancel" : "Hủy";
+    var currentActivePage = ViewData["ActivePage"]?.ToString() ?? "";
 }
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display page-@(currentActivePage.ToLower())">
     <!-- Google Tag Manager (noscript) -->
     <noscript>
         <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8LPQJT7"
@@ -260,9 +273,9 @@
                     {
                         <a href="/Subscription"
                            class="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-primary/30 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all"
-                           title="Nâng cấp">
+                           title="@upgradeText">
                             <span class="material-symbols-outlined text-sm">workspace_premium</span>
-                            <span class="hidden lg:inline">Nâng cấp</span>
+                            <span class="hidden lg:inline">@upgradeText</span>
                         </a>
                     }
                     else
@@ -431,6 +444,8 @@
                 <span id="sb-badge-reports" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
             </a>
             <a asp-page="/Admin/Subscriptions"  class="@AdminNavCls("Subscriptions")"><span class="material-symbols-outlined text-[18px]">workspace_premium</span>Gói đăng ký</a>
+            <a asp-page="/Admin/Wallet"          class="@AdminNavCls("Wallet")"><span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>Ví ảo</a>
+            <a asp-page="/Admin/Promotions"      class="@AdminNavCls("Promotions")"><span class="material-symbols-outlined text-[18px]">local_offer</span>Khuyến mãi</a>
         </nav>
         <div class="p-3 border-t border-slate-100 dark:border-slate-800">
             <a href="/" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-primary rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
@@ -747,6 +762,52 @@ else
                 window.dispatchEvent(new CustomEvent('sporthub:admin_counts', { detail: payload }));
             });
 
+            // ── Wallet balance realtime ──────────────────────────────────────
+            connection.on('WalletCredited', function (data) {
+                var fmt = Number(data.newBalance).toLocaleString('vi-VN');
+                var el  = document.getElementById('nav-wallet-balance');
+                var elm = document.getElementById('nav-wallet-balance-mobile');
+                if (el)  el.textContent  = fmt + ' ₫';
+                if (elm) elm.textContent = fmt + ' ₫';
+                // Also update wallet page balance display if open
+                var walletEl = document.getElementById('wallet-balance-display');
+                if (walletEl) walletEl.textContent = fmt;
+                // Prepend new transaction row if wallet history list exists
+                window.dispatchEvent(new CustomEvent('sporthub:wallet_credited', { detail: data }));
+                // Flash toast
+                _showWalletToast('+' + Number(data.amount).toLocaleString('vi-VN') + 'đ đã vào ví');
+            });
+
+            // ── Match payment confirmed by admin ────────────────────────────
+            connection.on('MatchPaymentConfirmed', function (data) {
+                window.dispatchEvent(new CustomEvent('sporthub:payment_confirmed', { detail: data }));
+                _showWalletToast('Thanh toán trận đấu được xác nhận! Bạn đã vào trận.', 'emerald');
+                // If on matchmaking page, reload after short delay to refresh card state
+                if (location.pathname.startsWith('/Matchmaking') || location.pathname === '/') {
+                    setTimeout(function() { location.reload(); }, 2000);
+                }
+            });
+
+            connection.on('MatchPaymentRejected', function (data) {
+                _showWalletToast('Thanh toán bị từ chối: ' + (data.reason || 'Liên hệ admin'), 'rose');
+            });
+
+            function _showWalletToast(msg, color) {
+                color = color || 'primary';
+                var colorMap = {
+                    primary: 'bg-primary text-white',
+                    emerald: 'bg-emerald-600 text-white',
+                    rose:    'bg-rose-600 text-white'
+                };
+                var cls = colorMap[color] || colorMap.primary;
+                var t = document.createElement('div');
+                t.textContent = msg;
+                t.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] px-5 py-2.5 rounded-full ' + cls + ' text-sm font-semibold shadow-xl transition-all duration-300 opacity-0';
+                document.body.appendChild(t);
+                requestAnimationFrame(function() { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(-6px)'; });
+                setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 400); }, 3000);
+            }
+
             connection.start().catch(function (err) {
                 console.warn('Notification realtime disabled:', err);
             });
@@ -784,10 +845,13 @@ body { transition: margin-right 0.32s cubic-bezier(0.4,0,0.2,1), margin-left 0.3
     }
     /* AI FAB smaller on mobile */
     #ai-fab { width: 48px !important; height: 48px !important; }
+    /* Hide AI FAB on Messages page — it covers the send button */
+    body.page-messages #ai-chat-wrap { display: none !important; }
 }
 .dark #ai-sidebar { background: #0f172a; border-left-color: rgba(51,65,85,0.8); }
 #ai-sidebar.open { transform: translateX(0); }
-#ai-chat-wrap, #chat-popup-wrap { transition: right 0.32s cubic-bezier(0.4,0,0.2,1), bottom 0.2s; }
+#ai-chat-wrap, #chat-popup-wrap { transition: right 0.32s cubic-bezier(0.4,0,0.2,1), left 0.32s cubic-bezier(0.4,0,0.2,1), bottom 0.2s, top 0.2s; }
+#ai-chat-wrap.fab-dragging, #chat-popup-wrap.fab-dragging { transition: none !important; }
 /* Bottom nav safe area */
 #mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
 /* Hide footer on mobile to save space */
@@ -808,12 +872,12 @@ window.updateRightSidebarState = function () {
     var baseRight = total > 0 ? (total + 16) : 24;
     var aiWrap = document.getElementById('ai-chat-wrap');
     var chatWrap = document.getElementById('chat-popup-wrap');
-    if (aiWrap) aiWrap.style.right = baseRight + 'px';
+    if (aiWrap && !aiWrap._userDragged) aiWrap.style.right = baseRight + 'px';
     // Chat wrap: left of AI wrap — spacing depends on whether AI popup is open (320px) or just FAB (56px)
     var aiPanelEl = document.getElementById('ai-panel');
     var aiPanelOpen = aiPanelEl && aiPanelEl.style.display === 'flex';
     var chatRight = baseRight + (aiPanelOpen ? POPUP_W : FAB_W) + GAP;
-    if (chatWrap) chatWrap.style.right = chatRight + 'px';
+    if (chatWrap && !chatWrap._userDragged) chatWrap.style.right = chatRight + 'px';
 };
 </script>
 
@@ -823,7 +887,7 @@ window.updateRightSidebarState = function () {
         <img src="/images/logo sporthub.png" style="width:28px;height:28px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.2);padding:2px;flex-shrink:0" />
         <div style="flex:1">
             <p style="font-size:14px;font-weight:600;color:white;margin:0;line-height:1.2">SportHub AI</p>
-            <p style="font-size:11px;color:rgba(255,255,255,0.65);margin:0">Trợ lý hỗ trợ</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.65);margin:0">@aiSubtitleText</p>
         </div>
         <button onclick="clearAiChat()" title="Xóa cuộc trò chuyện" style="background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%;display:flex" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
             <span class="material-symbols-outlined" style="font-size:20px">delete_sweep</span>
@@ -851,7 +915,7 @@ window.updateRightSidebarState = function () {
         <button onclick="document.getElementById('ai-file-full').click()" title="Đính kèm ảnh" style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#64748b" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
             <span class="material-symbols-outlined" style="font-size:18px">attach_file</span>
         </button>
-        <input id="ai-input-full" type="text" maxlength="500" placeholder="Nhập câu hỏi hoặc đính kèm ảnh..."
+        <input id="ai-input-full" type="text" maxlength="500" placeholder="@aiInputPlaceholder"
             style="flex:1;font-size:13px;border-radius:999px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
             onkeydown="if(event.key==='Enter')sendAiMsg('full')" />
         <button id="ai-send-full" onclick="sendAiMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#3d8a95'" onmouseout="if(!aiSending)this.style.background='#50A5B1'">
@@ -861,13 +925,13 @@ window.updateRightSidebarState = function () {
 </div>
 
 <!-- AI Popup + FAB -->
-<div id="ai-chat-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+<div id="ai-chat-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:row;align-items:flex-end;gap:8px">
     <div id="ai-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
         <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <img src="/images/logo sporthub.png" style="width:26px;height:26px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.2);padding:2px;flex-shrink:0" />
             <div style="flex:1">
                 <p style="font-size:13px;font-weight:600;color:white;margin:0;line-height:1.2">SportHub AI</p>
-                <p style="font-size:10px;color:rgba(255,255,255,0.65);margin:0">Trợ lý hỗ trợ</p>
+                <p style="font-size:10px;color:rgba(255,255,255,0.65);margin:0">@aiSubtitleText</p>
             </div>
             <button onclick="clearAiChat()" title="Xóa cuộc trò chuyện" style="background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%;display:flex" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
                 <span class="material-symbols-outlined" style="font-size:18px">delete_sweep</span>
@@ -895,7 +959,7 @@ window.updateRightSidebarState = function () {
             <button onclick="document.getElementById('ai-file-popup').click()" title="Đính kèm ảnh" style="width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#64748b" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                 <span class="material-symbols-outlined" style="font-size:16px">attach_file</span>
             </button>
-            <input id="ai-input-popup" type="text" maxlength="500" placeholder="Nhập câu hỏi..."
+            <input id="ai-input-popup" type="text" maxlength="500" placeholder="@aiInputPlaceholder"
                 style="flex:1;font-size:13px;border-radius:999px;padding:8px 14px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                 class="dark:!bg-slate-800 dark:!text-white"
                 onkeydown="if(event.key==='Enter')sendAiMsg('popup')" />
@@ -1208,7 +1272,7 @@ window.updateRightSidebarState = function () {
     <div id="chat-sw-header" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#50A5B1;flex-shrink:0;min-height:57px;box-sizing:border-box">
         <span class="material-symbols-outlined" style="color:white;font-size:22px;flex-shrink:0">chat</span>
         <div style="flex:1" id="chat-sw-header-title">
-            <p style="font-size:14px;font-weight:600;color:white;margin:0">Tin nhắn</p>
+            <p style="font-size:14px;font-weight:600;color:white;margin:0">@navMessages</p>
         </div>
         <button onclick="chatBackToList('full')" id="chat-sw-back-btn" style="display:none;background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%;display:none;align-items:center" title="Quay lại">
             <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
@@ -1267,7 +1331,7 @@ window.updateRightSidebarState = function () {
             <button onclick="document.getElementById('chat-sw-file').click()" style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;flex-shrink:0" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" title="Gửi ảnh">
                 <span class="material-symbols-outlined" style="font-size:18px">image</span>
             </button>
-            <input id="chat-sw-input" type="text" maxlength="500" placeholder="Nhập tin nhắn..."
+            <input id="chat-sw-input" type="text" maxlength="500" placeholder="@msgInputPlaceholder"
                 style="flex:1;font-size:13px;border-radius:999px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                 class="dark:!bg-slate-800 dark:!text-white"
                 onpaste="handleChatWidgetPaste(event,'full')"
@@ -1281,12 +1345,12 @@ window.updateRightSidebarState = function () {
 </div>
 
 <!-- Chat Popup + FAB (bottom-right, stacked above AI chatbot FAB) -->
-<div id="chat-popup-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+<div id="chat-popup-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:row;align-items:flex-end;gap:8px">
     <div id="chat-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
         <!-- Panel header -->
         <div id="chat-panel-header" style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <span class="material-symbols-outlined" style="color:white;font-size:20px;flex-shrink:0">chat</span>
-            <div style="flex:1" id="chat-panel-header-title"><p style="font-size:13px;font-weight:600;color:white;margin:0">Tin nhắn</p></div>
+            <div style="flex:1" id="chat-panel-header-title"><p style="font-size:13px;font-weight:600;color:white;margin:0">@navMessages</p></div>
             <button onclick="chatBackToList('popup')" id="chat-panel-back-btn" style="display:none;background:transparent;border:none;color:white;cursor:pointer;padding:4px;border-radius:50%" title="Quay lại" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='transparent'">
                 <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
             </button>
@@ -1322,7 +1386,7 @@ window.updateRightSidebarState = function () {
                 <button onclick="document.getElementById('chat-panel-file').click()" style="width:30px;height:30px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;flex-shrink:0" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" title="Gửi ảnh">
                     <span class="material-symbols-outlined" style="font-size:16px">image</span>
                 </button>
-                <input id="chat-panel-input" type="text" maxlength="500" placeholder="Nhập tin nhắn..."
+                <input id="chat-panel-input" type="text" maxlength="500" placeholder="@msgInputPlaceholder"
                     style="flex:1;font-size:13px;border-radius:999px;padding:7px 12px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                     class="dark:!bg-slate-800 dark:!text-white"
                     onpaste="handleChatWidgetPaste(event,'popup')"
@@ -1339,15 +1403,15 @@ window.updateRightSidebarState = function () {
     <div id="cw-report-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)">
         <div style="background:white;border-radius:20px;box-shadow:0 25px 50px rgba(0,0,0,0.25);width:320px;max-width:90vw;overflow:hidden" class="dark:!bg-slate-900">
             <div style="padding:16px 20px 12px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:14px;font-weight:700">Báo cáo tin nhắn</span>
+                <span style="font-size:14px;font-weight:700">@reportMsgModalTitle</span>
                 <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:18px;line-height:1">✕</button>
             </div>
             <div id="cw-report-preview" style="padding:10px 20px;background:#f8fafc;font-size:12px;color:#64748b;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
             <div style="padding:12px 20px 16px">
-                <textarea id="cw-report-reason" placeholder="Lý do (không bắt buộc)..." style="width:100%;box-sizing:border-box;background:#f1f5f9;border:none;border-radius:10px;padding:8px 12px;font-size:12px;resize:none;height:70px;outline:none;font-family:inherit"></textarea>
+                <textarea id="cw-report-reason" placeholder="@reportReasonPlaceholder" style="width:100%;box-sizing:border-box;background:#f1f5f9;border:none;border-radius:10px;padding:8px 12px;font-size:12px;resize:none;height:70px;outline:none;font-family:inherit"></textarea>
                 <div style="display:flex;gap:8px;margin-top:10px">
-                    <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="flex:1;padding:8px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:12px;font-weight:600;cursor:pointer">Hủy</button>
-                    <button onclick="cwSubmitReport()" style="flex:1;padding:8px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:12px;font-weight:700;cursor:pointer">Báo cáo</button>
+                    <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="flex:1;padding:8px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:12px;font-weight:600;cursor:pointer">@cancelText</button>
+                    <button onclick="cwSubmitReport()" style="flex:1;padding:8px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:12px;font-weight:700;cursor:pointer">@reportMsgText</button>
                 </div>
             </div>
         </div>
@@ -1431,7 +1495,7 @@ window.updateRightSidebarState = function () {
                     var bubble = row.querySelector('[data-cw-mid="' + payload.messageId + '"]');
                     if (bubble) {
                         bubble.style.cssText = 'padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic';
-                        bubble.textContent = 'Tin nhắn đã bị xóa';
+                        bubble.textContent = '@msgDeletedText';
                     }
                     // Hide react bar
                     var reactBar = row.querySelector('.cw-react-bar');
@@ -1620,7 +1684,7 @@ window.updateRightSidebarState = function () {
         var backBtn = document.getElementById(mode === 'full' ? 'chat-sw-back-btn' : 'chat-panel-back-btn');
         if (backBtn) backBtn.style.display = 'none';
         var headerTitle = document.getElementById(mode === 'full' ? 'chat-sw-header-title' : 'chat-panel-header-title');
-        if (headerTitle) headerTitle.innerHTML = '<p style="font-size:' + (mode === 'full' ? '14' : '13') + 'px;font-weight:600;color:white;margin:0">Tin nhắn</p>';
+        if (headerTitle) headerTitle.innerHTML = '<p style="font-size:' + (mode === 'full' ? '14' : '13') + 'px;font-weight:600;color:white;margin:0">@navMessages</p>';
         clearChatWidgetImage(mode);
         clearChatWidgetMatch();
     };
@@ -1785,17 +1849,17 @@ window.updateRightSidebarState = function () {
             + '</div>'
             // 3-dot dropdown menu (mở lên trên)
             + '<div class="cw-msg-menu" data-mid="' + mid + '" style="display:none;position:absolute;bottom:100%;margin-bottom:4px;' + pickerAlign + ';background:white;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:4px 0;min-width:160px;z-index:12">'
-            + '<button onclick="cwPinMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#0f172a;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px;color:#64748b">push_pin</span>Ghim tin nhắn</button>'
+            + '<button onclick="cwPinMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#0f172a;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px;color:#64748b">push_pin</span>@pinMsgText</button>'
             + (isMine
-                ? '<button onclick="cwDeleteMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px">delete</span>Xóa tin nhắn</button>'
-                : '<button onclick="cwReportMsg(' + mid + ',\'' + escHtml((msg.content||'').substring(0,80)) + '\')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px">flag</span>Báo cáo</button>')
+                ? '<button onclick="cwDeleteMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px">delete</span>@deleteMsgText</button>'
+                : '<button onclick="cwReportMsg(' + mid + ',\'' + escHtml((msg.content||'').substring(0,80)) + '\')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px">flag</span>@reportMsgText</button>')
             + '</div>'
             + '</div>';
 
         // Bubble column — max-width trực tiếp trên flex item, không bọc thêm position:relative
         var bubbleContent = '';
         if (deleted) {
-            bubbleContent = '<div style="padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic">Tin nhắn đã bị xóa</div>';
+            bubbleContent = '<div style="padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic">@msgDeletedText</div>';
         } else if (msg.messageType === 'Image' && msg.imageUrl) {
             bubbleContent = replyHtml
                 + '<img src="' + msg.imageUrl + '" data-cw-mid="' + mid + '" style="max-width:160px;border-radius:12px;cursor:pointer;display:block" onclick="window.open(this.src)" />'
@@ -2103,29 +2167,29 @@ window.updateRightSidebarState = function () {
             <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Home" ? "1" : "0")">home</span>
             <span class="text-[10px] font-semibold">@navHome</span>
         </a>
-        <!-- Ghép trận -->
+        <!-- Matchmaking -->
         <a asp-page="/Matchmaking/Index" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Matchmaking" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
             <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Matchmaking" ? "1" : "0")">sports</span>
-            <span class="text-[10px] font-semibold">Ghép trận</span>
+            <span class="text-[10px] font-semibold">@navMatchmaking</span>
         </a>
         @if (isAuthenticated)
         {
-            <!-- Tin nhắn -->
+            <!-- Messages -->
             <a asp-page="/Messages/Index" class="relative flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Messages" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
                 <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Messages" ? "1" : "0")">chat_bubble</span>
                 <span id="bn-chat-badge" class="absolute top-0 right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none @(unreadChatCount > 0 ? "" : "hidden")">@(unreadChatCount > 9 ? "9+" : unreadChatCount.ToString())</span>
-                <span class="text-[10px] font-semibold">Tin nhắn</span>
+                <span class="text-[10px] font-semibold">@navMessages</span>
             </a>
-            <!-- Bạn bè -->
+            <!-- Friends -->
             <a asp-page="/Users/Friends" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Friends" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
                 <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Friends" ? "1" : "0")">group</span>
                 <span class="text-[10px] font-semibold">@navFriends</span>
             </a>
         }
-        <!-- Thêm -->
+        <!-- More -->
         <button onclick="openMoreSheet()" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] text-slate-400 dark:text-slate-500 bg-transparent border-none cursor-pointer">
             <span class="material-symbols-outlined text-[24px]">more_horiz</span>
-            <span class="text-[10px] font-semibold">Thêm</span>
+            <span class="text-[10px] font-semibold">@navMore</span>
         </button>
     </div>
 </nav>
@@ -2225,6 +2289,216 @@ window.setChatBadge = function(n) {
     if (n > 0) { bn.textContent = n > 9 ? '9+' : String(n); bn.classList.remove('hidden'); }
     else { bn.classList.add('hidden'); }
 };
+
+// ---- Draggable floating buttons ----
+(function() {
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    var EDGE_MARGIN = 20;
+    var FAB_GAP = 10;
+    var PANEL_H = 490; // panel height — used to clamp vertical offset so panel fits on screen
+
+    // Apply resting position.
+    // Panel is always BESIDE the FAB (row layout), never above/below.
+    // side='left'  → flex-direction:row         → FAB left,  panel RIGHT of FAB
+    // side='right' → flex-direction:row-reverse  → FAB right, panel LEFT  of FAB
+    // vhalf='top'  → align-items:flex-start, top:offset  → tops  of FAB & panel align
+    // vhalf='bottom'→ align-items:flex-end,  bottom:offset→ bottoms of FAB & panel align
+    function applyRestPos(wrap, snap) {
+        // DOM order: [panel, FAB]
+        // row         → panel LEFT,  FAB RIGHT  → use for RIGHT-side snap (FAB hugs right edge)
+        // row-reverse → FAB  LEFT,  panel RIGHT → use for LEFT-side  snap (FAB hugs left edge)
+        if (snap.side === 'left') {
+            wrap.style.setProperty('right', 'auto', 'important');
+            wrap.style.left = EDGE_MARGIN + 'px';
+            wrap.style.flexDirection = 'row-reverse'; // FAB left, panel extends RIGHT
+        } else {
+            wrap.style.left = '';
+            wrap.style.setProperty('right', EDGE_MARGIN + 'px', 'important');
+            wrap.style.flexDirection = 'row';         // panel left, FAB at right edge
+        }
+        if (snap.vhalf === 'top') {
+            wrap.style.top = snap.offset + 'px';
+            wrap.style.setProperty('bottom', 'auto', 'important');
+            wrap.style.alignItems = 'flex-start';
+        } else {
+            wrap.style.top = '';
+            wrap.style.setProperty('bottom', snap.offset + 'px', 'important');
+            wrap.style.alignItems = 'flex-end';
+        }
+    }
+
+    // Compute snap target from FAB's current screen position.
+    // Always uses fab.getBoundingClientRect() — immune to whether panel is open.
+    function computeSnap(fab) {
+        var r = fab.getBoundingClientRect();
+        var W = window.innerWidth, H = window.innerHeight;
+        var side  = (r.left + r.width  / 2 < W / 2) ? 'left' : 'right';
+        var vhalf = (r.top  + r.height / 2 < H / 2) ? 'top'  : 'bottom';
+        // Clamp offset so the 490px panel never clips top/bottom edges
+        var maxOffset = Math.max(H - PANEL_H - 4, EDGE_MARGIN);
+        var offset = (vhalf === 'top')
+            ? clamp(r.top, EDGE_MARGIN, maxOffset)
+            : clamp(H - r.bottom, EDGE_MARGIN, maxOffset);
+        return { side: side, vhalf: vhalf, offset: offset };
+    }
+
+    function makeFloatingDraggable(wrap, fab, storageKey, partnerId, partnerKey) {
+        if (!wrap || !fab) return;
+        var dragging = false, didMove = false;
+        var startCX, startCY, startLeft, startTop;
+        var THRESHOLD = 6;
+
+        // During drag: position wrap by left+top anchored to FAB's top-left corner.
+        // flex-direction:row keeps FAB as the leftmost element during drag.
+
+        function resetToDefault() {
+            localStorage.removeItem(storageKey);
+            wrap._userDragged = false;
+            wrap.style.left = '';
+            wrap.style.top = '';
+            wrap.style.flexDirection = 'row';
+            wrap.style.alignItems = 'flex-end';
+            // Restore bottom anchor; let updateRightSidebarState set the correct right value
+            wrap.style.setProperty('bottom', '24px', 'important');
+            if (typeof window.updateRightSidebarState === 'function') window.updateRightSidebarState();
+        }
+
+        // After snap, push partner FAB away vertically if they overlap
+        function preventOverlap() {
+            var partner = partnerId ? document.getElementById(partnerId) : null;
+            if (!partner) return;
+            setTimeout(function() {
+                var r1 = fab.getBoundingClientRect();
+                var pFab = partner.querySelector('[id$="-fab"],[id$="-fab-btn"]') || partner;
+                var r2 = pFab.getBoundingClientRect();
+                var sameSide = Math.abs((r1.left + r1.right) / 2 - (r2.left + r2.right) / 2) < 60;
+                if (!sameSide) return;
+                var overlap = Math.min(r1.bottom, r2.bottom) - Math.max(r1.top, r2.top);
+                if (overlap < FAB_GAP) return;
+                var newBottom = (r1.top <= r2.top)
+                    ? clamp(window.innerHeight - r1.bottom - r2.height - FAB_GAP, EDGE_MARGIN, window.innerHeight - r2.height - EDGE_MARGIN)
+                    : clamp(window.innerHeight - r1.top + FAB_GAP, EDGE_MARGIN, window.innerHeight - r2.height - EDGE_MARGIN);
+                partner.style.setProperty('bottom', newBottom + 'px', 'important');
+                partner.style.top = '';
+                partner.style.alignItems = 'flex-end';
+                try {
+                    var ps = JSON.parse(localStorage.getItem(partnerKey) || 'null');
+                    if (ps) { ps.offset = newBottom; ps.vhalf = 'bottom'; localStorage.setItem(partnerKey, JSON.stringify(ps)); }
+                } catch(e) {}
+            }, 430);
+        }
+
+        function onStart(cx, cy) {
+            // Freeze transitions without repositioning (avoids jump if panel is open)
+            wrap.classList.add('fab-dragging');
+            var r = fab.getBoundingClientRect();
+            startCX = cx; startCY = cy;
+            startLeft = r.left; startTop = r.top;
+            dragging = true; didMove = false;
+            document.body.style.userSelect = 'none';
+        }
+
+        function onMove(cx, cy) {
+            if (!dragging) return;
+            var dx = cx - startCX, dy = cy - startCY;
+            if (!didMove && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
+                didMove = true;
+                // First confirmed drag: close panel, switch to left+top anchored to FAB
+                var p = wrap.querySelector('[id$="-panel"]');
+                if (p) p.style.display = 'none';
+                wrap.style.flexDirection = 'row'; // panel hidden → wrap shrinks to FAB size
+                wrap.style.alignItems = 'flex-start';
+                wrap.style.setProperty('right', 'auto', 'important');
+                wrap.style.setProperty('bottom', 'auto', 'important');
+                wrap.style.left = startLeft + 'px';
+                wrap.style.top  = startTop  + 'px';
+            }
+            if (!didMove) return;
+            wrap.style.left = clamp(startLeft + dx, EDGE_MARGIN, window.innerWidth  - fab.offsetWidth  - EDGE_MARGIN) + 'px';
+            wrap.style.top  = clamp(startTop  + dy, EDGE_MARGIN, window.innerHeight - fab.offsetHeight - EDGE_MARGIN) + 'px';
+        }
+
+        function onEnd() {
+            if (!dragging) return;
+            dragging = false;
+            document.body.style.userSelect = '';
+            if (!didMove) { wrap.classList.remove('fab-dragging'); return; }
+
+            wrap._userDragged = true;
+            var snap = computeSnap(fab);
+
+            if (snap.side === 'right') {
+                // Animate FAB sliding to right edge via left-transition, then switch to right-positioning
+                var targetLeft = window.innerWidth - fab.offsetWidth - EDGE_MARGIN;
+                wrap.classList.remove('fab-dragging');
+                wrap.style.left = targetLeft + 'px';
+                var done = false;
+                var finalize = function() {
+                    if (done) return; done = true;
+                    wrap.removeEventListener('transitionend', onTrans);
+                    wrap.classList.add('fab-dragging');
+                    applyRestPos(wrap, snap);
+                    requestAnimationFrame(function() { wrap.classList.remove('fab-dragging'); });
+                };
+                var onTrans = function(e) { if (e.propertyName === 'left') finalize(); };
+                wrap.addEventListener('transitionend', onTrans);
+                setTimeout(finalize, 400);
+            } else {
+                wrap.classList.remove('fab-dragging');
+                applyRestPos(wrap, snap);
+            }
+
+            preventOverlap();
+            try { localStorage.setItem(storageKey, JSON.stringify(snap)); } catch(e) {}
+        }
+
+        // Restore saved position on page load (new format uses vhalf, not vdir)
+        try {
+            var saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+            if (saved && saved.side && saved.vhalf && typeof saved.offset === 'number') {
+                wrap.classList.add('fab-dragging');
+                applyRestPos(wrap, saved);
+                wrap._userDragged = true;
+                requestAnimationFrame(function() { wrap.classList.remove('fab-dragging'); });
+            }
+        } catch(e) {}
+
+        // Touch events
+        fab.addEventListener('touchstart', function(e) {
+            var t = e.touches[0]; onStart(t.clientX, t.clientY);
+        }, { passive: true });
+        document.addEventListener('touchmove', function(e) {
+            if (dragging && didMove) e.preventDefault();
+            if (dragging) { var t = e.touches[0]; onMove(t.clientX, t.clientY); }
+        }, { passive: false });
+        document.addEventListener('touchend', function() { onEnd(); });
+
+        // Mouse events
+        fab.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return; onStart(e.clientX, e.clientY); e.preventDefault();
+        });
+        document.addEventListener('mousemove', function(e) { if (dragging) onMove(e.clientX, e.clientY); });
+        document.addEventListener('mouseup', function() { onEnd(); });
+
+        // Block click when this was a drag not a tap
+        fab.addEventListener('click', function(e) {
+            if (didMove) { e.stopImmediatePropagation(); didMove = false; }
+        }, true);
+
+        fab.style.cursor = 'grab';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        makeFloatingDraggable(
+            document.getElementById('ai-chat-wrap'), document.getElementById('ai-fab'),
+            'sh_ai_fab_pos', 'chat-popup-wrap', 'sh_chat_fab_pos'
+        );
+        makeFloatingDraggable(
+            document.getElementById('chat-popup-wrap'), document.getElementById('chat-fab-btn'),
+            'sh_chat_fab_pos', 'ai-chat-wrap', 'sh_ai_fab_pos'
+        );
+    });
+})();
 </script>
 </body>
 </html>

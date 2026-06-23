@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportHub.Data;
 
@@ -11,9 +12,11 @@ using SportHub.Data;
 namespace SportHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623192455_AddPromotionSystem")]
+    partial class AddPromotionSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1236,32 +1239,6 @@ namespace SportHub.Migrations
                         .IsUnique();
 
                     b.ToTable("Roles", (string)null);
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.SavedPromoCode", b =>
-                {
-                    b.Property<int>("SavedCodeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SavedCodeID"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("SavedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("SavedCodeID");
-
-                    b.HasIndex("UserID", "Code")
-                        .IsUnique();
-
-                    b.ToTable("SavedPromoCodes", (string)null);
                 });
 
             modelBuilder.Entity("SportHub.Models.Entities.Sport", b =>
@@ -2514,17 +2491,6 @@ namespace SportHub.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Court");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.SavedPromoCode", b =>
-                {
-                    b.HasOne("SportHub.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });

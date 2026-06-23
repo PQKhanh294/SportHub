@@ -111,13 +111,21 @@
                 </div>
             </div>
 
-            <form method="post" class="mt-4">
-                <input type="hidden" name="Amount" value="@req.Amount" />
-                <button type="submit"
-                        class="w-full py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm">
-                    Tạo lệnh nạp tiền mới
-                </button>
-            </form>
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                <form method="post" asp-page-handler="Cancel">
+                    <button type="submit"
+                            class="w-full py-2.5 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 font-semibold rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-sm">
+                        Hủy lệnh này
+                    </button>
+                </form>
+                <form method="post">
+                    <input type="hidden" name="Amount" value="@req.Amount" />
+                    <button type="submit"
+                            class="w-full py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm">
+                        Tạo lệnh mới
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- How it works -->

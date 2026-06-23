@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using SportHub.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,8 +19,9 @@ namespace SportHub.Pages.Profile
         private readonly IMatchReviewService _reviewService;
         private readonly IWalletService _walletService;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IPromotionService _promotionService;
 
-        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService, IWalletService walletService, ISubscriptionService subscriptionService)
+        public IndexModel(IUserService userService, ApplicationDbContext context, IBadgeService badgeService, IMatchReviewService reviewService, IWalletService walletService, ISubscriptionService subscriptionService, IPromotionService promotionService)
         {
             _userService = userService;
             _context = context;
@@ -27,6 +29,7 @@ namespace SportHub.Pages.Profile
             _reviewService = reviewService;
             _walletService = walletService;
             _subscriptionService = subscriptionService;
+            _promotionService = promotionService;
         }
 
         public ProfileViewModel Profile { get; set; } = new();
@@ -38,6 +41,8 @@ namespace SportHub.Pages.Profile
         public decimal WalletBalance { get; set; }
         public List<SportHub.Models.Entities.WalletTransaction> WalletHistory { get; set; } = new();
         public string? CurrentPlanKey { get; set; }
+        public List<SavedCodeWithDetailsDto> SavedCodes { get; set; } = new();
+        public List<SportHub.Models.Entities.UserVoucher> MyVouchers { get; set; } = new();
 
         public class UserSportProfileItem
         {
@@ -115,6 +120,9 @@ namespace SportHub.Pages.Profile
 
             var activeSub = await _subscriptionService.GetActiveSubscriptionAsync(userId);
             CurrentPlanKey = activeSub?.PlanKey ?? "Free";
+
+            SavedCodes = await _promotionService.GetSavedCodesAsync(userId);
+            MyVouchers = await _promotionService.GetMyVouchersAsync(userId);
 
             return Page();
         }

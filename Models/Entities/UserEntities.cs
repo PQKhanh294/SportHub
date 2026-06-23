@@ -29,6 +29,7 @@ namespace SportHub.Models.Entities
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         public CourtOwner? CourtOwnerProfile { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<UserVoucher> Vouchers { get; set; } = new List<UserVoucher>();
     }
 
     public class Role
