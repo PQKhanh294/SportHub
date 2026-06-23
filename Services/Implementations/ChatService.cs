@@ -206,15 +206,15 @@ namespace SportHub.Services.Implementations
 
         public async Task<bool> TogglePinMessageAsync(int messageId, int userId1, int userId2)
         {
+            var msg = await _context.ChatMessages.FindAsync(messageId);
+            if (msg == null || msg.IsDeleted) return false;
+
             // Unpin any existing pinned message in this conversation first
             var pinned = await _context.ChatMessages
                 .Where(m => m.IsPinned &&
                     ((m.SenderID == userId1 && m.ReceiverID == userId2) ||
                      (m.SenderID == userId2 && m.ReceiverID == userId1)))
                 .ToListAsync();
-
-            var msg = await _context.ChatMessages.FindAsync(messageId);
-            if (msg == null) return false;
 
             bool isNowPinned = !msg.IsPinned;
             foreach (var p in pinned) p.IsPinned = false;
@@ -260,8 +260,11 @@ namespace SportHub.Services.Implementations
 
         public async Task<ChatMessage> ForwardMessageAsync(int originalMessageId, int senderId, int receiverId)
         {
+            if (senderId == receiverId) throw new InvalidOperationException("Không thể chuyển tiếp cho chính mình.");
+
             var original = await _context.ChatMessages.FindAsync(originalMessageId);
-            if (original == null) throw new InvalidOperationException("Message not found");
+            if (original == null) throw new InvalidOperationException("Tin nhắn không tồn tại.");
+            if (original.IsDeleted) throw new InvalidOperationException("Không thể chuyển tiếp tin nhắn đã bị xóa.");
 
             return await SendMessageAsync(senderId, receiverId,
                 original.Content, original.MessageType, original.ImageUrl, original.MatchCardJson);

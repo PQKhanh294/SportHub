@@ -1,47 +1,44 @@
 @{
     var current = ViewData["AdminPage"]?.ToString();
+    var navItemBase = "flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors";
+    var navActive = "bg-primary text-white shadow-sm";
+    var navInactive = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary hover:border-primary/40";
 }
-<nav class="flex flex-wrap gap-2 mb-6">
-    <a asp-page="/Admin/Index"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Dashboard" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">dashboard</span>
+<!-- Mobile: horizontal scroll (hidden on lg+ because sidebar takes over) -->
+<nav class="lg:hidden overflow-x-auto flex gap-2 mb-4 pb-1 [&::-webkit-scrollbar]:hidden" style="-ms-overflow-style:none;scrollbar-width:none">
+    <a asp-page="/Admin/Index" class="@navItemBase @(current == "Dashboard" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">dashboard</span>
         Dashboard
     </a>
-    <a asp-page="/Admin/Transactions"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Transactions" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">receipt_long</span>
-        Lịch sử giao dịch
+    <a asp-page="/Admin/Transactions" class="@navItemBase @(current == "Transactions" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+        Lịch sử GD
     </a>
-    <a asp-page="/Admin/MatchPayments"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Payments" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">pending_actions</span>
+    <a asp-page="/Admin/MatchPayments" class="@navItemBase @(current == "Payments" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">pending_actions</span>
         Chờ xác nhận
-        <span id="admin-badge-payments"
-              class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
-        </span>
+        <span id="admin-badge-payments" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
     </a>
-    <a asp-page="/Admin/Users"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Users" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">manage_accounts</span>
+    <a asp-page="/Admin/Users" class="@navItemBase @(current == "Users" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
         Người dùng
     </a>
-    <a asp-page="/Admin/Matches"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Matches" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">sports</span>
+    <a asp-page="/Admin/Matches" class="@navItemBase @(current == "Matches" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">sports</span>
         Trận đấu
     </a>
-    <a asp-page="/Admin/Reviews"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "Reviews" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">rate_review</span>
+    <a asp-page="/Admin/Reviews" class="@navItemBase @(current == "Reviews" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">rate_review</span>
         Đánh giá
     </a>
-    <a asp-page="/Admin/ReportedMessages"
-       class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-colors @(current == "ReportedMessages" ? "bg-primary text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
-        <span class="material-symbols-outlined text-base">flag</span>
+    <a asp-page="/Admin/ReportedMessages" class="@navItemBase @(current == "ReportedMessages" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">flag</span>
         Báo cáo
-        <span id="admin-badge-reports"
-              class="hidden min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
-        </span>
+        <span id="admin-badge-reports" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
+    </a>
+    <a asp-page="/Admin/Subscriptions" class="@navItemBase @(current == "Subscriptions" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+        Gói đăng ký
     </a>
 </nav>
 <script>

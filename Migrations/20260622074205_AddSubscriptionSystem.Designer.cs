@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportHub.Data;
 
@@ -11,9 +12,11 @@ using SportHub.Data;
 namespace SportHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622074205_AddSubscriptionSystem")]
+    partial class AddSubscriptionSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -501,12 +504,6 @@ namespace SportHub.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
-                    b.Property<bool>("IsRecurring")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSplitFee")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("MatchDate")
                         .HasColumnType("date");
 
@@ -516,15 +513,6 @@ namespace SportHub.Migrations
 
                     b.Property<byte>("MaxParticipants")
                         .HasColumnType("tinyint");
-
-                    b.Property<int?>("ParentMatchId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RecurringDays")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RecurringUntil")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("RemainingFeeStatus")
                         .IsRequired()
@@ -557,8 +545,6 @@ namespace SportHub.Migrations
 
                     b.HasIndex("CreatedByUserID");
 
-                    b.HasIndex("ParentMatchId");
-
                     b.HasIndex("SportID");
 
                     b.HasIndex("Status", "MatchDate", "SportID");
@@ -566,6 +552,8 @@ namespace SportHub.Migrations
                     b.ToTable("Matches", null, t =>
                         {
                             t.HasCheckConstraint("CK_Matches_DepositStatus", "DepositStatus IN ('NotPaid','Paid')");
+
+                            t.HasCheckConstraint("CK_Matches_MatchType", "MatchType IN ('Singles','Doubles','Mixed')");
 
                             t.HasCheckConstraint("CK_Matches_RemainingFeeStatus", "RemainingFeeStatus IN ('NotDue','Notified','Paid')");
 
@@ -2012,11 +2000,6 @@ namespace SportHub.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SportHub.Models.Entities.Match", "ParentMatch")
-                        .WithMany("RecurringChildren")
-                        .HasForeignKey("ParentMatchId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SportHub.Models.Entities.Sport", "Sport")
                         .WithMany()
                         .HasForeignKey("SportID")
@@ -2028,8 +2011,6 @@ namespace SportHub.Migrations
                     b.Navigation("Court");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("ParentMatch");
 
                     b.Navigation("Sport");
                 });
@@ -2408,8 +2389,6 @@ namespace SportHub.Migrations
                     b.Navigation("MatchPayments");
 
                     b.Navigation("Participants");
-
-                    b.Navigation("RecurringChildren");
 
                     b.Navigation("Reviews");
                 });

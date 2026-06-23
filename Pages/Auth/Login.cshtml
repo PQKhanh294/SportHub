@@ -5,48 +5,138 @@
     Layout = "_AuthLayout";
 }
 
-<section class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 min-h-[78vh]">
-    <img class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqFm-aKP5EiL6q4BUrYnrOkr3P1MOFlI23qXs44yF0IIpGLNOl9Ne0xtH345c0ogmqAGgr7UXvo5AGIzk7O4g21CS8S9__eCz1vYYMR9OTmF_fDmqTUbunaEPwHsZZ0ywkP_bRSlae0vOnNpTmZpQtOMUSiga_lRYfKev5qw9VNqFjikaM53-zrAwScQ__km5awA7jvVdOtGEs7uyB8uWkPKvjh8NAViagalz3vXsc-54fQsHos1eeZOE5n4F1gH--M7jRKzE1npU" alt="Tennis court" />
-    <div class="absolute inset-0 bg-slate-900/65"></div>
+<style>
+    @@keyframes floatUp {
+        0%   { transform: translateY(0) rotate(0deg);   opacity: 0.18; }
+        50%  { opacity: 0.28; }
+        100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+    .sport-float {
+        position: fixed;
+        bottom: -60px;
+        font-size: 2rem;
+        animation: floatUp linear infinite;
+        pointer-events: none;
+        z-index: 1;
+        user-select: none;
+    }
 
-    <div class="relative z-10 flex items-center justify-center min-h-[78vh] p-6">
-        <div class="w-full max-w-[480px] bg-white/95 dark:bg-slate-900/95 rounded-xl border border-white/20 dark:border-slate-700 shadow-2xl">
-            <div class="px-8 pt-10 pb-6 text-center">
-                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Chào mừng trở lại</h1>
-                <p class="mt-2 text-slate-500 dark:text-slate-400">Đăng nhập vào tài khoản Sport Hub của bạn</p>
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .card-enter { animation: slideUp 0.45s cubic-bezier(.22,.68,0,1.2) both; }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .field-1 { animation: fadeIn 0.35s 0.15s ease both; }
+    .field-2 { animation: fadeIn 0.35s 0.25s ease both; }
+    .field-3 { animation: fadeIn 0.35s 0.35s ease both; }
+    .field-4 { animation: fadeIn 0.35s 0.45s ease both; }
+    .field-5 { animation: fadeIn 0.35s 0.55s ease both; }
+
+    input:focus { box-shadow: 0 0 0 3px rgba(80,165,177,.25); }
+</style>
+
+<!-- Floating sports emojis -->
+<div aria-hidden="true">
+    <span class="sport-float" style="left:8%;  animation-duration:9s;  animation-delay:0s;   font-size:1.8rem;">⚽</span>
+    <span class="sport-float" style="left:18%; animation-duration:11s; animation-delay:1.5s; font-size:2.2rem;">🏸</span>
+    <span class="sport-float" style="left:30%; animation-duration:8s;  animation-delay:3s;   font-size:1.6rem;">🎾</span>
+    <span class="sport-float" style="left:44%; animation-duration:13s; animation-delay:0.8s; font-size:2rem;">🏀</span>
+    <span class="sport-float" style="left:58%; animation-duration:10s; animation-delay:2.2s; font-size:1.5rem;">🏓</span>
+    <span class="sport-float" style="left:70%; animation-duration:12s; animation-delay:4s;   font-size:1.9rem;">🥊</span>
+    <span class="sport-float" style="left:82%; animation-duration:9s;  animation-delay:1s;   font-size:1.7rem;">🏊</span>
+    <span class="sport-float" style="left:92%; animation-duration:14s; animation-delay:3.5s; font-size:2.1rem;">🎯</span>
+</div>
+
+<div class="w-full max-w-[420px] mx-auto relative z-10 card-enter">
+    <!-- Dark glass card -->
+    <div class="bg-slate-900/75 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+        <!-- Teal accent top bar -->
+        <div class="h-1 bg-gradient-to-r from-primary to-accent"></div>
+
+        <div class="px-8 pt-8 pb-3 text-center field-1">
+            <h1 class="text-2xl font-extrabold tracking-tight text-white">Chào mừng trở lại</h1>
+            <p class="mt-1.5 text-sm text-white/60">Đăng nhập vào tài khoản Sport Hub của bạn</p>
+        </div>
+
+        <form method="post" class="px-8 pb-8 pt-4 space-y-4">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-red-400 bg-red-950/40 border border-red-500/30 rounded-lg px-3 py-2 empty:hidden"></div>
+
+            <div class="field-2">
+                <label class="block text-sm font-semibold text-white/80 mb-1.5">Địa chỉ Email</label>
+                <input asp-for="Input.Email" type="email"
+                       class="w-full h-11 px-4 rounded-xl border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                       placeholder="email@example.com" />
+                <span asp-validation-for="Input.Email" class="text-xs text-red-400"></span>
             </div>
 
-            <form method="post" class="px-8 pb-10 space-y-5">
-                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
-
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Địa chỉ Email</label>
-                    <input asp-for="Input.Email" type="email" class="w-full h-12 px-4 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nhập email của bạn" />
-                    <span asp-validation-for="Input.Email" class="text-xs text-red-500"></span>
+            <div class="field-3">
+                <label class="block text-sm font-semibold text-white/80 mb-1.5">Mật khẩu</label>
+                <div class="relative">
+                    <input asp-for="Input.Password" id="passwordInput" type="password"
+                           class="w-full h-11 px-4 pr-11 rounded-xl border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                           placeholder="••••••••" />
+                    <button type="button" onclick="togglePassword()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
+                        <span id="eyeIcon" class="material-symbols-outlined text-xl">visibility</span>
+                    </button>
                 </div>
+                <span asp-validation-for="Input.Password" class="text-xs text-red-400"></span>
+            </div>
 
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300">Mật khẩu</label>
-                    <div class="relative">
-                        <input asp-for="Input.Password" id="passwordInput" type="password" class="w-full h-12 px-4 pr-12 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-primary" placeholder="Nhập mật khẩu của bạn" />
-                        <button type="button" onclick="togglePassword()"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                            <span id="eyeIcon" class="material-symbols-outlined text-xl">visibility</span>
-                        </button>
-                    </div>
-                    <span asp-validation-for="Input.Password" class="text-xs text-red-500"></span>
+            <div class="field-4">
+                <button type="submit"
+                        class="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-md shadow-primary/30 transition-all active:scale-[.98] hover:-translate-y-0.5">
+                    Đăng nhập
+                </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="relative py-1 field-4">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-white/15"></div>
                 </div>
+                <div class="relative flex justify-center text-xs">
+                    <span class="px-3 text-white/40">hoặc</span>
+                </div>
+            </div>
 
-                <button type="submit" class="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-md transition-all">Đăng nhập</button>
+            <!-- Google -->
+            <div class="field-5">
+                <a href="/Auth/Login?handler=ExternalLogin&provider=Google"
+                   class="w-full h-11 flex items-center justify-center gap-2.5 border border-white/20 bg-white/8 rounded-xl font-semibold text-sm text-white hover:bg-white/15 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M47.532 24.552c0-1.636-.132-3.199-.388-4.698H24.48v9.01h12.984c-.568 2.952-2.24 5.452-4.76 7.132v5.916h7.696c4.508-4.152 7.132-10.268 7.132-17.36z" fill="#4285F4"/>
+                        <path d="M24.48 48c6.48 0 11.916-2.148 15.888-5.832l-7.696-5.916c-2.14 1.436-4.876 2.288-8.192 2.288-6.3 0-11.636-4.252-13.54-9.972H3.012v6.108C6.972 42.86 15.148 48 24.48 48z" fill="#34A853"/>
+                        <path d="M10.94 28.568A14.414 14.414 0 0 1 10.2 24c0-1.588.272-3.128.74-4.568v-6.108H3.012A23.975 23.975 0 0 0 .48 24c0 3.876.932 7.54 2.532 10.676l7.928-6.108z" fill="#FBBC05"/>
+                        <path d="M24.48 9.46c3.548 0 6.732 1.22 9.236 3.62l6.908-6.908C36.392 2.148 30.96 0 24.48 0 15.148 0 6.972 5.14 3.012 13.324l7.928 6.108C12.844 13.712 18.18 9.46 24.48 9.46z" fill="#EA4335"/>
+                    </svg>
+                    Tiếp tục với Google
+                </a>
+            </div>
 
-                <p class="text-center text-sm text-slate-600 dark:text-slate-400">
-                    Bạn chưa có tài khoản?
-                    <a asp-page="/Auth/Register" class="font-bold text-primary hover:underline ml-1">Đăng ký ngay</a>
-                </p>
-            </form>
-        </div>
+            <!-- Facebook -->
+            <div class="field-5">
+                <a href="/Auth/Login?handler=ExternalLogin&provider=Facebook"
+                   class="w-full h-11 flex items-center justify-center gap-2.5 bg-[#1877F2] hover:bg-[#166FE5] rounded-xl font-semibold text-sm text-white transition-colors">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+                    </svg>
+                    Tiếp tục với Facebook
+                </a>
+            </div>
+
+            <p class="text-center text-sm text-white/50 pt-1 field-5">
+                Bạn chưa có tài khoản?
+                <a asp-page="/Auth/Register" class="font-bold text-primary hover:text-primary/80 hover:underline ml-1">Đăng ký ngay</a>
+            </p>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <script>

@@ -17,19 +17,22 @@ namespace SportHub.Pages.Matchmaking
         private readonly ApplicationDbContext _context;
         private readonly IGeocodingService _geocoding;
         private readonly IMatchReviewService _reviewService;
+        private readonly ISubscriptionService _subscriptionService;
 
         public IndexModel(
             IMatchService matchService,
             INotificationService notificationService,
             ApplicationDbContext context,
             IGeocodingService geocoding,
-            IMatchReviewService reviewService)
+            IMatchReviewService reviewService,
+            ISubscriptionService subscriptionService)
         {
             _matchService = matchService;
             _notificationService = notificationService;
             _context = context;
             _geocoding = geocoding;
             _reviewService = reviewService;
+            _subscriptionService = subscriptionService;
         }
 
         [TempData]
@@ -80,6 +83,15 @@ namespace SportHub.Pages.Matchmaking
         [BindProperty(SupportsGet = true)]
         public string? City { get; set; }
 
+        // Distance filter (Starter+): user lat/lon submitted from JS
+        [BindProperty(SupportsGet = true)]
+        public double? UserLat { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public double? UserLon { get; set; }
+
+        public bool CanFilterByDistance { get; set; }
+
         public List<string> SportOptions { get; set; } = new();
 
         public List<MatchCardItem> Matches { get; set; } = new();
@@ -94,6 +106,8 @@ namespace SportHub.Pages.Matchmaking
         {
             ViewData["ActivePage"] = "Matchmaking";
             var currentUserId = GetCurrentUserId();
+
+            CanFilterByDistance = currentUserId > 0 && await _subscriptionService.CanFilterByDistanceAsync(currentUserId);
 
             if (currentUserId > 0)
             {
@@ -173,6 +187,19 @@ namespace SportHub.Pages.Matchmaking
                                     venue.Contains(City, StringComparison.OrdinalIgnoreCase);
                     
                     return matchesLocation && matchesDistrict && matchesCity;
+                }).ToList();
+            }
+
+            // Distance filter — Starter/Pro/Club only
+            if (CanFilterByDistance && UserLat.HasValue && UserLon.HasValue)
+            {
+                var radiusKm = (double)(Radius ?? 10m);
+                matches = matches.Where(m =>
+                {
+                    var lat = (double?)m.CustomLatitude ?? (double?)m.Court?.Venue?.Latitude;
+                    var lon = (double?)m.CustomLongitude ?? (double?)m.Court?.Venue?.Longitude;
+                    if (lat == null || lon == null) return false;
+                    return HaversineKm(UserLat.Value, UserLon.Value, lat.Value, lon.Value) <= radiusKm;
                 }).ToList();
             }
 

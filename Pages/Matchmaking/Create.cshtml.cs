@@ -20,14 +20,18 @@ namespace SportHub.Pages.Matchmaking
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly ApplicationDbContext _context;
         private readonly IGeocodingService _geocodingService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public CreateModel(IMatchService matchService, IMatchPaymentService matchPaymentService, ApplicationDbContext context, IGeocodingService geocodingService)
+        public CreateModel(IMatchService matchService, IMatchPaymentService matchPaymentService, ApplicationDbContext context, IGeocodingService geocodingService, ISubscriptionService subscriptionService)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
             _context = context;
             _geocodingService = geocodingService;
+            _subscriptionService = subscriptionService;
         }
+
+        public string? SubscriptionLimitMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; } = new()
@@ -71,10 +75,8 @@ namespace SportHub.Pages.Matchmaking
             [Required(ErrorMessage = "Please select an end time.")]
             public TimeSpan EndTime { get; set; }
 
-            [Required(ErrorMessage = "Please select a match type.")]
             public string MatchType { get; set; } = "Doubles";
 
-            [Required(ErrorMessage = "Please select a required skill level.")]
             public string SkillRequired { get; set; } = "Any";
 
             [Range(2, 20, ErrorMessage = "Max participants must be between 2 and 20.")]
@@ -86,6 +88,11 @@ namespace SportHub.Pages.Matchmaking
             public string? Description { get; set; }
 
             public bool RequiresApproval { get; set; } = true;
+
+            public bool IsSplitFee { get; set; }
+            public bool IsRecurring { get; set; }
+            public string? RecurringDays { get; set; }
+            public DateTime? RecurringUntil { get; set; }
         }
 
         public async Task OnGetAsync()
@@ -173,6 +180,18 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage("/Auth/Login");
             }
 
+            // Subscription gate: check monthly create limit
+            if (!await _subscriptionService.CanCreateMatchAsync(userId))
+            {
+                var plan = await _subscriptionService.GetCurrentPlanAsync(userId);
+                var count = await _subscriptionService.GetMonthlyCreateCountAsync(userId);
+                TempData["ErrorMessage"] = $"Bạn đã tạo {count}/{plan.MonthlyCreateLimit} trận trong tháng này. Nâng cấp gói để tạo thêm!";
+                return RedirectToPage("/Subscription/Index");
+            }
+
+            var matchType = string.IsNullOrWhiteSpace(Input.MatchType) ? "Doubles" : Input.MatchType.Trim();
+            var skillRequired = string.IsNullOrWhiteSpace(Input.SkillRequired) ? "Any" : Input.SkillRequired.Trim();
+
             var match = new Match
             {
                 CourtID = Input.CourtId,
@@ -180,8 +199,8 @@ namespace SportHub.Pages.Matchmaking
                 MatchDate = Input.MatchDate,
                 StartTime = Input.StartTime,
                 EndTime = Input.EndTime,
-                MatchType = Input.MatchType,
-                SkillRequired = Input.SkillRequired,
+                MatchType = matchType,
+                SkillRequired = skillRequired,
                 MaxParticipants = (byte)Input.MaxParticipants,
                 Title = Input.Title,
                 RequiresApproval = true,
@@ -190,11 +209,16 @@ namespace SportHub.Pages.Matchmaking
                 CustomCourtAddress = string.IsNullOrWhiteSpace(Input.CourtAddress) ? null : Input.CourtAddress.Trim(),
                 CustomPriceVnd = Input.PriceVnd,
                 CustomLatitude = Input.Latitude,
-                CustomLongitude = Input.Longitude
+                CustomLongitude = Input.Longitude,
+                IsSplitFee = Input.IsSplitFee,
+                IsRecurring = Input.IsRecurring,
+                RecurringDays = Input.IsRecurring && !string.IsNullOrWhiteSpace(Input.RecurringDays) ? Input.RecurringDays : null,
+                RecurringUntil = Input.IsRecurring ? Input.RecurringUntil : null,
             };
 
             var matchId = await _matchService.CreateMatchAsync(match, userId);
             await _matchPaymentService.CreateHostDepositAsync(matchId, userId);
+            await _subscriptionService.RecordCreateAsync(userId);
             TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} VND để đăng trận.";
             return RedirectToPage("/Matchmaking/Payment", new { matchId, type = "deposit" });
         }

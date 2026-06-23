@@ -18,5 +18,6 @@ namespace SportHub.Services.Interfaces
         Task<bool> SetUserActiveAsync(int userId, bool isActive);
         Task IncrementLoginCountAsync(int userId);
         Task<bool> IsProfileCompleteAsync(int userId);
+        Task<User> GetOrCreateGoogleUserAsync(string googleId, string email, string fullName, string? avatarUrl);
     }
 }
