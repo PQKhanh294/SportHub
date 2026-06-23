@@ -50,6 +50,7 @@ namespace SportHub.Controllers
                     summaries.TryGetValue(f.UserID, out var summary);
                     var lastMsg = summary.LastMsg;
                     string previewText = lastMsg == null ? "" :
+                        lastMsg.IsDeleted ? "Tin nhắn đã bị xóa" :
                         lastMsg.MessageType == "Image" ? "Đã gửi một ảnh" :
                         lastMsg.MessageType == "MatchCard" ? "Đã chia sẻ thẻ trận" :
                         (lastMsg.Content.Length > 40 ? lastMsg.Content[..40] + "…" : lastMsg.Content);
@@ -108,18 +109,22 @@ namespace SportHub.Controllers
                 messageID = m.MessageID,
                 senderID = m.SenderID,
                 receiverID = m.ReceiverID,
-                content = m.Content,
+                content = m.IsDeleted ? null : m.Content,
                 createdAt = m.CreatedAt.ToString("o"),
                 senderName = m.Sender?.FullName ?? "",
-                messageType = m.MessageType,
-                imageUrl = m.ImageUrl,
-                matchCardJson = m.MatchCardJson,
+                messageType = m.IsDeleted ? "Deleted" : m.MessageType,
+                imageUrl = m.IsDeleted ? null : m.ImageUrl,
+                matchCardJson = m.IsDeleted ? null : m.MatchCardJson,
                 isDeleted = m.IsDeleted,
                 isPinned = m.IsPinned,
                 isRead = m.IsRead,
                 replyToMessageID = m.ReplyToMessageID,
                 replyPreview = m.ReplyToMessage != null
-                    ? new { id = m.ReplyToMessage.MessageID, content = m.ReplyToMessage.Content }
+                    ? new
+                    {
+                        id = m.ReplyToMessage.MessageID,
+                        content = m.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" : m.ReplyToMessage.Content
+                    }
                     : null
             });
             return Ok(result);
@@ -132,6 +137,10 @@ namespace SportHub.Controllers
         {
             var myIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(myIdStr, out var myId)) return Unauthorized();
+
+            var msg = await _context.ChatMessages.FindAsync(id);
+            if (msg == null) return NotFound();
+            if (msg.IsDeleted) return BadRequest(new { error = "Không thể react tin nhắn đã bị xóa." });
 
             var (rtype, added) = await _chatService.ToggleReactionAsync(id, myId, type);
             var reactions = await _chatService.GetMessageReactionsAsync(id);
@@ -164,8 +173,15 @@ namespace SportHub.Controllers
             var myIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(myIdStr, out var myId)) return Unauthorized();
 
-            var msg = await _chatService.ForwardMessageAsync(id, myId, toUserId);
-            return Ok(new { messageId = msg.MessageID });
+            try
+            {
+                var msg = await _chatService.ForwardMessageAsync(id, myId, toUserId);
+                return Ok(new { messageId = msg.MessageID });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost("messages/{id}/report")]

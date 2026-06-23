@@ -101,8 +101,9 @@ window.SportHubLocationPicker = (function () {
                     data.forEach(function (item) {
                         const div = document.createElement('div');
                         div.className = 'p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm';
-                        const src = item.source ? ' <span class="text-[10px] text-slate-400">(' + item.source + ')</span>' : '';
-                        div.innerHTML = '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium">' + (item.display_name || '') + '</span>' + src + '</div>';
+                        div.style.color = '#1e293b';
+                        const src = item.source ? ' <span style="font-size:10px;color:#94a3b8;">(' + item.source + ')</span>' : '';
+                        div.innerHTML = '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium" style="color:#1e293b;">' + (item.display_name || '') + '</span>' + src + '</div>';
                         div.onclick = function () { pickResult(item); };
                         suggestionsEl.appendChild(div);
                     });

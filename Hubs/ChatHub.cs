@@ -171,27 +171,43 @@ namespace SportHub.Hubs
             var senderIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(senderIdStr, out int senderId)) return;
 
-            var msg = await _chatService.ForwardMessageAsync(originalMessageId, senderId, receiverId);
-            var payload = BuildPayload(msg);
-            await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
-            await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+            try
+            {
+                var msg = await _chatService.ForwardMessageAsync(originalMessageId, senderId, receiverId);
+                var payload = BuildPayload(msg);
+                await Clients.Group($"chat:{receiverId}").SendAsync("ReceiveMessage", payload);
+                await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await Clients.Caller.SendAsync("ForwardError", new { error = ex.Message });
+            }
         }
 
-        private static object BuildPayload(ChatMessage msg) => new
+        private static object BuildPayload(ChatMessage msg)
         {
-            messageID = msg.MessageID,
-            senderID = msg.SenderID,
-            receiverID = msg.ReceiverID,
-            content = msg.Content,
-            createdAt = msg.CreatedAt.ToString("o"),
-            senderName = msg.Sender?.FullName ?? "",
-            messageType = msg.MessageType,
-            imageUrl = msg.ImageUrl,
-            matchCardJson = msg.MatchCardJson,
-            replyToMessageID = msg.ReplyToMessageID,
-            replyPreview = msg.ReplyToMessage != null
-                ? new { id = msg.ReplyToMessage.MessageID, content = msg.ReplyToMessage.Content }
-                : null
-        };
+            var isDeleted = msg.IsDeleted;
+            string? replyContent = null;
+            if (msg.ReplyToMessage != null)
+                replyContent = msg.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" : msg.ReplyToMessage.Content;
+
+            return new
+            {
+                messageID = msg.MessageID,
+                senderID = msg.SenderID,
+                receiverID = msg.ReceiverID,
+                content = isDeleted ? null : msg.Content,
+                createdAt = msg.CreatedAt.ToString("o"),
+                senderName = msg.Sender?.FullName ?? "",
+                messageType = isDeleted ? "Deleted" : msg.MessageType,
+                imageUrl = isDeleted ? null : msg.ImageUrl,
+                matchCardJson = isDeleted ? null : msg.MatchCardJson,
+                isDeleted,
+                replyToMessageID = msg.ReplyToMessageID,
+                replyPreview = msg.ReplyToMessage != null
+                    ? new { id = msg.ReplyToMessage.MessageID, content = replyContent }
+                    : null
+            };
+        }
     }
 }

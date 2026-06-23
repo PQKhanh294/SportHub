@@ -13,17 +13,20 @@ namespace SportHub.Pages.Matchmaking
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly INotificationService _notificationService;
         private readonly IMatchReviewService _reviewService;
+        private readonly ISubscriptionService _subscriptionService;
 
         public DetailsModel(
             IMatchService matchService,
             IMatchPaymentService matchPaymentService,
             INotificationService notificationService,
-            IMatchReviewService reviewService)
+            IMatchReviewService reviewService,
+            ISubscriptionService subscriptionService)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
             _reviewService = reviewService;
+            _subscriptionService = subscriptionService;
         }
 
         public MatchDetailItem? Item { get; set; }
@@ -127,6 +130,10 @@ namespace SportHub.Pages.Matchmaking
                     ? "/images/avatar-default.png"
                     : match.CreatedByUser!.AvatarUrl,
 
+                IsSplitFee    = match.IsSplitFee,
+                IsRecurring   = match.IsRecurring,
+                RecurringDays = match.RecurringDays,
+
                 // Review state
                 MatchStatus            = match.Status,
                 ShowHostDepositPrompt  = isOwner && match.Status == "PendingDeposit",
@@ -160,10 +167,32 @@ namespace SportHub.Pages.Matchmaking
             var match = await _matchService.GetMatchDetailsAsync(id);
             if (match == null) return RedirectToPage("/Matchmaking/Index");
 
+            // Subscription gate
+            bool canJoin = await _subscriptionService.CanJoinMatchAsync(userId);
+            if (!canJoin)
+            {
+                var plan = await _subscriptionService.GetCurrentPlanAsync(userId);
+                var count = await _subscriptionService.GetMonthlyJoinCountAsync(userId);
+                TempData["ErrorMessage"] = $"Bạn đã tham gia {count}/{plan.MonthlyJoinLimit} trận trong tháng. Nâng cấp gói hoặc mua thêm credit để tiếp tục!";
+                return RedirectToPage("/Subscription/Index");
+            }
+
+            // If Free plan hit limit but has credits, consume a credit
+            var currentPlan = await _subscriptionService.GetCurrentPlanAsync(userId);
+            bool usedCredit = false;
+            if (currentPlan.PlanKey == "Free")
+            {
+                var joinCount = await _subscriptionService.GetMonthlyJoinCountAsync(userId);
+                if (joinCount >= currentPlan.MonthlyJoinLimit)
+                    usedCredit = await _subscriptionService.UseMatchCreditAsync(userId);
+            }
+
             var joined = await _matchService.JoinMatchAsync(id, userId);
             if (joined)
             {
-                TempData["SuccessMessage"] = "Yêu cầu đã gửi. Bạn đang chờ host duyệt (tối đa 1 giờ).";
+                await _subscriptionService.RecordJoinAsync(userId);
+                var creditNote = usedCredit ? " (1 credit đã được dùng)" : "";
+                TempData["SuccessMessage"] = $"Yêu cầu đã gửi. Bạn đang chờ host duyệt (tối đa 1 giờ).{creditNote}";
                 var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
                 await _notificationService.CreateAsync(
                     match.CreatedByUserID,
@@ -411,6 +440,9 @@ namespace SportHub.Pages.Matchmaking
             public int HostId { get; set; }
             public string HostName { get; set; } = string.Empty;
             public string HostAvatar { get; set; } = string.Empty;
+            public bool IsSplitFee { get; set; }
+            public bool IsRecurring { get; set; }
+            public string? RecurringDays { get; set; }
 
             // Payment state
             public string MatchStatus { get; set; } = string.Empty;

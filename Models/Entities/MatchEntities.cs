@@ -87,11 +87,20 @@ namespace SportHub.Models.Entities
         public string DepositStatus { get; set; } = "NotPaid";     // NotPaid, Paid
         public string RemainingFeeStatus { get; set; } = "NotDue"; // NotDue, Notified, Paid
 
+        public bool IsSplitFee { get; set; } = false;
+
+        public bool IsRecurring { get; set; } = false;
+        public string? RecurringDays { get; set; }   // "1,3,5" (0=CN,1=T2,...,6=T7)
+        public DateTime? RecurringUntil { get; set; }
+        public int? ParentMatchId { get; set; }
+        public Match? ParentMatch { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<MatchParticipant> Participants { get; set; } = new List<MatchParticipant>();
         public ICollection<MatchPayment> MatchPayments { get; set; } = new List<MatchPayment>();
         public ICollection<MatchReview> Reviews { get; set; } = new List<MatchReview>();
+        public ICollection<Match> RecurringChildren { get; set; } = new List<Match>();
     }
 
     public class MatchParticipant

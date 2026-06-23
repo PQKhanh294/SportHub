@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportHub.Data;
 
@@ -11,9 +12,11 @@ using SportHub.Data;
 namespace SportHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622064222_AddGoogleAuth")]
+    partial class AddGoogleAuth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -501,12 +504,6 @@ namespace SportHub.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
-                    b.Property<bool>("IsRecurring")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSplitFee")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("MatchDate")
                         .HasColumnType("date");
 
@@ -516,15 +513,6 @@ namespace SportHub.Migrations
 
                     b.Property<byte>("MaxParticipants")
                         .HasColumnType("tinyint");
-
-                    b.Property<int?>("ParentMatchId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RecurringDays")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RecurringUntil")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("RemainingFeeStatus")
                         .IsRequired()
@@ -557,8 +545,6 @@ namespace SportHub.Migrations
 
                     b.HasIndex("CreatedByUserID");
 
-                    b.HasIndex("ParentMatchId");
-
                     b.HasIndex("SportID");
 
                     b.HasIndex("Status", "MatchDate", "SportID");
@@ -566,6 +552,8 @@ namespace SportHub.Migrations
                     b.ToTable("Matches", null, t =>
                         {
                             t.HasCheckConstraint("CK_Matches_DepositStatus", "DepositStatus IN ('NotPaid','Paid')");
+
+                            t.HasCheckConstraint("CK_Matches_MatchType", "MatchType IN ('Singles','Doubles','Mixed')");
 
                             t.HasCheckConstraint("CK_Matches_RemainingFeeStatus", "RemainingFeeStatus IN ('NotDue','Notified','Paid')");
 
@@ -1118,254 +1106,6 @@ namespace SportHub.Migrations
                     b.ToTable("Sports", (string)null);
                 });
 
-            modelBuilder.Entity("SportHub.Models.Entities.SubscriptionOrder", b =>
-                {
-                    b.Property<int>("SubscriptionOrderID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionOrderID"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<string>("BillingCycle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ConfirmedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PlanKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TransactionRef")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("SubscriptionOrderID");
-
-                    b.HasIndex("TransactionRef")
-                        .IsUnique();
-
-                    b.HasIndex("UserID", "Status");
-
-                    b.ToTable("SubscriptionOrders", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_SubscriptionOrders_Status", "Status IN ('Pending','Confirmed','Expired')");
-                        });
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.SubscriptionPlan", b =>
-                {
-                    b.Property<int>("PlanID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlanID"));
-
-                    b.Property<bool>("CanFilterByDistance")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanSeePhoneNumber")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasAiSuggestions")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasDetailedStats")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasPlayerFeeExempt")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasPriorityListing")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasVerifiedBadge")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MonthlyCreateLimit")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MonthlyJoinLimit")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PlanKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("PriceAnnual")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<decimal>("PriceMonthly")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<decimal>("PriceQuarterly")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<int>("PriorityScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("PlanID");
-
-                    b.HasIndex("PlanKey")
-                        .IsUnique();
-
-                    b.ToTable("SubscriptionPlans", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            PlanID = 1,
-                            CanFilterByDistance = false,
-                            CanSeePhoneNumber = false,
-                            Description = "Dành cho người mới bắt đầu",
-                            HasAiSuggestions = false,
-                            HasDetailedStats = false,
-                            HasPlayerFeeExempt = false,
-                            HasPriorityListing = false,
-                            HasVerifiedBadge = false,
-                            IsActive = true,
-                            MonthlyCreateLimit = 1,
-                            MonthlyJoinLimit = 3,
-                            Name = "Miễn phí",
-                            PlanKey = "Free",
-                            PriceAnnual = 0m,
-                            PriceMonthly = 0m,
-                            PriceQuarterly = 0m,
-                            PriorityScore = 0,
-                            SortOrder = 0
-                        },
-                        new
-                        {
-                            PlanID = 2,
-                            CanFilterByDistance = true,
-                            CanSeePhoneNumber = true,
-                            Description = "Cho người chơi thường xuyên",
-                            HasAiSuggestions = false,
-                            HasDetailedStats = false,
-                            HasPlayerFeeExempt = false,
-                            HasPriorityListing = false,
-                            HasVerifiedBadge = false,
-                            IsActive = true,
-                            MonthlyCreateLimit = 3,
-                            MonthlyJoinLimit = 10,
-                            Name = "Starter",
-                            PlanKey = "Starter",
-                            PriceAnnual = 0m,
-                            PriceMonthly = 39000m,
-                            PriceQuarterly = 99000m,
-                            PriorityScore = 1,
-                            SortOrder = 1
-                        },
-                        new
-                        {
-                            PlanID = 3,
-                            CanFilterByDistance = true,
-                            CanSeePhoneNumber = true,
-                            Description = "Cho người chơi nghiêm túc",
-                            HasAiSuggestions = true,
-                            HasDetailedStats = true,
-                            HasPlayerFeeExempt = false,
-                            HasPriorityListing = true,
-                            HasVerifiedBadge = false,
-                            IsActive = true,
-                            MonthlyCreateLimit = -1,
-                            MonthlyJoinLimit = -1,
-                            Name = "Pro",
-                            PlanKey = "Pro",
-                            PriceAnnual = 890000m,
-                            PriceMonthly = 99000m,
-                            PriceQuarterly = 249000m,
-                            PriorityScore = 2,
-                            SortOrder = 2
-                        },
-                        new
-                        {
-                            PlanID = 4,
-                            CanFilterByDistance = true,
-                            CanSeePhoneNumber = true,
-                            Description = "Dành cho đội nhóm & tổ chức",
-                            HasAiSuggestions = true,
-                            HasDetailedStats = true,
-                            HasPlayerFeeExempt = true,
-                            HasPriorityListing = true,
-                            HasVerifiedBadge = true,
-                            IsActive = true,
-                            MonthlyCreateLimit = -1,
-                            MonthlyJoinLimit = -1,
-                            Name = "Club",
-                            PlanKey = "Club",
-                            PriceAnnual = 0m,
-                            PriceMonthly = 199000m,
-                            PriceQuarterly = 499000m,
-                            PriorityScore = 3,
-                            SortOrder = 3
-                        });
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.SubscriptionUsage", b =>
-                {
-                    b.Property<int>("SubscriptionUsageID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionUsageID"));
-
-                    b.Property<int>("CreateCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("JoinCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("YearMonth")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("SubscriptionUsageID");
-
-                    b.HasIndex("UserID", "YearMonth")
-                        .IsUnique();
-
-                    b.ToTable("SubscriptionUsages", (string)null);
-                });
-
             modelBuilder.Entity("SportHub.Models.Entities.TimeSlot", b =>
                 {
                     b.Property<int>("SlotID")
@@ -1576,51 +1316,6 @@ namespace SportHub.Migrations
                     b.ToTable("UserBans", (string)null);
                 });
 
-            modelBuilder.Entity("SportHub.Models.Entities.UserMatchCredit", b =>
-                {
-                    b.Property<int>("UserMatchCreditID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserMatchCreditID"));
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("PurchasedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RemainingCredits")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TransactionRef")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserMatchCreditID");
-
-                    b.HasIndex("TransactionRef")
-                        .IsUnique();
-
-                    b.HasIndex("UserID", "Status");
-
-                    b.ToTable("UserMatchCredits", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_UserMatchCredits_Status", "Status IN ('Pending','Confirmed')");
-                        });
-                });
-
             modelBuilder.Entity("SportHub.Models.Entities.UserRole", b =>
                 {
                     b.Property<int>("UserID")
@@ -1690,50 +1385,6 @@ namespace SportHub.Migrations
                             t.HasCheckConstraint("CK_USP_SelfRated", "SelfRatedLevel IS NULL OR SelfRatedLevel BETWEEN 1 AND 5");
 
                             t.HasCheckConstraint("CK_USP_StrokeStrength", "StrokeStrength IS NULL OR StrokeStrength IN ('Smash','Drop','Drive','AllRound')");
-                        });
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.UserSubscription", b =>
-                {
-                    b.Property<int>("UserSubscriptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserSubscriptionID"));
-
-                    b.Property<string>("BillingCycle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PlanKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserSubscriptionID");
-
-                    b.HasIndex("UserID", "Status");
-
-                    b.ToTable("UserSubscriptions", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_UserSubscriptions_BillingCycle", "BillingCycle IN ('Monthly','Quarterly','Annual','Trial')");
-
-                            t.HasCheckConstraint("CK_UserSubscriptions_Status", "Status IN ('Active','Expired','Cancelled')");
                         });
                 });
 
@@ -2012,11 +1663,6 @@ namespace SportHub.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("SportHub.Models.Entities.Match", "ParentMatch")
-                        .WithMany("RecurringChildren")
-                        .HasForeignKey("ParentMatchId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SportHub.Models.Entities.Sport", "Sport")
                         .WithMany()
                         .HasForeignKey("SportID")
@@ -2028,8 +1674,6 @@ namespace SportHub.Migrations
                     b.Navigation("Court");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("ParentMatch");
 
                     b.Navigation("Sport");
                 });
@@ -2231,28 +1875,6 @@ namespace SportHub.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SportHub.Models.Entities.SubscriptionOrder", b =>
-                {
-                    b.HasOne("SportHub.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.SubscriptionUsage", b =>
-                {
-                    b.HasOne("SportHub.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SportHub.Models.Entities.UserBadge", b =>
                 {
                     b.HasOne("SportHub.Models.Entities.User", "User")
@@ -2286,17 +1908,6 @@ namespace SportHub.Migrations
                     b.Navigation("BannedByAdmin");
 
                     b.Navigation("Report");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.UserMatchCredit", b =>
-                {
-                    b.HasOne("SportHub.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2335,17 +1946,6 @@ namespace SportHub.Migrations
                         .IsRequired();
 
                     b.Navigation("Sport");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SportHub.Models.Entities.UserSubscription", b =>
-                {
-                    b.HasOne("SportHub.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2408,8 +2008,6 @@ namespace SportHub.Migrations
                     b.Navigation("MatchPayments");
 
                     b.Navigation("Participants");
-
-                    b.Navigation("RecurringChildren");
 
                     b.Navigation("Reviews");
                 });

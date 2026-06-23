@@ -66,6 +66,18 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     #matchMap { height: 400px; width: 100%; border-radius: 1rem; z-index: 10; }
+    @@media (max-width: 1023px) {
+        #filterSidebar {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 65;
+            max-height: 88svh; overflow-y: auto;
+            border-radius: 1.25rem 1.25rem 0 0;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        #filterSidebar.drawer-open { transform: translateY(0); }
+        #filterSidebar > div { border-radius: 1.25rem 1.25rem 0 0; }
+    }
     .match-map-tooltip {
         background: transparent !important;
         border: none !important;
@@ -123,74 +135,109 @@
     </div>
 
     <!-- Top Cards Section: Upcoming, History, Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Upcoming Joined Matches -->
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 class="font-bold mb-4 text-lg">Trận đấu sắp tới</h3>
-            @if (Model.UpcomingJoinedMatches.Count == 0)
-            {
-                <p class="text-sm text-slate-500">Chưa có trận đấu sắp tới.</p>
-            }
-            else
-            {
-                <div class="space-y-2">
-                    @foreach (var m in Model.UpcomingJoinedMatches.Take(3))
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <button onclick="toggleSection('upcoming-list', this)" class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
+                    <span class="font-bold text-sm">Trận sắp tới</span>
+                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">@Model.UpcomingJoinedMatches.Count</span>
+                </div>
+                <span class="material-symbols-outlined text-slate-400 text-[18px] section-chevron transition-transform duration-200 @(Model.UpcomingJoinedMatches.Count > 0 ? "rotate-180" : "")">expand_more</span>
+            </button>
+            <div id="upcoming-list" class="@(Model.UpcomingJoinedMatches.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-3 pb-3 space-y-2">
+                @if (Model.UpcomingJoinedMatches.Count == 0)
+                {
+                    <p class="text-sm text-slate-500 px-2 pb-2">Chưa có trận đấu sắp tới.</p>
+                }
+                else
+                {
+                    @foreach (var m in Model.UpcomingJoinedMatches)
                     {
-                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                            <p class="font-semibold text-sm">@m.Title</p>
-                            <p class="text-xs text-slate-500">@m.StartText • @m.Venue</p>
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors border border-transparent hover:border-primary/20">
+                            <p class="font-semibold text-sm text-slate-900 dark:text-white truncate">@m.Title</p>
+                            <p class="text-xs text-slate-500 mt-0.5 truncate">@m.StartText • @m.Venue</p>
                         </a>
                     }
-                </div>
-            }
+                }
+            </div>
         </div>
 
         <!-- Joined Match History -->
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 class="font-bold mb-4 text-lg">Lịch sử trận đấu</h3>
-            @if (Model.JoinedMatchHistory.Count == 0)
-            {
-                <p class="text-sm text-slate-500">Chưa có lịch sử trận đấu.</p>
-            }
-            else
-            {
-                <div class="space-y-2">
-                    @foreach (var m in Model.JoinedMatchHistory.Take(3))
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <button onclick="toggleSection('history-list', this)" class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-slate-400 text-[18px]">history</span>
+                    <span class="font-bold text-sm">Lịch sử trận đấu</span>
+                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 text-[10px] font-bold">@Model.JoinedMatchHistory.Count</span>
+                </div>
+                <span class="material-symbols-outlined text-slate-400 text-[18px] section-chevron transition-transform duration-200 @(Model.JoinedMatchHistory.Count > 0 ? "rotate-180" : "")">expand_more</span>
+            </button>
+            <div id="history-list" class="@(Model.JoinedMatchHistory.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-3 pb-3 space-y-2">
+                @if (Model.JoinedMatchHistory.Count == 0)
+                {
+                    <p class="text-sm text-slate-500 px-2 pb-2">Chưa có lịch sử trận đấu.</p>
+                }
+                else
+                {
+                    @foreach (var m in Model.JoinedMatchHistory)
                     {
-                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                            <p class="font-semibold text-sm">@m.Title</p>
-                            <p class="text-xs text-slate-500">@m.StartText • @m.Venue</p>
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId" class="block p-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <p class="font-semibold text-sm text-slate-900 dark:text-white truncate">@m.Title</p>
+                            <p class="text-xs text-slate-500 mt-0.5 truncate">@m.StartText • @m.Venue</p>
                         </a>
                     }
-                </div>
-            }
+                }
+            </div>
         </div>
 
         <!-- Stats Card -->
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 class="font-bold mb-4 text-lg">Thống kê</h3>
-            <div class="space-y-3">
-                <div>
-                    <p class="text-sm text-slate-500">Trận sắp tới</p>
-                    <p class="text-2xl font-bold text-primary">@Model.UpcomingJoinedMatches.Count</p>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span>
+                <h3 class="font-bold text-sm">Thống kê</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-primary/5 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-black text-primary">@Model.UpcomingJoinedMatches.Count</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Sắp tới</p>
                 </div>
-                <div>
-                    <p class="text-sm text-slate-500">Trận đã chơi</p>
-                    <p class="text-2xl font-bold">@Model.JoinedMatchHistory.Count</p>
+                <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">@Model.JoinedMatchHistory.Count</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Đã chơi</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Mobile filter trigger (lg:hidden) -->
+    <div class="lg:hidden flex gap-2">
+        <button type="button" onclick="openFilterDrawer()" class="relative flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold shadow-sm text-sm">
+            <span class="material-symbols-outlined text-[20px] text-primary">filter_list</span>
+            Bộ lọc
+            <span id="filter-active-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-accent text-white text-[10px] font-bold leading-none"></span>
+        </button>
+    </div>
+
+    <!-- Filter drawer overlay (mobile) -->
+    <div id="filterDrawerOverlay" class="fixed inset-0 z-[60] bg-black/40 hidden lg:hidden" onclick="closeFilterDrawer()"></div>
+
     <!-- Filter and Matches Section -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <!-- Filter Sidebar -->
-        <aside class="lg:col-span-1">
+        <!-- Filter Sidebar / Drawer -->
+        <aside id="filterSidebar" class="lg:col-span-1">
             <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 class="font-bold mb-6 flex items-center gap-2 text-lg">
-                    <span class="material-symbols-outlined text-primary">filter_list</span>
-                    Bộ lọc
-                </h3>
+                <!-- Mobile drawer header -->
+                <div class="flex items-center justify-between mb-6 lg:mb-0">
+                    <h3 class="font-bold flex items-center gap-2 text-lg">
+                        <span class="material-symbols-outlined text-primary">filter_list</span>
+                        Bộ lọc
+                    </h3>
+                    <button type="button" onclick="closeFilterDrawer()" class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
                 
                 <form method="get" class="space-y-4" id="filterForm">
                     <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4" open>
@@ -344,32 +391,51 @@
                         </div>
                     </div>
 
-                    <!-- Radius Search Filter -->
-                    <div class="hidden">
-                        <label class="block text-sm font-semibold mb-1 uppercase text-slate-600 dark:text-slate-400">Bán kính tìm kiếm</label>
-                        <div class="flex items-center gap-2 mb-2">
-                            <input asp-for="Radius" id="radiusInput" type="number" min="0.5" max="50" step="0.5" placeholder="Km"
-                                   value="@(Model.Radius ?? 10)"
-                                   class="flex-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium p-2 focus:border-primary focus:ring-1 focus:ring-primary" />
-                            <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">km</span>
-                        </div>
-                        <div class="range-slider-container !mt-4">
-                            <div id="radiusProgress" class="range-slider-progress"></div>
-                            <input type="range" id="radiusSlider" min="0.5" max="50" step="0.5"
-                                   value="@(Model.Radius ?? 10).ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                                   class="range-input" />
-                        </div>
-                        <div class="flex justify-between text-xs text-slate-400 mt-1">
-                            <span>0.5 km</span>
-                            <span>50 km</span>
-                        </div>
-                        <div class="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs">
-                            <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                <span class="material-symbols-outlined text-sm">location_on</span>
-                                <span id="radiusLocationStatusHidden">Phát hiện vị trí...</span>
+                    <!-- Radius Search Filter — Starter/Pro/Club -->
+                    @if (Model.CanFilterByDistance)
+                    {
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 uppercase text-slate-600 dark:text-slate-400">Bán kính tìm kiếm</label>
+                            <div class="flex items-center gap-2 mb-2">
+                                <input asp-for="Radius" id="radiusInput" name="Radius" type="number" min="0.5" max="50" step="0.5" placeholder="Km"
+                                       value="@(Model.Radius ?? 10)"
+                                       class="flex-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium p-2 focus:border-primary focus:ring-1 focus:ring-primary" />
+                                <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">km</span>
                             </div>
+                            <div class="range-slider-container !mt-4">
+                                <div id="radiusProgress" class="range-slider-progress"></div>
+                                <input type="range" id="radiusSlider" min="0.5" max="50" step="0.5"
+                                       value="@(Model.Radius ?? 10).ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                       class="range-input" />
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-400 mt-1">
+                                <span>0.5 km</span>
+                                <span>50 km</span>
+                            </div>
+                            <div class="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs">
+                                <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                    <span class="material-symbols-outlined text-sm">location_on</span>
+                                    <span id="distanceFilterStatus">Nhập địa chỉ hoặc dùng GPS để lọc khoảng cách</span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="UserLat" id="filterUserLat" value="@(Model.UserLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")" />
+                            <input type="hidden" name="UserLon" id="filterUserLon" value="@(Model.UserLon?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")" />
+                            <button type="button" onclick="useGpsForDistanceFilter()" class="mt-2 text-xs text-primary font-semibold flex items-center gap-1 hover:underline">
+                                <span class="material-symbols-outlined text-sm">my_location</span>Dùng vị trí GPS của tôi
+                            </button>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="relative rounded-xl border border-slate-200 dark:border-slate-700 p-4 overflow-hidden">
+                            <div class="absolute inset-0 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2 z-10">
+                                <span class="material-symbols-outlined text-slate-400 text-2xl">lock</span>
+                                <p class="text-xs font-semibold text-slate-500 text-center">Lọc theo khoảng cách<br/>yêu cầu gói <a asp-page="/Subscription/Index" class="text-primary hover:underline">Starter trở lên</a></p>
+                            </div>
+                            <label class="block text-sm font-semibold mb-1 uppercase text-slate-400">Bán kính tìm kiếm</label>
+                            <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded mt-2 opacity-40"></div>
+                        </div>
+                    }
 
                         </div>
                     </details>
@@ -563,10 +629,19 @@
                                         }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <div class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                                            <div class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
                                                 <span class="material-symbols-outlined text-base">schedule</span>
                                                 Đang chờ duyệt
                                             </div>
+                                            <form method="post" action="/Matchmaking/Details?id=@match.MatchId&handler=Leave"
+                                                  onsubmit="return confirm('Hủy yêu cầu tham gia?')" class="contents">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="flex-shrink-0 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                                                        title="Hủy yêu cầu">
+                                                    <span class="material-symbols-outlined text-base">cancel</span>
+                                                </button>
+                                            </form>
                                         }
                                         <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center">
                                             Chi tiết
@@ -1444,9 +1519,13 @@
                                 div.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">location_on</span><span class="truncate font-medium">${label}</span></div>`;
                                 div.onclick = () => {
                                     locationInput.value = label;
-                                    // Lưu lat/lon nếu filter cần
                                     if (item.lat) locationInput.dataset.lat = item.lat;
                                     if (item.lon) locationInput.dataset.lon = item.lon;
+                                    // Populate distance filter hidden inputs
+                                    const latEl = document.getElementById('filterUserLat');
+                                    const lonEl = document.getElementById('filterUserLon');
+                                    if (latEl && item.lat) { latEl.value = item.lat; updateDistanceFilterStatus(label); }
+                                    if (lonEl && item.lon) lonEl.value = item.lon;
                                     locationSuggestions.classList.add('hidden');
                                 };
                                 locationSuggestions.appendChild(div);
@@ -1465,6 +1544,31 @@
                 }
             });
         }
+
+        // Distance filter helpers
+        function updateDistanceFilterStatus(label) {
+            const el = document.getElementById('distanceFilterStatus');
+            if (el) el.textContent = '📍 Lọc quanh: ' + label;
+        }
+        window.useGpsForDistanceFilter = function() {
+            if (!navigator.geolocation) return;
+            const statusEl = document.getElementById('distanceFilterStatus');
+            if (statusEl) statusEl.textContent = 'Đang lấy vị trí GPS...';
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const latEl = document.getElementById('filterUserLat');
+                const lonEl = document.getElementById('filterUserLon');
+                if (latEl) latEl.value = lat;
+                if (lonEl) lonEl.value = lon;
+                if (statusEl) statusEl.textContent = '📍 Vị trí GPS đã xác định (' + lat.toFixed(4) + ', ' + lon.toFixed(4) + ')';
+                // Also update location input display
+                const locInput = document.getElementById('locationInput');
+                if (locInput && !locInput.value) locInput.value = 'Vị trí hiện tại (GPS)';
+            }, function() {
+                if (statusEl) statusEl.textContent = 'Không thể lấy vị trí GPS.';
+            });
+        };
 
         // --- DATE FILTER SHORTCUTS ---
         window.setQuickDate = function(offset) {
@@ -1865,7 +1969,7 @@
                 placedMarkers.push(marker);
 
                 marker.bindTooltip(
-                    `<div style="background:#2563eb;color:#fff;font-weight:700;font-size:11px;line-height:1.2;padding:6px 8px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.18);white-space:nowrap;">
+                    `<div style="background:#50A5B1;color:#fff;font-weight:700;font-size:11px;line-height:1.2;padding:6px 8px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.18);white-space:nowrap;">
                         <div>${skillText}</div>
                         <div>🕒 ${timeText}</div>
                         <div>💰 ${priceText}</div>
@@ -1880,16 +1984,15 @@
                 );
 
                 marker.bindPopup(`
-                    <div class="p-2" style="min-width: 180px;">
-                        <div class="font-bold text-sm mb-1">${safeText(match.Title, "Trận đấu")}</div>
-                        <div class="text-[11px] text-slate-500 mb-1">Trình độ: <b>${skillText}</b></div>
-                        <div class="text-[11px] text-slate-500 mb-1">Giờ: <b>${timeText}</b></div>
-                        <div class="text-[11px] text-slate-500 mb-2">Giá: <b>${priceText}</b></div>
-                        <div class="flex items-center gap-1 text-[10px] text-slate-500 mb-2">
-                            <span class="material-symbols-outlined text-[12px]">location_on</span>
-                            ${safeText(match.Venue, "Không rõ địa điểm")}
+                    <div style="min-width:180px;padding:8px;">
+                        <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:#1e293b;">${safeText(match.Title, "Trận đấu")}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Trình độ: <b>${skillText}</b></div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Giờ: <b>${timeText}</b></div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:6px;">Giá: <b>${priceText}</b></div>
+                        <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;display:flex;align-items:center;gap:3px;">
+                            📍 ${safeText(match.Venue, "Không rõ địa điểm")}
                         </div>
-                        <a href="/Matchmaking/Details?id=${match.MatchId}" class="inline-block text-[10px] font-bold text-white bg-primary px-2 py-1 rounded hover:bg-primary/90 transition-colors">Chi tiết</a>
+                        <a href="/Matchmaking/Details?id=${match.MatchId}" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#50A5B1;padding:4px 10px;border-radius:6px;text-decoration:none;">Chi tiết</a>
                     </div>
                 `);
             }
@@ -1910,6 +2013,52 @@
                 }
             }
         }
+    </script>
+    <script>
+        // Toggle collapsible match sections
+        function toggleSection(listId, btn) {
+            var list = document.getElementById(listId);
+            if (!list) return;
+            var chevron = btn.querySelector('.section-chevron');
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            } else {
+                list.classList.add('hidden');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+    <script>
+        // Filter drawer for mobile
+        function openFilterDrawer() {
+            document.getElementById('filterSidebar').classList.add('drawer-open');
+            document.getElementById('filterDrawerOverlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeFilterDrawer() {
+            document.getElementById('filterSidebar').classList.remove('drawer-open');
+            document.getElementById('filterDrawerOverlay').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        // Count active filters for badge
+        function updateFilterBadge() {
+            var form = document.getElementById('filterForm');
+            if (!form) return;
+            var count = 0;
+            form.querySelectorAll('input[type=text], input[type=number], select').forEach(function(el) {
+                if (el.name && el.value && el.value.trim() !== '' && el.value !== 'All') count++;
+            });
+            var badge = document.getElementById('filter-active-count');
+            if (!badge) return;
+            if (count > 0) { badge.textContent = count; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFilterBadge();
+            var form = document.getElementById('filterForm');
+            if (form) form.addEventListener('change', updateFilterBadge);
+        });
     </script>
     <script>
         // Match card drag & drop — send thẻ trận vào popup chat widget

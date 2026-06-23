@@ -2,70 +2,169 @@
 @model SportHub.Pages.Profile.IndexModel
 @{
     ViewData["Title"] = "Cá nhân";
+    ViewData["ActivePage"] = "Profile";
     var p = Model.Profile;
+
+    string planKey = ViewData["CurrentPlanKey"] as string ?? "Free";
 }
 
-<section class="space-y-8">
-    <div class="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex items-center gap-5">
-                <img class="size-28 rounded-full border-4 border-white dark:border-slate-800 shadow-lg object-cover"
-                     src="@p.AvatarUrl"
-                     onerror="this.onerror=null;this.src='/images/avatar-default.png';"
-                     alt="User" />
-                <div>
-                    <h1 class="text-3xl font-bold">@p.FullName</h1>
-                    <p class="text-slate-500 dark:text-slate-400">Thành viên từ @p.JoinedText</p>
-                    <div class="flex gap-2 mt-2">
-                        <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">Người chơi xác thực</span>
-                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Premium</span>
+<section class="space-y-6">
+
+    <!-- Hero Card — Cover banner + Avatar overlap -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+        <!-- Teal cover banner -->
+        <div class="h-28 bg-gradient-to-br from-primary/80 via-primary to-navy/90 relative">
+            <!-- Edit button top-right -->
+            <a asp-page="/Profile/Edit"
+               class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                Chỉnh sửa
+            </a>
+        </div>
+
+        <!-- Avatar + Info -->
+        <div class="px-6 pb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12">
+                <!-- Avatar -->
+                <div class="relative inline-block">
+                    <img class="size-24 rounded-full border-4 border-white dark:border-slate-900 shadow-lg object-cover ring-2 ring-primary/30"
+                         src="@p.AvatarUrl"
+                         onerror="this.onerror=null;this.src='/images/avatar-default.png';"
+                         alt="@p.FullName" />
+                    @if (Model.CurrentPlanKey == "Pro")
+                    {
+                        <span class="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">PRO</span>
+                    }
+                    else if (Model.CurrentPlanKey == "Club")
+                    {
+                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">CLUB</span>
+                    }
+                    else if (Model.CurrentPlanKey == "Starter")
+                    {
+                        <span class="absolute -bottom-1 -right-1 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">S+</span>
+                    }
+                </div>
+
+                <!-- Quick stats (desktop) -->
+                <div class="hidden sm:flex items-center gap-6 pb-1">
+                    <div class="text-center">
+                        <p class="text-2xl font-black text-slate-900 dark:text-white">@p.MatchesPlayed</p>
+                        <p class="text-xs text-slate-400 font-medium">Trận đã chơi</p>
+                    </div>
+                    <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="text-center">
+                        <p class="text-2xl font-black text-primary">@p.Wins</p>
+                        <p class="text-xs text-slate-400 font-medium">Trận thắng</p>
+                    </div>
+                    <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="text-center">
+                        <p class="text-2xl font-black text-accent">@p.TotalBookings</p>
+                        <p class="text-xs text-slate-400 font-medium">Lần đặt sân</p>
                     </div>
                 </div>
             </div>
-            <a asp-page="/Profile/Edit" class="px-5 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold hover:bg-primary hover:text-white transition-colors">Chỉnh sửa hồ sơ</a>
+
+            <!-- Name & badges -->
+            <div class="mt-3">
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">@p.FullName</h1>
+                <p class="text-sm text-slate-400 mt-0.5">Thành viên từ @p.JoinedText</p>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                        <span class="material-symbols-outlined text-xs">verified</span>
+                        Người chơi xác thực
+                    </span>
+                    @if (Model.CurrentPlanKey != null && Model.CurrentPlanKey != "Free")
+                    {
+                        var (subBg, subText) = Model.CurrentPlanKey switch {
+                            "Club"    => ("bg-amber-100 text-amber-700",  "Club"),
+                            "Pro"     => ("bg-purple-100 text-purple-700","Pro"),
+                            _         => ("bg-primary/10 text-primary",   "Starter"),
+                        };
+                        <a href="/Subscription" class="inline-flex items-center gap-1 px-3 py-1 @subBg text-xs font-bold rounded-full hover:opacity-80 transition-opacity">
+                            <span class="material-symbols-outlined text-xs">workspace_premium</span>
+                            @subText
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick stats mobile -->
+            <div class="sm:hidden flex items-center gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div class="text-center flex-1">
+                    <p class="text-xl font-black text-slate-900 dark:text-white">@p.MatchesPlayed</p>
+                    <p class="text-[11px] text-slate-400">Trận đã chơi</p>
+                </div>
+                <div class="text-center flex-1">
+                    <p class="text-xl font-black text-primary">@p.Wins</p>
+                    <p class="text-[11px] text-slate-400">Trận thắng</p>
+                </div>
+                <div class="text-center flex-1">
+                    <p class="text-xl font-black text-accent">@p.TotalBookings</p>
+                    <p class="text-[11px] text-slate-400">Lần đặt sân</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-4 space-y-6">
+    <!-- Body Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Sidebar (4 col) -->
+        <div class="lg:col-span-4 space-y-4">
+
             <!-- Thông tin cá nhân -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 class="font-bold mb-4 text-lg">Thông tin cá nhân</h3>
-                <div class="space-y-4 text-sm">
-                    <div>
-                        <span class="text-slate-400 block mb-1">Email</span>
-                        <b class="text-slate-900 dark:text-white">@p.Email</b>
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+                    <span class="material-symbols-outlined text-primary text-lg">person</span>
+                    Thông tin cá nhân
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">mail</span>
+                        <div>
+                            <p class="text-slate-400 text-xs">Email</p>
+                            <p class="font-semibold text-slate-800 dark:text-slate-200">@p.Email</p>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-slate-400 block mb-1">Số điện thoại</span>
-                        <b class="text-slate-900 dark:text-white">@p.PhoneNumber</b>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">phone</span>
+                        <div>
+                            <p class="text-slate-400 text-xs">Số điện thoại</p>
+                            <p class="font-semibold text-slate-800 dark:text-slate-200">@p.PhoneNumber</p>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-slate-400 block mb-1">Địa chỉ mặc định</span>
-                        <b class="text-slate-900 dark:text-white">@p.DefaultAddress</b>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">location_on</span>
+                        <div>
+                            <p class="text-slate-400 text-xs">Địa chỉ mặc định</p>
+                            <p class="font-semibold text-slate-800 dark:text-slate-200">@p.DefaultAddress</p>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-slate-400 block mb-1">Tham gia từ</span>
-                        <b class="text-slate-900 dark:text-white">@p.JoinedText</b>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-slate-400 text-base mt-0.5">calendar_today</span>
+                        <div>
+                            <p class="text-slate-400 text-xs">Tham gia từ</p>
+                            <p class="font-semibold text-slate-800 dark:text-slate-200">@p.JoinedText</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Ví SportHub -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-bold text-lg flex items-center gap-2">
-                        <span class="material-symbols-outlined text-emerald-600">account_balance_wallet</span>
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span class="material-symbols-outlined text-primary text-lg">account_balance_wallet</span>
                         Ví SportHub
                     </h3>
-                    <span class="text-xl font-black @(Model.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@Model.WalletBalance.ToString("N0") ₫</span>
+                    <span class="text-lg font-black @(Model.WalletBalance > 0 ? "text-primary" : "text-slate-400")">@Model.WalletBalance.ToString("N0") ₫</span>
                 </div>
                 @if (Model.WalletHistory.Any())
                 {
-                    <div class="space-y-2">
+                    <div class="space-y-1.5">
                         @foreach (var tx in Model.WalletHistory)
                         {
-                            var txColor = tx.Amount > 0 ? "text-emerald-600" : "text-rose-600";
+                            var txColor = tx.Amount > 0 ? "text-primary" : "text-rose-600";
                             var txSign = tx.Amount > 0 ? "+" : "";
                             var txIcon = tx.Type switch {
                                 "Refund"      => "undo",
@@ -73,53 +172,55 @@
                                 "Deduction"   => "remove_circle",
                                 _             => "swap_horiz"
                             };
-                            <div class="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                                <span class="material-symbols-outlined text-slate-400 text-base">@txIcon</span>
+                            <div class="flex items-center gap-2.5 py-2 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                                <span class="material-symbols-outlined text-slate-300 text-sm">@txIcon</span>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm text-slate-700 dark:text-slate-300 truncate">@tx.Description</p>
-                                    <p class="text-xs text-slate-400">@tx.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
+                                    <p class="text-xs text-slate-700 dark:text-slate-300 truncate">@tx.Description</p>
+                                    <p class="text-[10px] text-slate-400">@tx.CreatedAt.ToLocalTime().ToString("dd/MM/yy HH:mm")</p>
                                 </div>
-                                <span class="text-sm font-bold @txColor flex-shrink-0">@txSign@tx.Amount.ToString("N0") ₫</span>
+                                <span class="text-xs font-bold @txColor">@txSign@tx.Amount.ToString("N0") ₫</span>
                             </div>
                         }
                     </div>
                 }
                 else
                 {
-                    <p class="text-sm text-slate-400 text-center py-3">Chưa có giao dịch ví nào.</p>
+                    <p class="text-xs text-slate-400 text-center py-3">Chưa có giao dịch nào.</p>
                 }
+                <a href="/Wallet" class="mt-3 flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline">
+                    Xem lịch sử ví
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
             </div>
 
             <!-- Môn thể thao & Trình độ -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 class="font-bold mb-4 text-lg">Môn thể thao & Trình độ</h3>
-                <div class="space-y-3">
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
+                    <span class="material-symbols-outlined text-primary text-lg">sports</span>
+                    Môn thể thao & Trình độ
+                </h3>
+                <div class="space-y-2">
                     @if (Model.SportProfiles.Any())
                     {
                         @foreach (var sp in Model.SportProfiles)
                         {
-                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                                <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                                    @if (sp.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || sp.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <span>🏸</span>
-                                    }
-                                    else if (sp.SportName.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase) || sp.SportName.Contains("Football", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <span>⚽</span>
-                                    }
-                                    else if (sp.SportName.Contains("Bóng bàn", StringComparison.OrdinalIgnoreCase) || sp.SportName.Contains("Table Tennis", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <span>🏓</span>
-                                    }
-                                    else if (sp.SportName.Contains("Tennis", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <span>🎾</span>
-                                    }
-                                    else
-                                    {
-                                        <span>🎯</span>
-                                    }
+                            var sportEmoji = sp.SportName switch {
+                                var n when n.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase)
+                                        || n.Contains("Badminton", StringComparison.OrdinalIgnoreCase) => "🏸",
+                                var n when n.Contains("Bóng đá", StringComparison.OrdinalIgnoreCase)
+                                        || n.Contains("Football", StringComparison.OrdinalIgnoreCase) => "⚽",
+                                var n when n.Contains("Bóng bàn", StringComparison.OrdinalIgnoreCase)
+                                        || n.Contains("Table Tennis", StringComparison.OrdinalIgnoreCase) => "🏓",
+                                var n when n.Contains("Tennis", StringComparison.OrdinalIgnoreCase) => "🎾",
+                                var n when n.Contains("Bóng rổ", StringComparison.OrdinalIgnoreCase)
+                                        || n.Contains("Basketball", StringComparison.OrdinalIgnoreCase) => "🏀",
+                                var n when n.Contains("Bơi", StringComparison.OrdinalIgnoreCase)
+                                        || n.Contains("Swimming", StringComparison.OrdinalIgnoreCase) => "🏊",
+                                _ => "🎯"
+                            };
+                            <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-1.5">
+                                    <span>@sportEmoji</span>
                                     @sp.SportName
                                 </span>
                                 <span class="text-xs px-2.5 py-1 bg-primary/10 text-primary font-bold rounded-full">@sp.SkillLevel</span>
@@ -128,29 +229,37 @@
                     }
                     else
                     {
-                        <p class="text-sm text-slate-500 text-center py-4">Chưa cập nhật môn thể thao.</p>
+                        <div class="text-center py-6">
+                            <span class="material-symbols-outlined text-slate-300 text-3xl">sports</span>
+                            <p class="text-sm text-slate-400 mt-2">Chưa cập nhật môn thể thao.</p>
+                            <a asp-page="/Profile/Edit" class="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Thêm ngay</a>
+                        </div>
                     }
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 class="font-bold mb-4 text-lg">Huy hiá»‡u SportHub</h3>
-                <div class="space-y-3">
+            <!-- Huy hiệu -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
+                    <span class="material-symbols-outlined text-primary text-lg">military_tech</span>
+                    Huy hiệu SportHub
+                </h3>
+                <div class="space-y-2">
                     @foreach (var badge in Model.Badges)
                     {
-                        <div class="p-3 rounded-xl border @(badge.IsEarned ? "border-primary/30 bg-primary/5" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50")">
-                            <div class="flex items-start gap-3">
-                                <span class="material-symbols-outlined @(badge.IsEarned ? "text-primary" : "text-slate-400")">@badge.Icon</span>
+                        <div class="p-3 rounded-xl border @(badge.IsEarned ? "border-primary/25 bg-primary/5" : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30")">
+                            <div class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-lg @(badge.IsEarned ? "text-primary" : "text-slate-300 dark:text-slate-600")">@badge.Icon</span>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-2">
-                                        <p class="font-black text-sm">@badge.Name</p>
-                                        <span class="text-[10px] font-bold px-2 py-1 rounded-full @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
+                                        <p class="font-bold text-xs text-slate-800 dark:text-slate-200">@badge.Name</p>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
                                     </div>
-                                    <p class="text-xs text-slate-500 mt-1">@badge.Description</p>
-                                    <div class="mt-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                                        <div class="h-full bg-primary" style="width:@badge.ProgressPercent%"></div>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">@badge.Description</p>
+                                    <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                        <div class="h-full bg-primary rounded-full transition-all" style="width:@badge.ProgressPercent%"></div>
                                     </div>
-                                    <p class="text-[10px] text-slate-500 mt-1">@badge.ProgressValue / @badge.TargetValue</p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5">@badge.ProgressValue / @badge.TargetValue</p>
                                 </div>
                             </div>
                         </div>
@@ -159,138 +268,148 @@
             </div>
         </div>
 
-        <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Trận đã chơi</p>
-                <p class="text-4xl font-black mt-2">@p.MatchesPlayed</p>
-            </div>
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Trận thắng</p>
-                <p class="text-4xl font-black mt-2 text-emerald-600">@p.Wins</p>
-            </div>
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Số lần đặt sân</p>
-                <p class="text-4xl font-black mt-2 text-primary">@p.TotalBookings</p>
-            </div>
-        </div>
-    </div>
+        <!-- Main content (8 col) -->
+        <div class="lg:col-span-8 space-y-4">
 
-    <!-- Rating Summary & Review History -->
-    <div class="mt-8 space-y-6">
-        <!-- Rating Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- As Host -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
-                <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-primary">diversity_3</span>
-                    Khi là Host
-                </h3>
-                @if (!Model.HostRatingSummary.HasEnoughReviews)
-                {
-                    <p class="text-sm text-slate-400">Chưa đủ đánh giá (cần ≥ 3)</p>
-                }
-                else
-                {
-                    <div class="flex items-center gap-3 mb-3">
-                        <span class="text-4xl font-black text-amber-500">@Model.HostRatingSummary.OverallAverage.ToString("F1")</span>
-                        <div>
-                            <div class="flex items-center gap-0.5">
-                                @for (int i = 1; i <= 5; i++)
-                                {
-                                    <span class="material-symbols-outlined text-base @(i <= (int)Math.Round(Model.HostRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-300")"
-                                          style="font-variation-settings:'FILL' 1">star</span>
-                                }
-                            </div>
-                            <p class="text-xs text-slate-400">@Model.HostRatingSummary.ReviewCount đánh giá</p>
-                        </div>
-                    </div>
-                    <div class="space-y-1 text-xs text-slate-500">
-                        @if (Model.HostRatingSummary.AvgOrganization.HasValue)
-                        { <div class="flex justify-between"><span>Tổ chức</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgOrganization.Value.ToString("F1")</span></div> }
-                        @if (Model.HostRatingSummary.AvgEquipment.HasValue)
-                        { <div class="flex justify-between"><span>Thiết bị</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgEquipment.Value.ToString("F1")</span></div> }
-                        @if (Model.HostRatingSummary.AvgAtmosphere.HasValue)
-                        { <div class="flex justify-between"><span>Không khí</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgAtmosphere.Value.ToString("F1")</span></div> }
-                        @if (Model.HostRatingSummary.AvgHost.HasValue)
-                        { <div class="flex justify-between"><span>Host</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgHost.Value.ToString("F1")</span></div> }
-                    </div>
-                }
-            </div>
-
-            <!-- As Player -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
-                <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-                    <span class="material-symbols-outlined text-primary">sports_tennis</span>
-                    Khi là Người chơi
-                </h3>
-                @if (!Model.PlayerRatingSummary.HasEnoughReviews)
-                {
-                    <p class="text-sm text-slate-400">Chưa đủ đánh giá (cần ≥ 3)</p>
-                }
-                else
-                {
-                    <div class="flex items-center gap-3 mb-3">
-                        <span class="text-4xl font-black text-amber-500">@Model.PlayerRatingSummary.OverallAverage.ToString("F1")</span>
-                        <div>
-                            <div class="flex items-center gap-0.5">
-                                @for (int i = 1; i <= 5; i++)
-                                {
-                                    <span class="material-symbols-outlined text-base @(i <= (int)Math.Round(Model.PlayerRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-300")"
-                                          style="font-variation-settings:'FILL' 1">star</span>
-                                }
-                            </div>
-                            <p class="text-xs text-slate-400">@Model.PlayerRatingSummary.ReviewCount đánh giá</p>
-                        </div>
-                    </div>
-                    <div class="space-y-1 text-xs text-slate-500">
-                        @if (Model.PlayerRatingSummary.AvgPunctuality.HasValue)
-                        { <div class="flex justify-between"><span>Đúng giờ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgPunctuality.Value.ToString("F1")</span></div> }
-                        @if (Model.PlayerRatingSummary.AvgSportsmanship.HasValue)
-                        { <div class="flex justify-between"><span>Tinh thần</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSportsmanship.Value.ToString("F1")</span></div> }
-                        @if (Model.PlayerRatingSummary.AvgSkillAccuracy.HasValue)
-                        { <div class="flex justify-between"><span>Trình độ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSkillAccuracy.Value.ToString("F1")</span></div> }
-                    </div>
-                }
-            </div>
-        </div>
-
-        <!-- Review History -->
-        @if (Model.ReceivedReviews.Any())
-        {
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
-                <h3 class="font-bold text-slate-900 dark:text-white mb-4">Lịch sử đánh giá nhận được</h3>
-                <div class="space-y-4 max-h-96 overflow-y-auto pr-1">
-                    @foreach (var review in Model.ReceivedReviews)
+            <!-- Rating Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- As Host -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-base">diversity_3</span>
+                        Khi là Host
+                    </h3>
+                    @if (!Model.HostRatingSummary.HasEnoughReviews)
                     {
-                        var typeLabel = review.ReviewType == "PlayerToMatch" ? "Người chơi → Host" : "Host → Người chơi";
-                        var typeBg = review.ReviewType == "PlayerToMatch" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400";
-                        <div class="flex gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                            <img src="@(review.ReviewerAvatarUrl ?? "/images/avatar-default.png")"
-                                 alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5" />
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full @typeBg">@typeLabel</span>
-                                    <span class="text-xs text-slate-400">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-1">@review.MatchTitle • @review.MatchDate.ToString("dd/MM/yyyy")</p>
-                                <div class="flex items-center gap-0.5 mb-1">
+                        <div class="text-center py-4">
+                            <span class="material-symbols-outlined text-slate-300 text-2xl">star_border</span>
+                            <p class="text-xs text-slate-400 mt-1">Chưa đủ đánh giá (cần ≥ 3)</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl font-black text-amber-500">@Model.HostRatingSummary.OverallAverage.ToString("F1")</span>
+                            <div>
+                                <div class="flex items-center gap-0.5">
                                     @for (int i = 1; i <= 5; i++)
                                     {
-                                        <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(review.AverageScore) ? "text-amber-400" : "text-slate-300")"
+                                        <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(Model.HostRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-200 dark:text-slate-600")"
                                               style="font-variation-settings:'FILL' 1">star</span>
                                     }
-                                    <span class="text-xs font-bold text-amber-500 ml-1">@review.AverageScore.ToString("F1")</span>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(review.Comment))
-                                {
-                                    <p class="text-sm text-slate-600 dark:text-slate-400 italic">"@review.Comment"</p>
-                                }
+                                <p class="text-[11px] text-slate-400">@Model.HostRatingSummary.ReviewCount đánh giá</p>
                             </div>
+                        </div>
+                        <div class="space-y-1.5 text-xs text-slate-500">
+                            @if (Model.HostRatingSummary.AvgOrganization.HasValue)
+                            { <div class="flex justify-between"><span>Tổ chức</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgOrganization.Value.ToString("F1")</span></div> }
+                            @if (Model.HostRatingSummary.AvgEquipment.HasValue)
+                            { <div class="flex justify-between"><span>Thiết bị</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgEquipment.Value.ToString("F1")</span></div> }
+                            @if (Model.HostRatingSummary.AvgAtmosphere.HasValue)
+                            { <div class="flex justify-between"><span>Không khí</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgAtmosphere.Value.ToString("F1")</span></div> }
+                            @if (Model.HostRatingSummary.AvgHost.HasValue)
+                            { <div class="flex justify-between"><span>Host</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.HostRatingSummary.AvgHost.Value.ToString("F1")</span></div> }
+                        </div>
+                    }
+                </div>
+
+                <!-- As Player -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-base">sports_tennis</span>
+                        Khi là Người chơi
+                    </h3>
+                    @if (!Model.PlayerRatingSummary.HasEnoughReviews)
+                    {
+                        <div class="text-center py-4">
+                            <span class="material-symbols-outlined text-slate-300 text-2xl">star_border</span>
+                            <p class="text-xs text-slate-400 mt-1">Chưa đủ đánh giá (cần ≥ 3)</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl font-black text-amber-500">@Model.PlayerRatingSummary.OverallAverage.ToString("F1")</span>
+                            <div>
+                                <div class="flex items-center gap-0.5">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(Model.PlayerRatingSummary.OverallAverage) ? "text-amber-400" : "text-slate-200 dark:text-slate-600")"
+                                              style="font-variation-settings:'FILL' 1">star</span>
+                                    }
+                                </div>
+                                <p class="text-[11px] text-slate-400">@Model.PlayerRatingSummary.ReviewCount đánh giá</p>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 text-xs text-slate-500">
+                            @if (Model.PlayerRatingSummary.AvgPunctuality.HasValue)
+                            { <div class="flex justify-between"><span>Đúng giờ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgPunctuality.Value.ToString("F1")</span></div> }
+                            @if (Model.PlayerRatingSummary.AvgSportsmanship.HasValue)
+                            { <div class="flex justify-between"><span>Tinh thần</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSportsmanship.Value.ToString("F1")</span></div> }
+                            @if (Model.PlayerRatingSummary.AvgSkillAccuracy.HasValue)
+                            { <div class="flex justify-between"><span>Trình độ</span><span class="font-semibold text-slate-700 dark:text-slate-300">@Model.PlayerRatingSummary.AvgSkillAccuracy.Value.ToString("F1")</span></div> }
                         </div>
                     }
                 </div>
             </div>
-        }
+
+            <!-- Review History -->
+            @if (Model.ReceivedReviews.Any())
+            {
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-base">rate_review</span>
+                        Đánh giá nhận được
+                        <span class="ml-auto text-xs font-normal text-slate-400">@Model.ReceivedReviews.Count đánh giá</span>
+                    </h3>
+                    <div class="space-y-4 max-h-96 overflow-y-auto pr-1">
+                        @foreach (var review in Model.ReceivedReviews)
+                        {
+                            var typeLabel = review.ReviewType == "PlayerToMatch" ? "Người chơi → Host" : "Host → Người chơi";
+                            var typeBg = review.ReviewType == "PlayerToMatch"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-accent/10 text-accent";
+                            <div class="flex gap-3 pb-4 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
+                                <img src="@(review.ReviewerAvatarUrl ?? "/images/avatar-default.png")"
+                                     alt="" class="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5 ring-1 ring-slate-200" />
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full @typeBg">@typeLabel</span>
+                                        <span class="text-xs text-slate-400 ml-auto">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mb-1">@review.MatchTitle • @review.MatchDate.ToString("dd/MM/yyyy")</p>
+                                    <div class="flex items-center gap-0.5 mb-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(review.AverageScore) ? "text-amber-400" : "text-slate-200 dark:text-slate-700")"
+                                                  style="font-variation-settings:'FILL' 1">star</span>
+                                        }
+                                        <span class="text-xs font-bold text-amber-500 ml-1">@review.AverageScore.ToString("F1")</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                    {
+                                        <p class="text-sm text-slate-600 dark:text-slate-400 italic">"@review.Comment"</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm text-center">
+                    <span class="material-symbols-outlined text-slate-300 text-4xl">rate_review</span>
+                    <p class="text-sm text-slate-400 mt-3">Chưa có đánh giá nào.</p>
+                    <p class="text-xs text-slate-300 mt-1">Tham gia trận đấu để nhận đánh giá từ người chơi khác.</p>
+                    <a asp-page="/Matchmaking/Index" class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                        <span class="material-symbols-outlined text-sm">person_search</span>
+                        Tìm trận ngay
+                    </a>
+                </div>
+            }
+        </div>
     </div>
 </section>

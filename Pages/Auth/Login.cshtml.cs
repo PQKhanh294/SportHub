@@ -37,6 +37,16 @@ namespace SportHub.Pages.Auth
             ReturnUrl = returnUrl;
         }
 
+        public IActionResult OnGetExternalLogin(string provider = "Google", string? returnUrl = null)
+        {
+            var callbackUrl = Url.Page("/Auth/ExternalCallback", new { returnUrl });
+            var properties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+            {
+                RedirectUri = callbackUrl
+            };
+            return Challenge(properties, provider);
+        }
+
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             ReturnUrl = returnUrl;
