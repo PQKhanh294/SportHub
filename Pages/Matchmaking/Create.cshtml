@@ -491,15 +491,42 @@
         const btnText = document.getElementById('aiDescBtnText');
         const textarea = document.getElementById('descriptionTextarea');
 
-        const sportSelect = document.querySelector('[name="Input.SportId"]');
-        const skillSelect = document.querySelector('[name="Input.SkillRequired"]');
-        const typeSelect = document.querySelector('[name="Input.MatchType"]');
-        const dateInput = document.querySelector('[name="Input.MatchDate"]');
+        // Sport: read from visible select
+        const sportEl = document.getElementById('sportSelect');
+        const sportText = sportEl && sportEl.value ? (sportEl.options[sportEl.selectedIndex]?.text || '') : '';
 
-        const sportText = sportSelect ? sportSelect.options[sportSelect.selectedIndex]?.text : '';
-        const skillText = skillSelect ? skillSelect.options[skillSelect.selectedIndex]?.text : '';
-        const typeText = typeSelect ? typeSelect.options[typeSelect.selectedIndex]?.text : '';
-        const dateVal = dateInput ? dateInput.value : '';
+        // MatchType: checkboxes (badminton) or select (other sports)
+        let typeText = '';
+        const mtCheckboxes = document.getElementById('matchTypeCheckboxes');
+        if (mtCheckboxes && !mtCheckboxes.classList.contains('hidden')) {
+            const checked = [...document.querySelectorAll('.mt-type-cb:checked')].map(c => c.value);
+            typeText = checked.join(', ');
+        } else {
+            const typeEl = document.getElementById('matchTypeSelect');
+            if (typeEl && typeEl.value) typeText = typeEl.options[typeEl.selectedIndex]?.text || '';
+        }
+
+        // Skill: badminton checkboxes or select
+        let skillText = '';
+        const skillBadmintonSec = document.getElementById('skillBadmintonSection');
+        if (skillBadmintonSec && !skillBadmintonSec.classList.contains('hidden')) {
+            const male = [...document.querySelectorAll('.skill-male-cb:checked')].map(c => c.value);
+            const female = [...document.querySelectorAll('.skill-female-cb:checked')].map(c => c.value);
+            const parts = [];
+            if (male.length) parts.push('Nam ' + male.join('/'));
+            if (female.length) parts.push('Nữ ' + female.join('/'));
+            skillText = parts.join(', ') || 'Mọi trình độ';
+        } else {
+            const skillEl = document.getElementById('skillSelect');
+            if (skillEl && skillEl.value) skillText = skillEl.options[skillEl.selectedIndex]?.text || '';
+        }
+
+        const dateVal = document.querySelector('[name="Input.MatchDate"]')?.value || '';
+
+        if (!sportText) {
+            alert('Vui lòng chọn môn thể thao trước khi gợi ý AI.');
+            return;
+        }
 
         btnText.textContent = 'Đang tạo...';
         btn.disabled = true;
@@ -507,7 +534,7 @@
         try {
             const params = new URLSearchParams({ sport: sportText, skill: skillText, type: typeText, date: dateVal });
             const res = await fetch('/api/chat/match-desc?' + params.toString());
-            if (!res.ok) throw new Error('API error');
+            if (!res.ok) throw new Error('API error ' + res.status);
             const data = await res.json();
             if (data.description) {
                 textarea.value = data.description;

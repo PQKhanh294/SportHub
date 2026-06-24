@@ -93,20 +93,21 @@
 <section class="space-y-6">
     <!-- Header Section -->
         <div class="flex gap-2">
-            <button type="button" onclick="toggleMapView()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-xl font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all inline-flex items-center gap-2">
-                <span class="material-symbols-outlined">map</span>
-                Bản đồ
+            <button type="button" onclick="toggleMapView()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-3 sm:px-6 py-2 sm:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all inline-flex items-center gap-1.5 sm:gap-2">
+                <span class="material-symbols-outlined text-[20px] sm:text-[24px]">map</span>
+                <span class="hidden sm:inline">Bản đồ</span>
             </button>
-            <a asp-page="/Matchmaking/Create" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all inline-flex items-center gap-2 whitespace-nowrap">
-                <span class="material-symbols-outlined">bolt</span>
-                Tạo trận mới
+            <a asp-page="/Matchmaking/Create" class="bg-primary hover:bg-primary/90 text-white px-4 sm:px-8 py-2 sm:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold shadow-lg shadow-primary/25 transition-all inline-flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px] sm:text-[24px]">bolt</span>
+                Tạo trận
+                <span class="hidden sm:inline"> mới</span>
             </a>
         </div>
     </div>
 
     <!-- Map Section (Hidden) -->
     <div id="mapSection" class="hidden mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-primary text-base">place</span>
@@ -135,18 +136,18 @@
     </div>
 
     <!-- Top Cards Section: Upcoming, History, Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
         <!-- Upcoming Joined Matches -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <button onclick="toggleSection('upcoming-list', this)" class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-                    <span class="font-bold text-sm">Trận sắp tới</span>
-                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">@Model.UpcomingJoinedMatches.Count</span>
+        <div class="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <button onclick="toggleSection('upcoming-list', this)" class="w-full flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="material-symbols-outlined text-primary text-[16px] sm:text-[18px]">calendar_today</span>
+                    <span class="font-bold text-xs sm:text-sm">Sắp tới</span>
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-5 px-1 sm:px-1.5 rounded-full bg-primary/10 text-primary text-[9px] sm:text-[10px] font-bold">@Model.UpcomingJoinedMatches.Count</span>
                 </div>
-                <span class="material-symbols-outlined text-slate-400 text-[18px] section-chevron transition-transform duration-200 @(Model.UpcomingJoinedMatches.Count > 0 ? "rotate-180" : "")">expand_more</span>
+                <span class="material-symbols-outlined text-slate-400 text-[16px] sm:text-[18px] section-chevron transition-transform duration-200 @(Model.UpcomingJoinedMatches.Count > 0 ? "rotate-180" : "")">expand_more</span>
             </button>
-            <div id="upcoming-list" class="@(Model.UpcomingJoinedMatches.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-3 pb-3 space-y-2">
+            <div id="upcoming-list" class="@(Model.UpcomingJoinedMatches.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-2 sm:px-3 pb-2 sm:pb-3 space-y-1.5 sm:space-y-2">
                 @if (Model.UpcomingJoinedMatches.Count == 0)
                 {
                     <p class="text-sm text-slate-500 px-2 pb-2">Chưa có trận đấu sắp tới.</p>
@@ -165,16 +166,16 @@
         </div>
 
         <!-- Joined Match History -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <button onclick="toggleSection('history-list', this)" class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-slate-400 text-[18px]">history</span>
-                    <span class="font-bold text-sm">Lịch sử trận đấu</span>
-                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 text-[10px] font-bold">@Model.JoinedMatchHistory.Count</span>
+        <div class="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <button onclick="toggleSection('history-list', this)" class="w-full flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="material-symbols-outlined text-slate-400 text-[16px] sm:text-[18px]">history</span>
+                    <span class="font-bold text-xs sm:text-sm">Lịch sử</span>
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-5 px-1 sm:px-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] sm:text-[10px] font-bold">@Model.JoinedMatchHistory.Count</span>
                 </div>
-                <span class="material-symbols-outlined text-slate-400 text-[18px] section-chevron transition-transform duration-200 @(Model.JoinedMatchHistory.Count > 0 ? "rotate-180" : "")">expand_more</span>
+                <span class="material-symbols-outlined text-slate-400 text-[16px] sm:text-[18px] section-chevron transition-transform duration-200 @(Model.JoinedMatchHistory.Count > 0 ? "rotate-180" : "")">expand_more</span>
             </button>
-            <div id="history-list" class="@(Model.JoinedMatchHistory.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-3 pb-3 space-y-2">
+            <div id="history-list" class="@(Model.JoinedMatchHistory.Count > 0 ? "" : "hidden") max-h-56 overflow-y-auto px-2 sm:px-3 pb-2 sm:pb-3 space-y-1.5 sm:space-y-2">
                 @if (Model.JoinedMatchHistory.Count == 0)
                 {
                     <p class="text-sm text-slate-500 px-2 pb-2">Chưa có lịch sử trận đấu.</p>
@@ -193,19 +194,19 @@
         </div>
 
         <!-- Stats Card -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span>
-                <h3 class="font-bold text-sm">Thống kê</h3>
+        <div class="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-4">
+                <span class="material-symbols-outlined text-primary text-[16px] sm:text-[18px]">bar_chart</span>
+                <h3 class="font-bold text-xs sm:text-sm">Thống kê</h3>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-primary/5 rounded-xl p-3 text-center">
-                    <p class="text-2xl font-black text-primary">@Model.UpcomingJoinedMatches.Count</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Sắp tới</p>
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                <div class="bg-primary/5 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
+                    <p class="text-xl sm:text-2xl font-black text-primary leading-tight">@Model.UpcomingJoinedMatches.Count</p>
+                    <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5">Sắp tới</p>
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
-                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">@Model.JoinedMatchHistory.Count</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Đã chơi</p>
+                <div class="bg-slate-50 dark:bg-slate-800 rounded-lg sm:rounded-xl p-2 sm:p-3 text-center">
+                    <p class="text-xl sm:text-2xl font-black text-slate-700 dark:text-slate-200 leading-tight">@Model.JoinedMatchHistory.Count</p>
+                    <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5">Đã chơi</p>
                 </div>
             </div>
         </div>
@@ -213,10 +214,10 @@
 
     <!-- Mobile filter trigger (lg:hidden) -->
     <div class="lg:hidden flex gap-2">
-        <button type="button" onclick="openFilterDrawer()" class="relative flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold shadow-sm text-sm">
-            <span class="material-symbols-outlined text-[20px] text-primary">filter_list</span>
+        <button type="button" onclick="openFilterDrawer()" class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold shadow-sm text-xs">
+            <span class="material-symbols-outlined text-[16px] text-primary">filter_list</span>
             Bộ lọc
-            <span id="filter-active-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-accent text-white text-[10px] font-bold leading-none"></span>
+            <span id="filter-active-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-0.5 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none"></span>
         </button>
     </div>
 
@@ -497,7 +498,7 @@
             {
                 @foreach (var match in Model.Matches)
                 {
-                    <div class="relative bg-white dark:bg-slate-900 p-3 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
+                    <div class="relative bg-white dark:bg-slate-900 p-2 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
                          draggable="true"
                          data-drag-match="@System.Text.Json.JsonSerializer.Serialize(new { id = match.MatchId, title = match.Title, type = match.MatchType, date = match.StartText, time = match.StartTime, venue = match.Venue, price = match.PriceDisplay, participants = match.Participants, max = match.MaxParticipants, skill = match.SkillRequired })">
                         <!-- Blurred Background -->
@@ -510,13 +511,13 @@
                             <div class="match-card-bg group-hover:scale-110 transition-transform duration-700"></div>
                         }
 
-                        <div class="match-card-content flex flex-row gap-3 sm:gap-5"
+                        <div class="match-card-content flex flex-row gap-2 sm:gap-5"
                              data-match-id="@match.MatchId"
                              data-latitude="@match.Latitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)"
                              data-longitude="@match.Longitude?.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)"
                              data-venue-address="@match.VenueAddress">
                             <div class="relative flex-shrink-0">
-                                <img class="size-12 sm:size-28 rounded-xl sm:rounded-2xl object-cover shadow-md" src="@match.HostImage" alt="Host" />
+                                <img class="size-9 sm:size-28 rounded-lg sm:rounded-2xl object-cover shadow-md" src="@match.HostImage" alt="Host" />
                                 <div class="hidden sm:block absolute -bottom-2 -right-2 bg-white dark:bg-slate-900 p-1 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
                                     <div class="bg-primary/10 text-primary p-1.5 rounded-full">
                                         <span class="material-symbols-outlined text-base">person</span>
@@ -531,45 +532,45 @@
                                 }
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-wrap">
-                                    <div class="flex gap-2 items-center flex-wrap">
-                                        <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg">@match.MatchType</span>
+                                <div class="flex items-center gap-1 mb-0.5 sm:mb-2">
+                                    <div class="flex gap-1 items-center flex-1 min-w-0 overflow-hidden">
+                                        <span class="bg-primary/10 text-primary text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg flex-shrink-0 max-w-[90px] sm:max-w-none truncate">@match.MatchType</span>
                                         @if (match.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg flex items-center gap-1">
-                                                <span>🏸 Cầu lông</span>
+                                            <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg flex items-center gap-0.5 flex-shrink-0">
+                                                <span>🏸</span><span class="hidden sm:inline"> Cầu lông</span>
                                             </span>
                                         }
                                         @if (match.IsJoinedByCurrentUser)
                                         {
-                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[14px]">check</span>
-                                                Đã được duyệt
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5 flex-shrink-0">
+                                                <span class="material-symbols-outlined text-[12px] sm:text-[14px]">check</span>
+                                                <span class="hidden sm:inline">Đã được duyệt</span>
                                             </span>
                                         }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[14px]">schedule</span>
-                                                Chờ host duyệt
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center gap-0.5 flex-shrink-0">
+                                                <span class="material-symbols-outlined text-[12px] sm:text-[14px]">schedule</span>
+                                                <span class="hidden sm:inline">Chờ duyệt</span>
                                             </span>
                                         }
                                         else if (match.Participants >= match.MaxParticipants)
                                         {
-                                            <span class="text-[10px] font-bold px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[14px]">block</span>
-                                                Đã đầy
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center gap-0.5 flex-shrink-0">
+                                                <span class="material-symbols-outlined text-[12px] sm:text-[14px]">block</span>
+                                                <span class="hidden sm:inline">Đã đầy</span>
                                             </span>
                                         }
                                     </div>
                                     @if (Model.CanSeeMatchScore)
                                     {
-                                        <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md flex items-center gap-1">
+                                        <span class="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md flex items-center gap-0.5 whitespace-nowrap flex-shrink-0">
                                             @if (Model.HasAiFeature)
                                             {
-                                                <span class="material-symbols-outlined text-[12px]" title="AI gợi ý">auto_awesome</span>
+                                                <span class="material-symbols-outlined text-[11px] sm:text-[12px]" title="AI gợi ý">auto_awesome</span>
                                             }
-                                            Phù hợp: @match.MatchScore%
+                                            @match.MatchScore%
                                         </span>
                                     }
                                 </div>
@@ -584,10 +585,10 @@
                                     </div>
                                 </div>
 
-                                <h3 class="text-base sm:text-xl font-extrabold mb-1 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors">@match.Title</h3>
+                                <h3 class="text-[13px] sm:text-xl font-bold sm:font-extrabold mb-1 sm:mb-3 line-clamp-2 leading-snug group-hover:text-primary transition-colors">@match.Title</h3>
 
                                 <!-- Compact info row — mobile only -->
-                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mb-2 sm:hidden">
+                                <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-slate-500 mb-1.5 sm:hidden">
                                     <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px] text-primary">event</span>@match.StartText</span>
                                     <span class="text-slate-300">·</span>
                                     <span>@match.StartTime</span>
@@ -616,8 +617,8 @@
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2 pt-2 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    <div class="text-sm sm:text-lg font-black text-primary whitespace-nowrap">
+                                <div class="flex items-center gap-1.5 pt-1.5 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <div class="text-[11px] sm:text-lg font-black text-primary whitespace-nowrap">
                                         @match.PriceDisplay
                                     </div>
                                     <div class="hidden sm:flex items-center gap-4 flex-shrink-0">
@@ -628,51 +629,51 @@
                                         </div>
                                     </div>
                                     <div class="flex-1"></div>
-                                    <div class="flex gap-1.5 sm:gap-2">
+                                    <div class="flex gap-1 sm:gap-2">
                                         @if (!match.IsOwnedByCurrentUser && !match.IsJoinedByCurrentUser && !match.IsPendingByCurrentUser)
                                         {
                                             <form method="post" asp-page-handler="Skip" asp-route-id="@match.MatchId" class="flex-none">
-                                                <button type="submit" class="px-2.5 sm:px-4 py-2 sm:py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-1">
-                                                    <span class="material-symbols-outlined text-[18px]">close</span>
-                                                    <span class="hidden sm:inline">Bỏ qua</span>
+                                                <button type="submit" class="px-1.5 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg sm:rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
+                                                    <span class="material-symbols-outlined text-[14px] sm:text-[18px]">close</span>
                                                 </button>
                                             </form>
                                         }
                                         @if (match.CanJoin)
                                         {
                                             <form method="post" asp-page-handler="Join" asp-route-id="@match.MatchId" class="flex-none">
-                                                <button type="submit" class="px-3 sm:px-6 py-2 sm:py-2.5 text-sm font-bold bg-primary text-white rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-1.5">
-                                                    <span class="material-symbols-outlined text-[18px]">send</span>
-                                                    Gửi yêu cầu
+                                                <button type="submit" class="px-2 sm:px-6 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold bg-primary text-white rounded-lg sm:rounded-xl shadow-md shadow-primary/25 hover:bg-primary/90 transition-all flex items-center justify-center gap-1">
+                                                    <span class="material-symbols-outlined text-[14px] sm:text-[18px]">send</span>
+                                                    <span class="hidden sm:inline">Gửi yêu cầu</span>
+                                                    <span class="sm:hidden">Gửi</span>
                                                 </button>
                                             </form>
                                         }
                                         else if (match.IsApprovedByHost)
                                         {
                                             <a href="/Matchmaking/Payment?matchId=@match.MatchId"
-                                               class="flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl shadow-md shadow-amber-200 dark:shadow-amber-900/30 transition-all animate-pulse-subtle">
-                                                <span class="material-symbols-outlined text-base">payments</span>
+                                               class="flex-none flex items-center justify-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg sm:rounded-xl shadow-sm shadow-amber-200 dark:shadow-amber-900/30 transition-all animate-pulse-subtle">
+                                                <span class="material-symbols-outlined text-[14px] sm:text-base">payments</span>
                                                 <span class="hidden sm:inline">Thanh toán để vào trận</span>
-                                                <span class="sm:hidden">Thanh toán</span>
+                                                <span class="sm:hidden">TT</span>
                                             </a>
                                         }
                                         else if (match.IsPendingByCurrentUser)
                                         {
-                                            <div class="flex-none flex items-center justify-center gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
-                                                <span class="material-symbols-outlined text-base">schedule</span>
+                                            <div class="flex-none flex items-center justify-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg sm:rounded-xl border border-amber-200 dark:border-amber-800">
+                                                <span class="material-symbols-outlined text-[14px] sm:text-base">schedule</span>
                                                 <span class="hidden sm:inline">Đang chờ duyệt</span>
                                             </div>
                                             <form method="post" action="/Matchmaking/Details?id=@match.MatchId&handler=Leave"
                                                   onsubmit="return confirm('Hủy yêu cầu tham gia?')" class="contents">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit"
-                                                        class="flex-shrink-0 flex items-center justify-center gap-1 px-2.5 py-2 sm:py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                                                        class="flex-shrink-0 flex items-center justify-center px-1.5 py-1.5 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg sm:rounded-xl hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors"
                                                         title="Hủy yêu cầu">
-                                                    <span class="material-symbols-outlined text-base">cancel</span>
+                                                    <span class="material-symbols-outlined text-[14px] sm:text-base">cancel</span>
                                                 </button>
                                             </form>
                                         }
-                                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-none px-3 sm:px-6 py-2 sm:py-2.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center">
+                                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchId" class="flex-none px-2.5 sm:px-6 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg sm:rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center whitespace-nowrap">
                                             Chi tiết
                                         </a>
                                         @if (match.IsOwnedByCurrentUser)
@@ -1960,15 +1961,37 @@
                 let center = map ? map.getCenter() : {lat: 16.0544, lng: 108.2022};
                 _fsIndexMap = L.map('indexMapFullscreen').setView([center.lat, center.lng], map ? map.getZoom() : 13);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(_fsIndexMap);
-                // Copy markers from main map
-                if (matchMarkerLayer) {
-                    matchesData.forEach(function(m) {
-                        var lat = Number(m.Latitude), lon = Number(m.Longitude);
-                        if (Number.isFinite(lat) && Number.isFinite(lon)) {
-                            L.marker([lat, lon]).addTo(_fsIndexMap).bindPopup('<b>' + (m.Title || '') + '</b>');
-                        }
-                    });
+
+                function fsSkill(raw) {
+                    if (!raw || raw === 'Any') return 'Mọi trình độ';
+                    return raw.replace(/Nam:|Nữ:/g,'').replace(/\|/g,' · ').replace(/,/g,'/').trim().substring(0,28);
                 }
+                function fsSafe(v, fb) { return (v ?? '').toString().trim() || (fb || 'N/A'); }
+
+                matchesData.forEach(function(m) {
+                    var lat = Number(m.Latitude), lon = Number(m.Longitude);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+                    var titleText = fsSafe(m.Title, 'Trận đấu');
+                    var skillText = fsSkill(fsSafe(m.SkillRequired, 'Any'));
+                    var timeText  = fsSafe(m.StartTime, '--:--');
+                    var priceText = fsSafe(m.PriceDisplay, 'Chưa có giá');
+                    var venueText = fsSafe(m.Venue, 'Không rõ');
+                    var marker = L.marker([lat, lon]).addTo(_fsIndexMap);
+                    marker.bindTooltip(
+                        '<div style="background:#50A5B1;color:#fff;font-weight:700;font-size:11px;line-height:1.3;padding:5px 8px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.18);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + titleText + '</div>',
+                        { permanent: true, direction: 'top', offset: [0, -10], opacity: 1, className: 'match-map-tooltip' }
+                    );
+                    marker.bindPopup(
+                        '<div style="min-width:200px;max-width:240px;padding:10px 12px;">' +
+                        '<div style="font-weight:800;font-size:13px;margin-bottom:6px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + titleText + '</div>' +
+                        '<div style="font-size:11px;color:#64748b;margin-bottom:3px;">🏸 ' + skillText + '</div>' +
+                        '<div style="font-size:11px;color:#64748b;margin-bottom:3px;">🕒 ' + timeText + '</div>' +
+                        '<div style="font-size:11px;color:#64748b;margin-bottom:8px;">💰 ' + priceText + '</div>' +
+                        '<div style="font-size:10px;color:#94a3b8;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + venueText + '</div>' +
+                        '<a href="/Matchmaking/Details?id=' + m.MatchId + '" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#50A5B1;padding:5px 12px;border-radius:6px;text-decoration:none;">Chi tiết →</a>' +
+                        '</div>'
+                    );
+                });
             }
             setTimeout(function() { _fsIndexMap.invalidateSize(); }, 100);
         };
@@ -2033,6 +2056,12 @@
                 }
             }
 
+            // Sanitize raw skill string (e.g. "Nam:TBY,Trung Bình|Nữ:TBY/TB-" → "TBY / Trung Bình")
+            function formatSkillShort(raw) {
+                if (!raw || raw === 'Any') return 'Mọi trình độ';
+                return raw.replace(/Nam:|Nữ:/g, '').replace(/\|/g, ' · ').replace(/,/g, '/').trim().substring(0, 28);
+            }
+
             // Add markers + compact info label above each marker
             for (const match of matchesData) {
                 const coords = await resolveCoordinatesForMap(match);
@@ -2040,18 +2069,18 @@
                 const lat = coords.lat;
                 const lon = coords.lon;
 
-                const skillText = safeText(match.SkillRequired, "Mọi trình độ");
+                const skillText = formatSkillShort(safeText(match.SkillRequired, 'Any'));
                 const timeText = safeText(match.StartTime, "--:--");
                 const priceText = safeText(match.PriceDisplay, "Chưa có giá");
+                const titleText = safeText(match.Title, "Trận đấu");
+                const venueText = safeText(match.Venue, "Không rõ");
 
                 const marker = L.marker([lat, lon]).addTo(matchMarkerLayer);
                 placedMarkers.push(marker);
 
                 marker.bindTooltip(
-                    `<div style="background:#50A5B1;color:#fff;font-weight:700;font-size:11px;line-height:1.2;padding:6px 8px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.18);white-space:nowrap;">
-                        <div>${skillText}</div>
-                        <div>🕒 ${timeText}</div>
-                        <div>💰 ${priceText}</div>
+                    `<div style="background:#50A5B1;color:#fff;font-weight:700;font-size:11px;line-height:1.3;padding:5px 8px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.18);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        ${titleText}
                      </div>`,
                     {
                         permanent: true,
@@ -2063,15 +2092,13 @@
                 );
 
                 marker.bindPopup(`
-                    <div style="min-width:180px;padding:8px;">
-                        <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:#1e293b;">${safeText(match.Title, "Trận đấu")}</div>
-                        <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Trình độ: <b>${skillText}</b></div>
-                        <div style="font-size:11px;color:#64748b;margin-bottom:2px;">Giờ: <b>${timeText}</b></div>
-                        <div style="font-size:11px;color:#64748b;margin-bottom:6px;">Giá: <b>${priceText}</b></div>
-                        <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;display:flex;align-items:center;gap:3px;">
-                            📍 ${safeText(match.Venue, "Không rõ địa điểm")}
-                        </div>
-                        <a href="/Matchmaking/Details?id=${match.MatchId}" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#50A5B1;padding:4px 10px;border-radius:6px;text-decoration:none;">Chi tiết</a>
+                    <div style="min-width:200px;max-width:240px;padding:10px 12px;">
+                        <div style="font-weight:800;font-size:13px;margin-bottom:6px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${titleText}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span style="font-size:14px;vertical-align:middle;">🏸</span> ${skillText}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span style="font-size:14px;vertical-align:middle;">🕒</span> ${timeText}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:8px;display:flex;align-items:center;gap:4px;"><span style="font-size:14px;vertical-align:middle;">💰</span> ${priceText}</div>
+                        <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ${venueText}</div>
+                        <a href="/Matchmaking/Details?id=${match.MatchId}" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#50A5B1;padding:5px 12px;border-radius:6px;text-decoration:none;">Chi tiết →</a>
                     </div>
                 `);
             }
