@@ -6,25 +6,25 @@
 
 <div class="space-y-6">
     <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-white">Lịch sử giao dịch</h1>
+        <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Lịch sử giao dịch</h1>
         <p class="text-sm text-slate-500 mt-1">Toàn bộ khoản tiền đã xác nhận</p>
     </div>
 
     @await Html.PartialAsync("_AdminNav")
 
     <!-- Summary cards -->
-    <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tổng doanh thu</p>
-            <p class="text-2xl font-black text-primary">@Model.TotalRevenue.ToString("N0") ₫</p>
+    <div class="grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1 truncate">Tổng DT</p>
+            <p class="text-base sm:text-2xl font-black text-primary leading-tight">@Model.TotalRevenue.ToString("N0")<span class="text-sm sm:text-lg"> ₫</span></p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tháng này</p>
-            <p class="text-2xl font-black text-blue-600">@Model.ThisMonthRevenue.ToString("N0") ₫</p>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1 truncate">Tháng này</p>
+            <p class="text-base sm:text-2xl font-black text-blue-600 leading-tight">@Model.ThisMonthRevenue.ToString("N0")<span class="text-sm sm:text-lg"> ₫</span></p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Hôm nay</p>
-            <p class="text-2xl font-black text-emerald-600">@Model.TodayRevenue.ToString("N0") ₫</p>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1 truncate">Hôm nay</p>
+            <p class="text-base sm:text-2xl font-black text-emerald-600 leading-tight">@Model.TodayRevenue.ToString("N0")<span class="text-sm sm:text-lg"> ₫</span></p>
         </div>
     </div>
 

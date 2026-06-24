@@ -7,7 +7,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 dark:text-white">Trận đấu</h1>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Trận đấu</h1>
             <p class="text-sm text-slate-500 mt-1">@Model.Matches.Count trận (tối đa 100)</p>
         </div>
     </div>
@@ -82,7 +82,7 @@
                                     </a>
                                     <p class="text-xs text-slate-400">#@match.MatchID</p>
                                 </td>
-                                <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@match.CreatedByUser?.FullName</td>
+                                <td class="px-4 py-3 text-slate-600 dark:text-slate-400 max-w-[140px]"><span class="block truncate whitespace-nowrap" title="@match.CreatedByUser?.FullName">@match.CreatedByUser?.FullName</span></td>
                                 <td class="px-4 py-3 text-slate-500">@match.Sport?.SportName</td>
                                 <td class="px-4 py-3 text-slate-500 text-xs">@match.MatchDate.ToString("dd/MM/yyyy")</td>
                                 <td class="px-4 py-3 text-center text-slate-600">@accepted/@match.MaxParticipants</td>

@@ -1,6 +1,6 @@
 @{
     var current = ViewData["AdminPage"]?.ToString();
-    var navItemBase = "flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors";
+    var navItemBase = "flex-shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors";
     var navActive = "bg-primary text-white shadow-sm";
     var navInactive = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary hover:border-primary/40";
 }
@@ -8,45 +8,45 @@
 <div class="relative lg:hidden mb-4">
 <nav class="overflow-x-auto flex gap-2 pb-1 [&::-webkit-scrollbar]:hidden" id="admin-mobile-nav" style="-ms-overflow-style:none;scrollbar-width:none">
     <a asp-page="/Admin/Index" class="@navItemBase @(current == "Dashboard" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">dashboard</span>
+        <span class="material-symbols-outlined text-[15px]">dashboard</span>
         Dashboard
     </a>
     <a asp-page="/Admin/Transactions" class="@navItemBase @(current == "Transactions" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+        <span class="material-symbols-outlined text-[15px]">receipt_long</span>
         Lịch sử GD
     </a>
     <a asp-page="/Admin/MatchPayments" class="@navItemBase @(current == "Payments" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">pending_actions</span>
+        <span class="material-symbols-outlined text-[15px]">pending_actions</span>
         Chờ xác nhận
         <span id="admin-badge-payments" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
     </a>
     <a asp-page="/Admin/Users" class="@navItemBase @(current == "Users" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+        <span class="material-symbols-outlined text-[15px]">manage_accounts</span>
         Người dùng
     </a>
     <a asp-page="/Admin/Matches" class="@navItemBase @(current == "Matches" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">sports</span>
+        <span class="material-symbols-outlined text-[15px]">sports</span>
         Trận đấu
     </a>
     <a asp-page="/Admin/Reviews" class="@navItemBase @(current == "Reviews" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">rate_review</span>
+        <span class="material-symbols-outlined text-[15px]">rate_review</span>
         Đánh giá
     </a>
     <a asp-page="/Admin/ReportedMessages" class="@navItemBase @(current == "ReportedMessages" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">flag</span>
+        <span class="material-symbols-outlined text-[15px]">flag</span>
         Báo cáo
         <span id="admin-badge-reports" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
     </a>
     <a asp-page="/Admin/Subscriptions" class="@navItemBase @(current == "Subscriptions" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+        <span class="material-symbols-outlined text-[15px]">workspace_premium</span>
         Gói đăng ký
     </a>
     <a asp-page="/Admin/Wallet" class="@navItemBase @(current == "Wallet" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+        <span class="material-symbols-outlined text-[15px]">account_balance_wallet</span>
         Ví ảo
     </a>
     <a asp-page="/Admin/Promotions" class="@navItemBase @(current == "Promotions" ? navActive : navInactive)">
-        <span class="material-symbols-outlined text-[18px]">local_offer</span>
+        <span class="material-symbols-outlined text-[15px]">local_offer</span>
         Khuyến mãi
     </a>
 </nav>

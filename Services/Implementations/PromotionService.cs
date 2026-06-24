@@ -157,16 +157,6 @@ namespace SportHub.Services.Implementations
                 $"+{amount:N0}đ — {note}",
                 "/Wallet"
             );
-
-            var admin = await _context.Users.FindAsync(adminId);
-            _context.PromotionRedemptions.Add(new PromotionRedemption
-            {
-                UserID = userId,
-                AmountCredited = amount,
-                Note = $"Admin {admin?.FullName ?? $"#{adminId}"}: {note}",
-                RedeemedAt = DateTime.UtcNow
-            });
-            await _context.SaveChangesAsync();
         }
 
         public async Task<UserVoucher> IssueVoucherAsync(int adminId, int userId, int? campaignId, decimal amount, DateTime? expiresAt, string? note)

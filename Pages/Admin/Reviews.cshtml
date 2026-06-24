@@ -13,7 +13,7 @@
 
 <div class="space-y-6">
     <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-white">Đánh giá người dùng</h1>
+        <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Đánh giá người dùng</h1>
         <p class="text-sm text-slate-500 mt-1">Tổng: @Model.Reviews.Count đánh giá</p>
     </div>
 
@@ -21,9 +21,9 @@
 
     <!-- Filter buttons — below nav -->
     <div class="flex flex-wrap gap-2">
-        <a asp-page="/Admin/Reviews" class="px-3 py-1.5 text-sm font-semibold rounded-lg border transition-colors @(string.IsNullOrEmpty(Model.FilterType) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">Tất cả</a>
-        <a asp-page="/Admin/Reviews" asp-route-filterType="PlayerToMatch" class="px-3 py-1.5 text-sm font-semibold rounded-lg border transition-colors @(Model.FilterType == "PlayerToMatch" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">Người chơi → Chủ kèo</a>
-        <a asp-page="/Admin/Reviews" asp-route-filterType="HostToPlayer" class="px-3 py-1.5 text-sm font-semibold rounded-lg border transition-colors @(Model.FilterType == "HostToPlayer" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">Chủ kèo → Người chơi</a>
+        <a asp-page="/Admin/Reviews" class="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-colors whitespace-nowrap @(string.IsNullOrEmpty(Model.FilterType) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">Tất cả</a>
+        <a asp-page="/Admin/Reviews" asp-route-filterType="PlayerToMatch" class="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-colors whitespace-nowrap @(Model.FilterType == "PlayerToMatch" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">N.Chơi → Host</a>
+        <a asp-page="/Admin/Reviews" asp-route-filterType="HostToPlayer" class="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-lg border transition-colors whitespace-nowrap @(Model.FilterType == "HostToPlayer" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">Host → N.Chơi</a>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
@@ -128,7 +128,7 @@
                                 <div class="text-xs text-slate-400">@r.MatchDate.ToString("dd/MM/yyyy")</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full @typeCss">@typeLabel</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap @typeCss">@typeLabel</span>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-0.5">
