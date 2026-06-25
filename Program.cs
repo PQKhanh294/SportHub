@@ -10,6 +10,8 @@ using SportHub.Services;
 using SportHub.Middleware;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,22 @@ builder.Services.AddRazorPages()
     .AddViewLocalization()
     .AddDataAnnotationsLocalization();
 builder.Services.AddSignalR();
+
+// Thêm Rate Limiting (Chống Spam / DDoS)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 100, // Tối đa 100 request
+            Window = TimeSpan.FromMinutes(1), // Trong vòng 1 phút
+            QueueLimit = 0 // Vượt quá là chặn ngay (lỗi 429)
+        });
+    });
+});
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -105,6 +123,10 @@ app.UseStaticFiles(); // Cho phép load file tĩnh từ wwwroot (CSS, JS)
 app.UseMiddleware<UiLocalizationMiddleware>();
 
 app.UseRouting();
+
+// Kích hoạt Rate Limiting (Phải đặt sau UseRouting và trước Auth)
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
