@@ -1,24 +1,25 @@
 @page
 @model SportHub.Pages.Admin.ReportedMessagesModel
 @{
-    ViewData["Title"] = "Tin nhắn bị báo cáo";
+    ViewData["Title"] = "Reported Messages";
     ViewData["AdminPage"] = "ReportedMessages";
+    var isEn = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="space-y-6">
         <div>
-            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Tin nhắn bị báo cáo</h1>
-            <p class="text-sm text-slate-500 mt-1">Tổng: @(Model.TotalPending + Model.TotalProcessed) báo cáo</p>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">@(isEn ? "Reported Messages" : "Tin nhắn bị báo cáo")</h1>
+            <p class="text-sm text-slate-500 mt-1">@(isEn ? $"Total: {Model.TotalPending + Model.TotalProcessed} reports" : $"Tổng: {Model.TotalPending + Model.TotalProcessed} báo cáo")</p>
         </div>
 
         @await Html.PartialAsync("_AdminNav")
 
         <!-- Charts section -->
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <button onclick="toggleReportChart(this)" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                     <span class="material-symbols-outlined text-rose-500 text-[18px]">flag</span>
-                    Biểu đồ xu hướng vi phạm
+                    @(isEn ? "Violation trend chart" : "Biểu đồ xu hướng vi phạm")
                 </div>
                 <span class="material-symbols-outlined text-slate-400 text-[18px] chart-chevron">expand_more</span>
             </button>
@@ -26,14 +27,14 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Line chart: reports by day -->
                     <div class="lg:col-span-2">
-                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Báo cáo 7 ngày gần nhất</p>
+                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">@(isEn ? "Reports — last 7 days" : "Báo cáo — 7 ngày qua")</p>
                         <div style="height:180px;position:relative">
                             <canvas id="reportsTrendChart"></canvas>
                         </div>
                     </div>
                     <!-- Donut: status distribution -->
                     <div>
-                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Mức độ vi phạm (AI Score)</p>
+                        <p class="text-xs font-semibold text-slate-500 uppercase mb-2">@(isEn ? "Violation severity (AI Score)" : "Mức độ vi phạm (AI)")</p>
                         <div style="height:180px;position:relative">
                             <canvas id="reportsScoreChart"></canvas>
                         </div>
@@ -41,59 +42,68 @@
                 </div>
                 <!-- Status summary -->
                 <div class="mt-4 grid grid-cols-3 gap-3">
-                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-center">
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-md p-3 text-center">
                         <p class="text-xl font-black text-amber-600">@Model.TotalPending</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Chờ xử lý</p>
+                        <p class="text-xs text-slate-500 mt-0.5">@(isEn ? "Pending" : "Đang chờ")</p>
                     </div>
-                    <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 text-center">
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-md p-3 text-center">
                         <p class="text-xl font-black text-emerald-600">@Model.TotalProcessed</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Đã xử lý</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Reviewed</p>
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-center">
+                    <div class="bg-slate-50 dark:bg-slate-800 rounded-md p-3 text-center">
                         <p class="text-xl font-black text-slate-600 dark:text-slate-300">@Model.DismissedCount</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Bỏ qua</p>
+                        <p class="text-xs text-slate-500 mt-0.5">@(isEn ? "Dismissed" : "Đã bỏ qua")</p>
                     </div>
                 </div>
                 <!-- AI Analysis -->
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button onclick="loadAiInsight('reports', '@Model.TotalPending', '@Model.TotalProcessed', '@Model.HighScoreCount', '@Model.MedScoreCount')" class="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                        <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-                        Phân tích AI xu hướng vi phạm
+                    <button onclick="loadAiInsight('reports', '@Model.TotalPending', '@Model.TotalProcessed', '@Model.HighScoreCount', '@Model.MedScoreCount')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/5 hover:bg-primary/10 rounded-md transition-colors">
+                        <span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+                        Phân tích vi phạm AI
                     </button>
-                    <div id="ai-insight-reports" class="hidden mt-2 p-3 bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800 rounded-lg text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></div>
+                    <div id="ai-insight-reports" class="hidden mt-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></div>
                 </div>
             </div>
         </div>
 
+        @* Search bar *@
+        <form method="get" class="relative">
+            <input type="hidden" name="tab" value="@Model.Tab" />
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">search</span>
+            <input type="text" name="search" value="@Model.Search"
+                   placeholder="@(isEn ? "Search by reporter / message…" : "Tìm theo người báo cáo / nội dung…")"
+                   class="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        </form>
+
         @* Tabs *@
         <div class="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
-            <a asp-page="/Admin/ReportedMessages" asp-route-tab="pending"
+            <a asp-page="/Admin/ReportedMessages" asp-route-tab="pending" asp-route-search="@Model.Search"
                class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors @(Model.Tab == "pending" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
-                Chờ xử lý
+                Pending
                 @if (Model.TotalPending > 0)
                 {
-                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500 text-white">@Model.TotalPending</span>
+                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-md bg-rose-500 text-white">@Model.TotalPending</span>
                 }
             </a>
-            <a asp-page="/Admin/ReportedMessages" asp-route-tab="processed"
+            <a asp-page="/Admin/ReportedMessages" asp-route-tab="processed" asp-route-search="@Model.Search"
                class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors @(Model.Tab == "processed" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
-                Đã xử lý
+                Reviewed
                 @if (Model.TotalProcessed > 0)
                 {
-                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-400 text-white">@Model.TotalProcessed</span>
+                    <span class="ml-1.5 px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-400 text-white">@Model.TotalProcessed</span>
                 }
             </a>
         </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+            <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm">
                 @TempData["SuccessMessage"]
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
                 @TempData["ErrorMessage"]
             </div>
         }
@@ -102,7 +112,7 @@
         {
             <div class="text-center py-16 text-slate-400">
                 <span class="material-symbols-outlined text-5xl mb-3 block">verified</span>
-                <p class="text-lg font-medium">Không có báo cáo nào đang chờ xử lý</p>
+                <p class="text-lg font-medium">@(isEn ? "No reports awaiting review" : "Không có báo cáo nào đang chờ xử lý")</p>
             </div>
         }
         else
@@ -117,47 +127,47 @@
                                     "text-green-700 bg-green-50 border-green-200";
                     var recLabel = report.AiRecommendation switch
                     {
-                        "dismiss" => "Bỏ qua",
-                        "warn" => "Cảnh cáo",
-                        "ban_1day" => "Ban 1 ngày",
-                        "ban_7days" => "Ban 7 ngày",
-                        "ban_30days" => "Ban 30 ngày",
-                        "ban_permanent" => "Ban vĩnh viễn",
+                        "dismiss" => "Dismiss",
+                        "warn" => "Warn",
+                        "ban_1day" => "Ban 1 day",
+                        "ban_7days" => "Ban 7 days",
+                        "ban_30days" => "Ban 30 days",
+                        "ban_permanent" => "Permanent ban",
                         _ => report.AiRecommendation
                     };
 
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                         <!-- Header -->
-                        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-slate-400 text-lg">flag</span>
-                                <div>
-                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                                        Người báo cáo: @report.Reporter?.FullName
+                        <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="material-symbols-outlined text-slate-400 text-base flex-shrink-0">flag</span>
+                                <div class="min-w-0">
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-100 block truncate">
+                                        Reporter: @report.Reporter?.FullName
                                     </span>
-                                    <span class="text-xs text-slate-400 ml-2">
+                                    <span class="text-xs text-slate-400">
                                         @report.CreatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")
                                     </span>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold border @scoreText">
-                                AI Score: @report.AiViolationScore/10
+                            <span class="px-2.5 py-1 rounded-md text-xs font-bold border flex-shrink-0 @scoreText">
+                                AI: @report.AiViolationScore/10
                             </span>
                         </div>
 
                         <div class="px-5 py-4 space-y-4">
                             <!-- Message content -->
-                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-md p-4">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <p class="text-xs text-slate-400 font-medium">Nội dung tin nhắn (từ @report.Message?.Sender?.FullName → @report.Message?.Receiver?.FullName):</p>
+                                    <p class="text-xs text-slate-400 font-medium">Message content (from @report.Message?.Sender?.FullName → @report.Message?.Receiver?.FullName):</p>
                                     @if (report.Message?.IsDeleted == true)
                                     {
-                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500">Đã xóa bởi người dùng — nội dung được giữ lại</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-200 dark:bg-slate-700 text-slate-500">Deleted by user — content retained</span>
                                     }
                                 </div>
                                 @if (report.Message?.MessageType == "Image")
                                 {
-                                    <img src="@report.Message.ImageUrl" class="max-h-32 rounded-lg object-cover" alt="Ảnh" />
+                                    <img src="@report.Message.ImageUrl" class="max-h-32 rounded-md object-cover" alt="Ảnh" />
                                 }
                                 else
                                 {
@@ -169,17 +179,17 @@
                             @if (!string.IsNullOrWhiteSpace(report.Reason))
                             {
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-1">Lý do báo cáo:</p>
+                                    <p class="text-xs text-slate-400 mb-1">Report reason:</p>
                                     <p class="text-sm text-slate-700 dark:text-slate-300">@report.Reason</p>
                                 </div>
                             }
 
                             <!-- AI Analysis -->
-                            <div class="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-950 dark:to-blue-950 rounded-xl p-4 border border-violet-100 dark:border-violet-900">
+                            <div class="bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-950 dark:to-blue-950 rounded-md p-4 border border-violet-100 dark:border-violet-900">
                                 <div class="flex items-center gap-2 mb-2">
                                     <span class="material-symbols-outlined text-violet-500 text-base">psychology</span>
-                                    <span class="text-xs font-bold text-violet-700 dark:text-violet-300">Phân tích AI</span>
-                                    <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-bold @scoreText border">
+                                    <span class="text-xs font-bold text-violet-700 dark:text-violet-300">AI Analysis</span>
+                                    <span class="ml-auto px-2 py-0.5 rounded-md text-xs font-bold @scoreText border">
                                         @recLabel
                                     </span>
                                 </div>
@@ -197,25 +207,25 @@
                                 <div class="flex flex-wrap gap-2 pt-2">
                                     <form method="post" asp-page-handler="Dismiss" class="inline">
                                         <input type="hidden" name="reportId" value="@report.ReportID" />
-                                        <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors">
-                                            Bỏ qua
+                                        <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors">
+                                            Dismiss
                                         </button>
                                     </form>
                                     @foreach (var (label, banType) in new[] {
-                                        ("Ban 1 ngày", "1day"),
-                                        ("Ban 7 ngày", "7days"),
-                                        ("Ban 30 ngày", "30days"),
-                                        ("Ban vĩnh viễn", "permanent")
+                                        ("Ban 1 day", "1day"),
+                                        ("Ban 7 days", "7days"),
+                                        ("Ban 30 days", "30days"),
+                                        ("Permanent ban", "permanent")
                                     })
                                     {
                                         <form method="post" asp-page-handler="Ban" class="inline"
-                                              onsubmit="return confirm('Ban người dùng @report.Message?.Sender?.FullName - @label?')">
+                                              onsubmit="return confirm('Ban user @report.Message?.Sender?.FullName — @label?')">
                                             <input type="hidden" name="reportId" value="@report.ReportID" />
                                             <input type="hidden" name="targetUserId" value="@report.Message?.SenderID" />
                                             <input type="hidden" name="banType" value="@banType" />
                                             <input type="hidden" name="reason" value="@report.AiAnalysis" />
                                             <button type="submit"
-                                                    class="px-4 py-2 text-sm font-semibold rounded-xl @(banType == "permanent" ? "bg-red-600 hover:bg-red-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white") transition-colors">
+                                                    class="px-4 py-2 text-sm font-semibold rounded-md @(banType == "permanent" ? "bg-red-600 hover:bg-red-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white") transition-colors">
                                                 @label
                                             </button>
                                         </form>
@@ -225,16 +235,16 @@
                             else
                             {
                                 <!-- Kết quả xử lý — tab Đã xử lý -->
-                                <div class="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold @(report.Status == "Reviewed" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-slate-100 text-slate-600 border border-slate-200")">
-                                        @(report.Status == "Reviewed" ? "Đã xử lý ban" : "Đã bỏ qua")
+                                <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                    <span class="px-2.5 py-1 rounded-md text-xs font-bold flex-shrink-0 @(report.Status == "Reviewed" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-slate-100 text-slate-600 border border-slate-200")">
+                                        @(report.Status == "Reviewed" ? "Banned" : "Dismissed")
                                     </span>
                                     <span class="text-xs text-slate-400">
                                         Admin: <span class="font-semibold text-slate-600 dark:text-slate-300">@(report.ReviewedByAdmin?.FullName ?? "—")</span>
                                     </span>
                                     @if (report.ReviewedAt.HasValue)
                                     {
-                                        <span class="text-xs text-slate-400">lúc @report.ReviewedAt.Value.AddHours(7).ToString("dd/MM/yyyy HH:mm")</span>
+                                        <span class="text-xs text-slate-400">at @report.ReviewedAt.Value.AddHours(7).ToString("dd/MM/yyyy HH:mm")</span>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(report.AdminNote))
                                     {
@@ -255,7 +265,7 @@
                     @for (int p = 1; p <= totalPages2; p++)
                     {
                         <a asp-page="/Admin/ReportedMessages" asp-route-page="@p" asp-route-tab="@Model.Tab"
-                           class="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors @(p == Model.Page ? "bg-primary text-white border-primary" : "bg-white dark:bg-slate-900 border-slate-200 text-slate-600 hover:text-primary")">
+                           class="px-4 py-2 rounded-md text-sm font-semibold border transition-colors @(p == Model.Page ? "bg-primary text-white border-primary" : "bg-white dark:bg-slate-900 border-slate-200 text-slate-600 hover:text-primary")">
                             @p
                         </a>
                     }
@@ -283,7 +293,7 @@ function toggleReportChart(btn) {
                 data: {
                     labels: @Html.Raw(Model.ReportsByDayLabels),
                     datasets: [{
-                        label: 'Báo cáo', data: @Html.Raw(Model.ReportsByDayCounts),
+                        label: 'Reports', data: @Html.Raw(Model.ReportsByDayCounts),
                         borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',
                         tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#ef4444'
                     }]
@@ -298,7 +308,7 @@ function toggleReportChart(btn) {
             if (scoreCtx) new Chart(scoreCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Cao (7-10)', 'Trung bình (4-6)', 'Thấp (0-3)'],
+                    labels: ['High (7-10)', 'Medium (4-6)', 'Low (0-3)'],
                     datasets: [{ data: [@Model.HighScoreCount, @Model.MedScoreCount, @Model.LowScoreCount], backgroundColor: ['#ef4444','#f59e0b','#10b981'], borderWidth: 0 }]
                 },
                 options: {

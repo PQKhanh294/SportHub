@@ -1,10 +1,10 @@
-@page
+﻿@page
 @model SportHub.Pages.Messages.IndexModel
 @{
     ViewData["Title"] = "Tin nhắn";
 }
 
-<div class="max-w-6xl mx-auto h-[calc(100svh-140px)] md:h-[calc(100svh-140px)] min-h-[500px] flex bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="max-w-6xl mx-auto h-[calc(100svh-140px)] md:h-[calc(100svh-140px)] min-h-[500px] flex bg-white dark:bg-slate-900 rounded-md overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
 
     <!-- Cột trái: Danh sách bạn bè -->
     <div class="w-full md:w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col @(Model.ActiveChatUser != null ? "hidden md:flex" : "flex")">
@@ -12,7 +12,7 @@
             <h2 class="text-xl font-black">Đoạn chat</h2>
             <div class="mt-4 relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" id="friend-search" placeholder="Tìm kiếm bạn bè..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" oninput="filterFriends(this.value)" />
+                <input type="text" id="friend-search" placeholder="Tìm kiếm bạn bè..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-md border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" oninput="filterFriends(this.value)" />
             </div>
         </div>
 
@@ -21,7 +21,7 @@
             {
                 <div class="text-center p-4 mt-4 text-slate-500">
                     <p class="mb-4">Bạn chưa có bạn bè nào.</p>
-                    <a href="/Users/Index" class="inline-block px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors">Tìm bạn cộng đồng</a>
+                    <a href="/Users/Index" class="inline-block px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary/90 transition-colors">Tìm bạn cộng đồng</a>
                 </div>
 
                 @if (Model.SuggestedFriends.Any())
@@ -31,7 +31,7 @@
                         <div class="space-y-2">
                             @foreach (var suggestion in Model.SuggestedFriends)
                             {
-                                <a href="/Users/Profile/@suggestion.UserID" class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
+                                <a href="/Users/Profile/@suggestion.UserID" class="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700 group">
                                     <img src="@(string.IsNullOrEmpty(suggestion.AvatarUrl) ? "/images/avatar-default.png" : suggestion.AvatarUrl)" class="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                                     <div class="flex-1 min-w-0">
                                         <p class="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">@suggestion.FullName</p>
@@ -79,7 +79,7 @@
                     }
 
                     <a href="/Messages?userId=@friend.UserID"
-                       class="friend-row flex items-center gap-3 p-3 rounded-2xl transition-colors @(isActive ? "bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50")"
+                       class="friend-row flex items-center gap-3 p-3 rounded-md transition-colors @(isActive ? "bg-primary/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50")"
                        data-name="@friend.FullName.ToLower()">
                         <div class="relative flex-shrink-0">
                             <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center font-bold text-slate-500">
@@ -190,7 +190,7 @@
             <div id="search-panel" class="hidden px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-2">
                     <input id="conv-search-input" type="text" placeholder="Tìm tin nhắn..."
-                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
                            oninput="searchInConversation(this.value)" />
                     <button onclick="toggleSearchPanel()" class="text-slate-400 hover:text-slate-600">
                         <span class="material-symbols-outlined text-[18px]">close</span>
@@ -226,20 +226,20 @@
                         </summary>
                         <form method="post" asp-page-handler="CreateProposal" class="mt-3 grid grid-cols-1 md:grid-cols-6 gap-2">
                             <input type="hidden" asp-for="ProposalInput.ReceiverId" value="@Model.ActiveChatUser.UserID" />
-                            <select asp-for="ProposalInput.MatchId" asp-items="Model.SharedMatchOptions" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm"></select>
-                            <select asp-for="ProposalInput.CourtId" asp-items="Model.CourtOptions" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm">
+                            <select asp-for="ProposalInput.MatchId" asp-items="Model.SharedMatchOptions" class="md:col-span-2 rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm"></select>
+                            <select asp-for="ProposalInput.CourtId" asp-items="Model.CourtOptions" class="md:col-span-2 rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm">
                                 <option value="">Chưa chọn sân</option>
                             </select>
-                            <input asp-for="ProposalInput.BookingDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <input asp-for="ProposalInput.EstimatedCost" type="number" min="0" step="10000" placeholder="Giá dự kiến" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <input asp-for="ProposalInput.StartTime" type="time" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <input asp-for="ProposalInput.EndTime" type="time" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <select asp-for="ProposalInput.SplitMode" class="rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm">
+                            <input asp-for="ProposalInput.BookingDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <input asp-for="ProposalInput.EstimatedCost" type="number" min="0" step="10000" placeholder="Giá dự kiến" class="rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <input asp-for="ProposalInput.StartTime" type="time" class="rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <input asp-for="ProposalInput.EndTime" type="time" class="rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <select asp-for="ProposalInput.SplitMode" class="rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm">
                                 <option value="Equal">Chia đều</option>
                                 <option value="HostPays">Host trả</option>
                             </select>
-                            <input asp-for="ProposalInput.Note" placeholder="Ghi chú ngắn" class="md:col-span-2 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm" />
-                            <button type="submit" class="rounded-xl bg-primary text-white font-bold text-sm px-4 py-2 hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
+                            <input asp-for="ProposalInput.Note" placeholder="Ghi chú ngắn" class="md:col-span-2 rounded-md bg-slate-100 dark:bg-slate-800 border-none text-sm" />
+                            <button type="submit" class="rounded-md bg-primary text-white font-bold text-sm px-4 py-2 hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
                                 <span class="material-symbols-outlined text-base">send</span>
                                 Gửi
                             </button>
@@ -255,22 +255,22 @@
                         @foreach (var proposal in Model.BookingProposals.Take(4))
                         {
                             var isReceiver = proposal.ReceiverID == Model.CurrentUserId;
-                            <div class="w-72 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
+                            <div class="w-72 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="font-black text-sm truncate">@(proposal.Match.Title ?? proposal.Match.MatchType)</p>
-                                    <span class="text-[10px] font-bold px-2 py-1 rounded-full @(proposal.Status == "Accepted" ? "bg-emerald-100 text-emerald-700" : proposal.Status == "Rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")">@proposal.Status</span>
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-md @(proposal.Status == "Accepted" ? "bg-emerald-100 text-emerald-700" : proposal.Status == "Rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")">@proposal.Status</span>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-1">@proposal.BookingDate.ToString("dd/MM/yyyy") • @proposal.StartTime.ToString(@"hh\:mm") - @proposal.EndTime.ToString(@"hh\:mm")</p>
                                 <p class="text-xs text-slate-500 truncate">@(proposal.Court?.Venue?.VenueName ?? "Chưa chọn sân")</p>
-                                <p class="text-xs text-slate-500">@(proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} VND" : "Chưa có giá") • @(proposal.SplitMode == "HostPays" ? "Host trả" : "Chia đều")</p>
+                                <p class="text-xs text-slate-500">@(proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} xu" : "Chưa có giá") • @(proposal.SplitMode == "HostPays" ? "Host trả" : "Chia đều")</p>
                                 @if (isReceiver && proposal.Status == "Waiting")
                                 {
                                     <div class="flex gap-2 mt-3">
                                         <form method="post" asp-page-handler="RespondProposal" asp-route-proposalId="@proposal.ProposalID" asp-route-userId="@proposal.SenderID" asp-route-status="Accepted" class="flex-1">
-                                            <button type="submit" class="w-full rounded-lg bg-emerald-500 text-white text-xs font-bold py-2">Đồng ý</button>
+                                            <button type="submit" class="w-full rounded-md bg-emerald-500 text-white text-xs font-bold py-2">Đồng ý</button>
                                         </form>
                                         <form method="post" asp-page-handler="RespondProposal" asp-route-proposalId="@proposal.ProposalID" asp-route-userId="@proposal.SenderID" asp-route-status="Rejected" class="flex-1">
-                                            <button type="submit" class="w-full rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold py-2">Từ chối</button>
+                                            <button type="submit" class="w-full rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold py-2">Từ chối</button>
                                         </form>
                                     </div>
                                 }
@@ -311,7 +311,7 @@
                                     <button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="@msg.MessageID" data-type="@rtype">@emoji</button>
                                 }
                             </div>
-                            <div class="msg-menu hidden absolute bottom-full mb-2 right-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
+                            <div class="msg-menu hidden absolute bottom-full mb-2 right-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-md py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
                                 @if (!msg.IsDeleted)
                                 {
                                     <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
@@ -331,7 +331,7 @@
                         <div class="bubble-col flex flex-col items-end max-w-[65%]">
                             @if (msg.IsDeleted)
                             {
-                                <div class="px-4 py-2 rounded-2xl rounded-br-sm bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
+                                <div class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
                                     <p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>
                                     <p class="text-[10px] mt-1 opacity-50 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
                                 </div>
@@ -341,11 +341,11 @@
                                 <div>
                                     @if (msg.ReplyToMessage != null)
                                     {
-                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md px-2 py-1 mb-1 truncate border-l-2 border-primary">
                                             <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
                                         </div>
                                     }
-                                    <img src="@msg.ImageUrl" class="rounded-2xl rounded-br-sm max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
+                                    <img src="@msg.ImageUrl" class="rounded-md max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
                                     <p class="text-[10px] mt-1 opacity-70 text-right">@msg.CreatedAt.ToString("HH:mm")</p>
                                 </div>
                             }
@@ -354,7 +354,7 @@
                                 <div class="max-w-[280px]">
                                     @if (msg.ReplyToMessage != null)
                                     {
-                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md px-2 py-1 mb-1 truncate border-l-2 border-primary">
                                             <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
                                         </div>
                                     }
@@ -364,19 +364,19 @@
                             }
                             else
                             {
-                                <div class="bg-primary text-white px-4 py-2 rounded-2xl rounded-br-sm shadow-sm">
+                                <div class="bg-primary text-white px-4 py-2 rounded-md shadow-sm">
                                     @if (msg.ReplyToMessage != null)
                                     {
                                         var replyText = msg.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" :
                                             (msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content);
-                                        <div class="text-[10px] text-white/80 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-white/60 truncate">
+                                        <div class="text-[10px] text-white/80 bg-black/10 rounded-md px-2 py-1 mb-1.5 border-l-2 border-white/60 truncate">
                                             ↩ @replyText
                                         </div>
                                     }
                                     <p class="text-sm">@msg.Content</p>
-                                    <p class="text-[10px] mt-1 opacity-70 text-right flex items-center justify-end gap-1">
+                                    <p class="text-[10px] mt-1 text-right flex items-center justify-end gap-1 text-white/70">
                                         @msg.CreatedAt.ToString("HH:mm")
-                                        <span class="read-receipt @(msg.IsRead ? "text-primary/80" : "opacity-70")" data-mid="@msg.MessageID">@(msg.IsRead ? "✓✓" : "✓")</span>
+                                        <span class="read-receipt @(msg.IsRead ? "text-white" : "text-white/50")" data-mid="@msg.MessageID">@(msg.IsRead ? "✓✓" : "✓")</span>
                                     </p>
                                 </div>
                             }
@@ -389,7 +389,7 @@
                         <div class="bubble-col flex flex-col items-start max-w-[65%]">
                             @if (msg.IsDeleted)
                             {
-                                <div class="px-4 py-2 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
+                                <div class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600">
                                     <p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>
                                     <p class="text-[10px] mt-1 opacity-50">@msg.CreatedAt.ToString("HH:mm")</p>
                                 </div>
@@ -399,11 +399,11 @@
                                 <div>
                                     @if (msg.ReplyToMessage != null)
                                     {
-                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md px-2 py-1 mb-1 truncate border-l-2 border-primary">
                                             <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
                                         </div>
                                     }
-                                    <img src="@msg.ImageUrl" class="rounded-2xl rounded-bl-sm max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
+                                    <img src="@msg.ImageUrl" class="rounded-md max-w-full shadow-sm cursor-pointer" onclick="window.open(this.src)" />
                                     <p class="text-[10px] mt-1 opacity-70">@msg.CreatedAt.ToString("HH:mm")</p>
                                 </div>
                             }
@@ -412,7 +412,7 @@
                                 <div class="max-w-[280px]">
                                     @if (msg.ReplyToMessage != null)
                                     {
-                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary">
+                                        <div class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md px-2 py-1 mb-1 truncate border-l-2 border-primary">
                                             <span class="font-bold">↩ Trả lời:</span> @(msg.ReplyToMessage.Content.Length > 40 ? msg.ReplyToMessage.Content[..40] + "…" : msg.ReplyToMessage.Content)
                                         </div>
                                     }
@@ -422,12 +422,12 @@
                             }
                             else
                             {
-                                <div class="bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2 rounded-2xl rounded-bl-sm shadow-sm">
+                                <div class="bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-2 rounded-md shadow-sm">
                                     @if (msg.ReplyToMessage != null)
                                     {
                                         var replyText2 = msg.ReplyToMessage.IsDeleted ? "Tin nhắn đã bị xóa" :
                                             (msg.ReplyToMessage.Content.Length > 50 ? msg.ReplyToMessage.Content[..50] + "…" : msg.ReplyToMessage.Content);
-                                        <div class="text-[10px] text-slate-500 bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 border-primary truncate">
+                                        <div class="text-[10px] text-slate-500 bg-black/10 rounded-md px-2 py-1 mb-1.5 border-l-2 border-primary truncate">
                                             ↩ @replyText2
                                         </div>
                                     }
@@ -455,7 +455,7 @@
                                     <button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="@msg.MessageID" data-type="@rtype">@emoji</button>
                                 }
                             </div>
-                            <div class="msg-menu hidden absolute bottom-full mb-2 left-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
+                            <div class="msg-menu hidden absolute bottom-full mb-2 left-0 z-20 bg-white dark:bg-slate-800 shadow-xl rounded-md py-1 w-44 border border-slate-100 dark:border-slate-700" data-mid="@msg.MessageID">
                                 @if (!msg.IsDeleted)
                                 {
                                     <button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="@msg.MessageID">
@@ -489,9 +489,9 @@
                         }
                     </div>
                     <div class="flex gap-1 bg-slate-200 dark:bg-slate-700 rounded-full px-3 py-2">
-                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
-                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
-                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite;animation-delay:0ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite;animation-delay:200ms"></span>
+                        <span class="w-1.5 h-1.5 bg-slate-400 rounded-full" style="animation:typingDot 1.2s ease-in-out infinite;animation-delay:400ms"></span>
                     </div>
                 </div>
             </div>
@@ -510,7 +510,7 @@
 
             <!-- Image preview bar -->
             <div id="chat-img-preview-bar" class="hidden px-4 py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
-                <img id="chat-img-thumb" src="" class="h-16 w-16 object-cover rounded-xl" />
+                <img id="chat-img-thumb" src="" class="h-16 w-16 object-cover rounded-md" />
                 <span id="chat-img-name" class="text-sm text-slate-500 flex-1 truncate"></span>
                 <button type="button" onclick="clearChatImage()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-rose-100 hover:text-rose-500 transition-colors">
                     <span class="material-symbols-outlined text-base">close</span>
@@ -537,7 +537,7 @@
                         <span class="material-symbols-outlined text-[20px]">image</span>
                     </button>
                     <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off"
-                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all border-none"
+                           class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-md px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all border-none"
                            onpaste="handleChatPaste(event)" />
                     <button type="submit" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-transform active:scale-95 flex-shrink-0">
                         <span class="material-symbols-outlined">send</span>
@@ -550,7 +550,7 @@
 
 <!-- Forward modal -->
 <div id="forward-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 class="font-bold text-slate-800 dark:text-white">Chuyển tiếp tin nhắn</h3>
             <button onclick="closeForwardModal()" class="text-slate-400 hover:text-slate-600">
@@ -563,7 +563,7 @@
             <div id="forward-friends-list" class="space-y-1 max-h-52 overflow-y-auto">
                 @foreach (var friend in Model.Friends)
                 {
-                    <button class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors forward-friend-btn" data-uid="@friend.UserID">
+                    <button class="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors forward-friend-btn" data-uid="@friend.UserID">
                         <div class="w-9 h-9 rounded-full bg-primary/10 overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-primary text-sm">
                             @if (string.IsNullOrEmpty(friend.AvatarUrl))
                             {
@@ -584,7 +584,7 @@
 
 <!-- Report modal -->
 <div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 class="font-bold text-slate-800 dark:text-white">Báo cáo tin nhắn</h3>
             <button onclick="closeReportModal()" class="text-slate-400 hover:text-slate-600">
@@ -594,10 +594,10 @@
         <div id="report-msg-preview" class="px-6 py-3 bg-slate-50 dark:bg-slate-800 text-sm text-slate-600 dark:text-slate-300 italic truncate"></div>
         <div class="px-6 py-4">
             <textarea id="report-reason" placeholder="Lý do báo cáo (không bắt buộc)..."
-                      class="w-full bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm outline-none resize-none h-24 focus:ring-2 focus:ring-primary/50"></textarea>
+                      class="w-full bg-slate-100 dark:bg-slate-800 rounded-md px-3 py-2 text-sm outline-none resize-none h-24 focus:ring-2 focus:ring-primary/50"></textarea>
             <div class="flex gap-3 mt-4">
-                <button onclick="closeReportModal()" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Hủy</button>
-                <button onclick="submitReport()" class="flex-1 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Báo cáo</button>
+                <button onclick="closeReportModal()" class="flex-1 px-4 py-2.5 rounded-md border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Hủy</button>
+                <button onclick="submitReport()" class="flex-1 px-4 py-2.5 rounded-md bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Báo cáo</button>
             </div>
         </div>
     </div>
@@ -619,12 +619,11 @@
             int max      = m.TryGetProperty("max",   out var mx) ? mx.GetInt32() : 0;
             string skill = m.TryGetProperty("skill", out var sk) ? sk.GetString() ?? "" : "";
 
-            string roundedCorner = isMine ? "rounded-br-sm" : "rounded-bl-sm";
             string border = isMine ? "border-blue-200 dark:border-blue-900" : "border-slate-200 dark:border-slate-700";
             string bg     = isMine ? "bg-blue-50 dark:bg-blue-950" : "bg-white dark:bg-slate-800";
 
             var sb = new System.Text.StringBuilder();
-            sb.Append("<div class=\"rounded-2xl ").Append(roundedCorner).Append(" border ").Append(border).Append(" ").Append(bg).Append(" p-3 shadow-sm\">");
+            sb.Append("<div class=\"rounded-md border ").Append(border).Append(" ").Append(bg).Append(" p-3 shadow-sm\">");
             sb.Append("<div class=\"flex items-center gap-2 mb-1\"><span class=\"material-symbols-outlined text-primary\" style=\"font-size:14px\">sports</span>");
             sb.Append("<p class=\"font-bold text-sm truncate\">").Append(System.Web.HttpUtility.HtmlEncode(title)).Append("</p></div>");
             sb.Append("<p class=\"text-xs text-slate-500\">📅 ").Append(date).Append(" · ").Append(time).Append("</p>");
@@ -636,7 +635,7 @@
             if (!string.IsNullOrEmpty(price))
                 sb.Append("<p class=\"text-xs text-slate-500\">💰 ").Append(System.Web.HttpUtility.HtmlEncode(price)).Append("</p>");
             if (matchId > 0)
-                sb.Append("<a href=\"/Matchmaking/Details?id=").Append(matchId).Append("\" class=\"mt-2 block text-center bg-primary text-white text-xs font-bold rounded-lg py-1.5 hover:bg-primary/90 transition-colors\">Xem chi tiết</a>");
+                sb.Append("<a href=\"/Matchmaking/Details?id=").Append(matchId).Append("\" class=\"mt-2 block text-center bg-primary text-white text-xs font-bold rounded-md py-1.5 hover:bg-primary/90 transition-colors\">Xem chi tiết</a>");
             sb.Append("</div>");
             return sb.ToString();
         }
@@ -647,7 +646,7 @@
 <!-- Custom delete confirm modal -->
 <div id="delete-confirm-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDeleteConfirm()"></div>
-    <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xs p-6 transform transition-all duration-200 scale-95 opacity-0" id="delete-confirm-box">
+    <div class="relative bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-xs p-6 transform transition-all duration-200 scale-95 opacity-0" id="delete-confirm-box">
         <div class="flex flex-col items-center gap-3 text-center">
             <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
                 <span class="material-symbols-outlined text-rose-500 text-2xl">delete</span>
@@ -656,11 +655,20 @@
             <p class="text-sm text-slate-500 dark:text-slate-400">Tin nhắn sẽ bị xóa với tất cả mọi người. Không thể hoàn tác.</p>
         </div>
         <div class="flex gap-3 mt-5">
-            <button onclick="closeDeleteConfirm()" class="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Hủy</button>
-            <button onclick="confirmDelete()" class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Xóa</button>
+            <button onclick="closeDeleteConfirm()" class="flex-1 py-2.5 rounded-md border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Hủy</button>
+            <button onclick="confirmDelete()" class="flex-1 py-2.5 rounded-md bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Xóa</button>
         </div>
     </div>
 </div>
+
+@section Styles {
+<style>
+@@keyframes typingDot {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+}
+</style>
+}
 
 @section Scripts {
     <script>
@@ -704,9 +712,10 @@
                 if (msg.senderID === activeReceiverId) {
                     appendMessage(msg, false);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    // Auto mark as read
+                    // Auto mark as read via REST + SignalR (dual path)
                     fetch('/api/chat/mark-read?userId=' + activeReceiverId, { method: 'POST' })
                         .then(r => r.json()).then(d => { if (typeof setChatBadge === 'function') setChatBadge(d.count || 0); });
+                    chatConnection.invoke('MarkMessagesRead', activeReceiverId).catch(()=>{});
                 } else {
                     updateFriendPreview(msg.senderID, msg.content, msg.messageType);
                     incrementFriendBadge(msg.senderID);
@@ -717,6 +726,19 @@
                 if (msg.receiverID === activeReceiverId) {
                     appendMessage(msg, true);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
+
+            // Read receipt: activeReceiverId read our messages
+            chatConnection.on("MessagesRead", function(payload) {
+                if (payload.readerId === activeReceiverId) {
+                    document.querySelectorAll('.read-receipt').forEach(function(el) {
+                        if (el.textContent === '✓') {
+                            el.textContent = '✓✓';
+                            el.classList.remove('text-white/50');
+                            el.classList.add('text-white');
+                        }
+                    });
                 }
             });
 
@@ -742,7 +764,7 @@
                 var bubbleCol = row.querySelector('.bubble-col');
                 if (bubbleCol) {
                     var firstChild = bubbleCol.firstElementChild;
-                    if (firstChild) firstChild.outerHTML = '<div class="px-4 py-2 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800"><p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p></div>';
+                    if (firstChild) firstChild.outerHTML = '<div class="px-4 py-2 rounded-md border border-dashed border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800"><p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p></div>';
                 }
             });
 
@@ -760,15 +782,6 @@
                 }
             });
 
-            chatConnection.on("MessagesRead", function(payload) {
-                if (payload.conversationWith === activeReceiverId) {
-                    document.querySelectorAll('.read-receipt').forEach(function(el) {
-                        el.textContent = '✓✓';
-                        el.classList.remove('opacity-70');
-                        el.classList.add('text-primary/80');
-                    });
-                }
-            });
 
             chatConnection.on("ForwardError", function(payload) {
                 showToast(payload.error || "Không thể chuyển tiếp tin nhắn này.", true);
@@ -787,6 +800,9 @@
                             banner.classList.add('flex');
                         }
                     }).catch(()=>{});
+
+                // Mark messages from activeReceiverId as read via hub (real-time)
+                chatConnection.invoke('MarkMessagesRead', activeReceiverId).catch(()=>{});
             }).catch(err => console.error(err.toString()));
 
             // ---- Typing indicator ----
@@ -863,7 +879,16 @@
                 if (reactBtn) {
                     var mid = reactBtn.dataset.mid;
                     var picker = document.querySelector('.reaction-picker[data-mid="' + mid + '"]');
-                    if (picker) { picker.classList.toggle('hidden'); openReactionPicker = picker; }
+                    if (picker) {
+                        var wasHidden = picker.classList.contains('hidden');
+                        closeReactionPicker();
+                        if (wasHidden) {
+                            picker.classList.remove('hidden');
+                            var r = reactBtn.getBoundingClientRect();
+                            picker.style.cssText = 'position:fixed;z-index:9999;bottom:' + (window.innerHeight - r.top + 6) + 'px;right:' + (window.innerWidth - r.right) + 'px;left:auto;top:auto;';
+                            openReactionPicker = picker;
+                        }
+                    }
                     return;
                 }
                 if (reactPick) {
@@ -884,7 +909,16 @@
                 if (menuBtn) {
                     var mid = menuBtn.dataset.mid;
                     var menu = document.querySelector('.msg-menu[data-mid="' + mid + '"]');
-                    if (menu) { menu.classList.toggle('hidden'); openMsgMenu = menu; }
+                    if (menu) {
+                        var wasHidden = menu.classList.contains('hidden');
+                        closeMsgMenu();
+                        if (wasHidden) {
+                            menu.classList.remove('hidden');
+                            var r = menuBtn.getBoundingClientRect();
+                            menu.style.cssText = 'position:fixed;z-index:9999;bottom:' + (window.innerHeight - r.top + 6) + 'px;right:' + (window.innerWidth - r.right) + 'px;left:auto;top:auto;';
+                            openMsgMenu = menu;
+                        }
+                    }
                     return;
                 }
                 if (pinBtn) {
@@ -916,11 +950,15 @@
             });
 
             function closeReactionPicker() {
-                if (openReactionPicker) { openReactionPicker.classList.add('hidden'); openReactionPicker = null; }
+                if (openReactionPicker) { openReactionPicker.classList.add('hidden'); openReactionPicker.style.cssText = ''; openReactionPicker = null; }
             }
             function closeMsgMenu() {
-                if (openMsgMenu) { openMsgMenu.classList.add('hidden'); openMsgMenu = null; }
+                if (openMsgMenu) { openMsgMenu.classList.add('hidden'); openMsgMenu.style.cssText = ''; openMsgMenu = null; }
             }
+
+            document.getElementById('chat-messages').addEventListener('scroll', function() {
+                closeReactionPicker(); closeMsgMenu();
+            }, { passive: true });
 
             // Forward friend selection
             document.querySelectorAll('.forward-friend-btn').forEach(function(btn) {
@@ -989,7 +1027,7 @@
                     if (!data.length) { resultsEl.innerHTML = '<p class="text-xs text-slate-400 px-2">Không tìm thấy</p>'; return; }
                     resultsEl.innerHTML = data.map(function(m) {
                         var hl = m.content.replace(new RegExp('(' + escHtml(q) + ')', 'gi'), '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>');
-                        return '<div class="px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs" onclick="scrollToMsg(' + m.messageID + ')">' + hl + '</div>';
+                        return '<div class="px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs" onclick="scrollToMsg(' + m.messageID + ')">' + hl + '</div>';
                     }).join('');
                 }, 300);
             };
@@ -1012,7 +1050,7 @@
                     var data = await r.json();
                     if (!data.length) { grid.innerHTML = '<div class="col-span-4 text-center text-xs text-slate-400 py-4">Chưa có ảnh nào.</div>'; return; }
                     grid.innerHTML = data.map(function(m) {
-                        return '<img src="' + escHtml(m.imageUrl) + '" class="w-full aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open(\'' + escHtml(m.imageUrl) + '\')" />';
+                        return '<img src="' + escHtml(m.imageUrl) + '" class="w-full aspect-square object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open(\'' + escHtml(m.imageUrl) + '\')" />';
                     }).join('');
                 } catch { grid.innerHTML = '<div class="col-span-4 text-center text-xs text-slate-400 py-4">Lỗi tải ảnh.</div>'; }
             };
@@ -1152,7 +1190,7 @@
                         .map(function(r){ return '<button class="w-8 h-8 text-lg hover:scale-125 transition-transform react-pick" data-mid="'+mid+'" data-type="'+r[1]+'">'+r[0]+'</button>'; }).join('');
 
                     var menu = document.createElement("div");
-                    menu.className = "msg-menu hidden absolute bottom-full mb-2 " + pickerAlign + " z-20 bg-white dark:bg-slate-800 shadow-xl rounded-2xl py-1 w-44 border border-slate-100 dark:border-slate-700";
+                    menu.className = "msg-menu hidden absolute bottom-full mb-2 " + pickerAlign + " z-20 bg-white dark:bg-slate-800 shadow-xl rounded-md py-1 w-44 border border-slate-100 dark:border-slate-700";
                     menu.dataset.mid = mid;
                     var items = [
                         '<button class="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 pin-btn" data-mid="'+mid+'"><span class="material-symbols-outlined text-[14px]">push_pin</span> Ghim</button>',
@@ -1174,8 +1212,7 @@
 
                 if (msg.isDeleted || msg.messageType === "Deleted") {
                     var delBubble = document.createElement("div");
-                    delBubble.className = "px-4 py-2 rounded-2xl " + (isMine ? "rounded-br-sm" : "rounded-bl-sm") +
-                        " bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600";
+                    delBubble.className = "px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600";
                     delBubble.innerHTML = '<p class="text-sm text-slate-400 italic">Tin nhắn đã bị xóa</p>' +
                         '<p class="text-[10px] mt-1 opacity-50 ' + (isMine ? "text-right" : "") + '">' + formatTime(msg.createdAt) + '</p>';
                     bubbleCol.appendChild(delBubble);
@@ -1188,13 +1225,13 @@
                     var wrap = document.createElement("div");
                     if (msg.replyPreview) {
                         var rq = document.createElement("div");
-                        rq.className = "text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-xl px-2 py-1 mb-1 truncate border-l-2 border-primary";
+                        rq.className = "text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md px-2 py-1 mb-1 truncate border-l-2 border-primary";
                         rq.textContent = '↩ ' + (msg.replyPreview.content || '');
                         wrap.appendChild(rq);
                     }
                     var img = document.createElement("img");
                     img.src = msg.imageUrl;
-                    img.className = "rounded-2xl " + (isMine ? "rounded-br-sm" : "rounded-bl-sm") + " max-w-full shadow-sm cursor-pointer";
+                    img.className = "rounded-md max-w-full shadow-sm cursor-pointer";
                     img.onclick = function() { window.open(img.src); };
                     var timeP = document.createElement("p");
                     timeP.className = "text-[10px] mt-1 opacity-70" + (isMine ? " text-right" : "");
@@ -1214,21 +1251,21 @@
 
                 } else {
                     var bubble = document.createElement("div");
-                    bubble.className = "px-4 py-2 rounded-2xl shadow-sm " +
-                        (isMine ? "bg-primary text-white rounded-br-sm" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm");
+                    bubble.className = "px-4 py-2 rounded-md shadow-sm " +
+                        (isMine ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white");
                     if (msg.replyPreview) {
                         var rq = document.createElement("div");
-                        rq.className = "text-[10px] " + (isMine ? "text-blue-100" : "text-slate-500") + " bg-black/10 rounded-lg px-2 py-1 mb-1.5 border-l-2 " + (isMine ? "border-white/60" : "border-primary") + " truncate";
+                        rq.className = "text-[10px] " + (isMine ? "text-blue-100" : "text-slate-500") + " bg-black/10 rounded-md px-2 py-1 mb-1.5 border-l-2 " + (isMine ? "border-white/60" : "border-primary") + " truncate";
                         rq.textContent = '↩ ' + (msg.replyPreview.content || '');
                         bubble.appendChild(rq);
                     }
                     var contentP = document.createElement("p"); contentP.className = "text-sm"; contentP.textContent = msg.content;
                     var timeRow = document.createElement("p");
-                    timeRow.className = "text-[10px] mt-1 opacity-70 flex items-center gap-1" + (isMine ? " justify-end text-right" : "");
+                    timeRow.className = "text-[10px] mt-1 flex items-center gap-1" + (isMine ? " justify-end text-right text-white/70" : " text-slate-400");
                     timeRow.textContent = formatTime(msg.createdAt);
                     if (isMine) {
                         var receipt = document.createElement("span");
-                        receipt.className = "read-receipt opacity-70"; receipt.dataset.mid = mid; receipt.textContent = "✓";
+                        receipt.className = "read-receipt text-white/50"; receipt.dataset.mid = mid; receipt.textContent = "✓";
                         timeRow.appendChild(receipt);
                     }
                     bubble.appendChild(contentP); bubble.appendChild(timeRow);
@@ -1257,7 +1294,7 @@
                     var border = isMine ? "border-primary/20 dark:border-primary/30" : "border-slate-200 dark:border-slate-700";
                     var bg = isMine ? "background:rgba(80,165,177,0.05)" : "";
                     var link = m.id ? `<a href="/Matchmaking/Details?id=${m.id}" style="display:block;text-align:center;background:#50A5B1;color:white;border-radius:8px;padding:4px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>` : "";
-                    return `<div class="rounded-2xl ${isMine?'rounded-br-sm':'rounded-bl-sm'} border ${border} p-3 shadow-sm" style="${bg}">
+                    return `<div class="rounded-md border ${border} p-3 shadow-sm" style="${bg}">
                         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="material-symbols-outlined" style="font-size:14px;color:#50A5B1">sports</span>
                         <strong style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(m.title||m.type||"")}</strong></div>
                         <p style="font-size:11px;color:#64748b">📅 ${m.date||""} · ${m.time||""}</p>
@@ -1286,7 +1323,7 @@
             }
             function showToast(msg, isErr) {
                 var t = document.createElement('div');
-                t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg text-white ' + (isErr ? 'bg-rose-500' : 'bg-emerald-500');
+                t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md text-sm font-semibold shadow-lg text-white ' + (isErr ? 'bg-rose-500' : 'bg-emerald-500');
                 t.textContent = msg;
                 document.body.appendChild(t);
                 setTimeout(function() { t.remove(); }, 3000);

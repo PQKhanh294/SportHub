@@ -28,6 +28,9 @@ namespace SportHub.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public string? FilterType { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? Search { get; set; }
+
         public async Task<IActionResult> OnGetAsync()
         {
             ViewData["ActivePage"] = "Admin";
@@ -39,6 +42,11 @@ namespace SportHub.Pages.Admin
             Transactions = string.IsNullOrWhiteSpace(FilterType)
                 ? all
                 : all.Where(t => t.PaymentType == FilterType).ToList();
+
+            if (!string.IsNullOrWhiteSpace(Search))
+                Transactions = Transactions.Where(t =>
+                    t.MatchTitle.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    t.PayerName.Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
 
             var now = DateTime.UtcNow;
             TotalRevenue     = all.Sum(t => t.Amount);

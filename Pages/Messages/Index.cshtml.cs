@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -143,7 +143,7 @@ namespace SportHub.Pages.Messages
                 Note = string.IsNullOrWhiteSpace(ProposalInput.Note) ? null : ProposalInput.Note.Trim()
             });
 
-            var costText = proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} VND" : "chÆ°a chá»‘t giÃ¡";
+            var costText = proposal.EstimatedCost.HasValue ? $"{proposal.EstimatedCost.Value:N0} xu" : "chÆ°a chá»‘t giÃ¡";
             var splitText = proposal.SplitMode == "HostPays" ? "host tráº£" : "chia Ä‘á»u";
             await _chatService.SendMessageAsync(
                 currentUserId,

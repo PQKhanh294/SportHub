@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
@@ -33,16 +33,22 @@ namespace SportHub.Controllers
 
             var systemPrompt = """
 Bạn là chuyên gia phân tích dữ liệu cho nền tảng thể thao SportHub (Việt Nam).
-Trả lời ngắn gọn bằng tiếng Việt, tối đa 4-5 câu.
-Đưa ra nhận định cụ thể, có số liệu, và đề xuất hành động thiết thực.
-Không nói "dựa trên dữ liệu" hay "theo thông tin" — đi thẳng vào nhận định.
+Trả lời bằng tiếng Việt, cấu trúc rõ ràng, tối đa 120 từ.
+
+Quy tắc định dạng bắt buộc:
+- Dùng ## để đặt heading ngắn (ví dụ: ## Nhận định, ## Đề xuất)
+- Dùng **text** để in đậm số liệu và từ khóa quan trọng
+- Dùng - để liệt kê bullet points (mỗi ý 1 dòng)
+- Không dùng dấu ngoặc đơn () hay [] quanh bullet
+
+Không nói "dựa trên dữ liệu" — đi thẳng vào nhận định có số cụ thể.
 """;
 
             string userMessage = section switch
             {
                 "payments" => $"""
 Phân tích tình trạng thanh toán chờ xác nhận của SportHub:
-- Tổng đang chờ: {p1} giao dịch, tổng giá trị: {p2} VND
+- Tổng đang chờ: {p1} giao dịch, tổng giá trị: {p2} xu
 - Loại: {p3} đặt cọc host, {p4} phí player
 Nhận định xu hướng và đề xuất cải thiện tỷ lệ xác nhận.
 """,
@@ -104,6 +110,14 @@ Yêu cầu:
                 .ToList();
 
             return Ok(new { codes });
+        }
+
+        [HttpGet("campaign-eligible-count/{campaignId}")]
+        public async Task<IActionResult> GetCampaignEligibleCount(int campaignId, [FromServices] IPromotionService promotionService)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            var count = await promotionService.GetEligibleUserCountAsync(campaignId);
+            return Ok(new { count });
         }
 
         private async Task<bool> IsAdminAsync()

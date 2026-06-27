@@ -1,8 +1,10 @@
+@using System.Globalization
 @{
     var current = ViewData["AdminPage"]?.ToString();
-    var navItemBase = "flex-shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors";
+    var navItemBase = "flex-shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold transition-colors";
     var navActive = "bg-primary text-white shadow-sm";
     var navInactive = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary hover:border-primary/40";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 <!-- Mobile: horizontal scroll (hidden on lg+ because sidebar takes over) -->
 <div class="relative lg:hidden mb-4">
@@ -13,41 +15,45 @@
     </a>
     <a asp-page="/Admin/Transactions" class="@navItemBase @(current == "Transactions" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">receipt_long</span>
-        Lịch sử GD
+        @(isEn ? "Transactions" : "Giao dịch")
     </a>
     <a asp-page="/Admin/MatchPayments" class="@navItemBase @(current == "Payments" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">pending_actions</span>
-        Chờ xác nhận
+        @(isEn ? "Pending Payments" : "Chờ thanh toán")
         <span id="admin-badge-payments" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
     </a>
     <a asp-page="/Admin/Users" class="@navItemBase @(current == "Users" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">manage_accounts</span>
-        Người dùng
+        @(isEn ? "Users" : "Người dùng")
     </a>
     <a asp-page="/Admin/Matches" class="@navItemBase @(current == "Matches" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">sports</span>
-        Trận đấu
+        @(isEn ? "Matches" : "Trận đấu")
     </a>
     <a asp-page="/Admin/Reviews" class="@navItemBase @(current == "Reviews" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">rate_review</span>
-        Đánh giá
+        @(isEn ? "Reviews" : "Đánh giá")
     </a>
     <a asp-page="/Admin/ReportedMessages" class="@navItemBase @(current == "ReportedMessages" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">flag</span>
-        Báo cáo
+        @(isEn ? "Reports" : "Báo cáo")
         <span id="admin-badge-reports" class="hidden min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none"></span>
     </a>
     <a asp-page="/Admin/Subscriptions" class="@navItemBase @(current == "Subscriptions" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">workspace_premium</span>
-        Gói đăng ký
+        @(isEn ? "Subscriptions" : "Gói dịch vụ")
     </a>
     <a asp-page="/Admin/Wallet" class="@navItemBase @(current == "Wallet" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">account_balance_wallet</span>
-        Ví ảo
+        @(isEn ? "Wallets" : "Ví tiền")
     </a>
     <a asp-page="/Admin/Promotions" class="@navItemBase @(current == "Promotions" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">local_offer</span>
-        Khuyến mãi
+        @(isEn ? "Promotions" : "Khuyến mãi")
+    </a>
+    <a asp-page="/Admin/Disputes" class="@navItemBase @(current == "Disputes" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[15px]">gavel</span>
+        @(isEn ? "Disputes" : "Khiếu nại")
     </a>
 </nav>
 <!-- Gradient fade hint — more items to scroll -->

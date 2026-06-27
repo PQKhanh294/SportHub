@@ -43,7 +43,7 @@ namespace SportHub.Services.Interfaces
         public string? AvatarUrl { get; set; }
         public decimal OverallAverage { get; set; }
         public int ReviewCount { get; set; }
-        public bool HasEnoughReviews => ReviewCount >= 3;
+        public bool HasEnoughReviews => ReviewCount >= 1;
 
         // For host (PlayerToMatch)
         public decimal? AvgOrganization { get; set; }

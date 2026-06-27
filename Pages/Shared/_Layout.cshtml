@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Sport Hub</title>
+    @if (Context.Request.Path.StartsWithSegments("/Admin"))
+    {
+        <!-- Prevent browser auto-translate on admin pages (always English) -->
+        <meta name="google" content="notranslate" />
+    }
 
     <!--
     ================================================================
@@ -253,7 +258,7 @@
             <div class="flex items-center gap-1.5 sm:gap-2">
                 <!-- Tạo trận button -->
                 <a asp-page="/Matchmaking/Create"
-                   class="hidden xl:inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-accent/90 hover:shadow-md transition-all active:scale-95">
+                   class="hidden xl:inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-accent/90 hover:shadow-md transition-all active:scale-95">
                     <span class="material-symbols-outlined text-base">add</span>
                     @createMatchText
                 </a>
@@ -262,17 +267,17 @@
                 {
                     <!-- Wallet pill -->
                     <a href="/Wallet" id="nav-wallet-btn"
-                       class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/20 hover:border-primary hover:bg-primary/15 text-primary text-sm font-bold transition-all"
+                       class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary/8 border border-primary/20 hover:border-primary hover:bg-primary/15 text-primary text-sm font-bold transition-all"
                        title="Ví SportHub">
                         <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
-                        <span id="nav-wallet-balance">@currentWalletBalance.ToString("N0") ₫</span>
+                        <span id="nav-wallet-balance">@currentWalletBalance.ToString("N0") xu</span>
                     </a>
 
                     <!-- Subscription badge -->
                     @if (currentPlanKey == null || currentPlanKey == "Free")
                     {
                         <a href="/Subscription"
-                           class="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-primary/30 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all"
+                           class="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-primary/30 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all"
                            title="@upgradeText">
                             <span class="material-symbols-outlined text-sm">workspace_premium</span>
                             <span class="hidden lg:inline">@upgradeText</span>
@@ -281,7 +286,7 @@
                     else
                     {
                         <a href="/Subscription"
-                           class="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all @(currentPlanKey == "Club" ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : currentPlanKey == "Pro" ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-primary/10 text-primary hover:bg-primary/20")"
+                           class="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition-all @(currentPlanKey == "Club" ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : currentPlanKey == "Pro" ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-primary/10 text-primary hover:bg-primary/20")"
                            title="Gói @currentPlanKey">
                             <span class="material-symbols-outlined text-sm">workspace_premium</span>
                             @currentPlanKey
@@ -333,7 +338,7 @@
                             }
                         </a>
                         <!-- Dropdown on hover -->
-                        <div class="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                        <div class="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
                             <a href="/Profile" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-t-xl">
                                 <span class="material-symbols-outlined text-sm text-primary">person</span> @navProfile
                             </a>
@@ -355,8 +360,8 @@
                 }
                 else
                 {
-                    <a asp-page="/Auth/Login" class="h-9 px-3 sm:px-4 flex items-center justify-center text-xs sm:text-sm font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary hover:text-primary rounded-full transition-all">@loginText</a>
-                    <a asp-page="/Auth/Register" class="h-9 px-3 sm:px-4 flex items-center justify-center bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold rounded-full transition-all shadow-sm">@registerText</a>
+                    <a asp-page="/Auth/Login" class="h-9 px-3 sm:px-4 flex items-center justify-center text-xs sm:text-sm font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary hover:text-primary rounded-md transition-all">@loginText</a>
+                    <a asp-page="/Auth/Register" class="h-9 px-3 sm:px-4 flex items-center justify-center bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold rounded-md transition-all shadow-sm">@registerText</a>
                 }
 
                 <!-- Hamburger Mobile — hidden, replaced by bottom nav -->
@@ -367,30 +372,30 @@
         <!-- Mobile Nav Dropdown — replaced by bottom nav; kept only for wallet balance JS ref -->
         <div id="mobile-menu" class="hidden" style="display:none!important">
             <div class="pt-3 pb-2">
-                <a asp-page="/Matchmaking/Create" class="flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-white shadow-sm mb-3">
+                <a asp-page="/Matchmaking/Create" class="flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-black text-white shadow-sm mb-3">
                     <span class="material-symbols-outlined text-lg">add</span>
                     @createMatchText
                 </a>
             </div>
             <nav class="flex flex-col space-y-0.5">
-                <a asp-page="/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Home" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navHome</a>
-                <a asp-page="/Matchmaking/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Matchmaking" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navMatchmaking</a>
-                <a asp-page="/Users/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Community" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navCommunity</a>
+                <a asp-page="/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Home" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navHome</a>
+                <a asp-page="/Matchmaking/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Matchmaking" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navMatchmaking</a>
+                <a asp-page="/Users/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Community" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navCommunity</a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a href="/Wallet" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <a href="/Wallet" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300 flex items-center justify-between">
                         <span class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span>
                             Ví SportHub
                         </span>
-                        <span class="text-xs font-bold text-primary" id="nav-wallet-balance-mobile">@currentWalletBalance.ToString("N0") ₫</span>
+                        <span class="text-xs font-bold text-primary" id="nav-wallet-balance-mobile">@currentWalletBalance.ToString("N0") xu</span>
                     </a>
-                    <a asp-page="/Users/Friends" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navFriends</a>
-                    <a asp-page="/Messages/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navMessages</a>
+                    <a asp-page="/Users/Friends" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navFriends</a>
+                    <a asp-page="/Messages/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors text-slate-700 dark:text-slate-300">@navMessages</a>
                 }
                 @if (User.IsInRole("Admin"))
                 {
-                    <a asp-page="/Admin/Index" class="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-accent/10 text-accent flex items-center gap-1">
+                    <a asp-page="/Admin/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-accent/10 text-accent flex items-center gap-1">
                         <span class="material-symbols-outlined text-base">admin_panel_settings</span>
                         Admin
                     </a>
@@ -398,8 +403,8 @@
                 @if (!User.Identity?.IsAuthenticated ?? true)
                 {
                     <div class="pt-2 flex gap-2">
-                        <a asp-page="/Auth/Login" class="flex-1 text-center py-2.5 text-sm font-semibold border border-slate-300 rounded-xl text-slate-700 hover:border-primary hover:text-primary transition-colors">@loginText</a>
-                        <a asp-page="/Auth/Register" class="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors">@registerText</a>
+                        <a asp-page="/Auth/Login" class="flex-1 text-center py-2.5 text-sm font-semibold border border-slate-300 rounded-md text-slate-700 hover:border-primary hover:text-primary transition-colors">@loginText</a>
+                        <a asp-page="/Auth/Register" class="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">@registerText</a>
                     </div>
                 }
             </nav>
@@ -413,17 +418,18 @@
 @{
     var _adminSection = ViewData["AdminPage"]?.ToString();
     var _isAdminLayout = !string.IsNullOrEmpty(_adminSection);
+    var _adminIsEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 @{
     // Helper: admin nav item class
     string AdminNavCls(string page) => _adminSection == page
-        ? "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold bg-primary/10 text-primary"
-        : "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary transition-colors";
+        ? "flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-semibold bg-primary text-white shadow-sm"
+        : "flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary transition-colors";
 }
 
 @if (_isAdminLayout)
 {
-<div class="flex min-h-[calc(100svh-64px)]">
+<div class="flex min-h-[calc(100svh-64px)]" translate="no">
     <!-- Admin Sidebar — desktop only -->
     <aside class="hidden lg:flex flex-col w-56 xl:w-60 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 sticky top-16 self-start overflow-y-auto" style="height:calc(100svh - 64px)">
         <div class="px-4 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -431,25 +437,29 @@
         </div>
         <nav class="flex-1 p-3 space-y-0.5">
             <a asp-page="/Admin/Index"          class="@AdminNavCls("Dashboard")"><span class="material-symbols-outlined text-[18px]">dashboard</span>Dashboard</a>
-            <a asp-page="/Admin/Transactions"   class="@AdminNavCls("Transactions")"><span class="material-symbols-outlined text-[18px]">receipt_long</span>Lịch sử GD</a>
+            <a asp-page="/Admin/Transactions"   class="@AdminNavCls("Transactions")"><span class="material-symbols-outlined text-[18px]">receipt_long</span>@(_adminIsEn ? "Transactions" : "Giao dịch")</a>
             <a asp-page="/Admin/MatchPayments"  class="@AdminNavCls("Payments") relative">
-                <span class="material-symbols-outlined text-[18px]">pending_actions</span>Chờ xác nhận
+                <span class="material-symbols-outlined text-[18px]">pending_actions</span>@(_adminIsEn ? "Pending Payments" : "Thanh toán chờ xử lý")
                 <span id="sb-badge-payments" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
             </a>
-            <a asp-page="/Admin/Users"          class="@AdminNavCls("Users")"><span class="material-symbols-outlined text-[18px]">manage_accounts</span>Người dùng</a>
-            <a asp-page="/Admin/Matches"        class="@AdminNavCls("Matches")"><span class="material-symbols-outlined text-[18px]">sports</span>Trận đấu</a>
-            <a asp-page="/Admin/Reviews"        class="@AdminNavCls("Reviews")"><span class="material-symbols-outlined text-[18px]">rate_review</span>Đánh giá</a>
+            <a asp-page="/Admin/Users"          class="@AdminNavCls("Users")"><span class="material-symbols-outlined text-[18px]">manage_accounts</span>@(_adminIsEn ? "Users" : "Người dùng")</a>
+            <a asp-page="/Admin/Matches"        class="@AdminNavCls("Matches")"><span class="material-symbols-outlined text-[18px]">sports</span>@(_adminIsEn ? "Matches" : "Trận đấu")</a>
+            <a asp-page="/Admin/Reviews"        class="@AdminNavCls("Reviews")"><span class="material-symbols-outlined text-[18px]">rate_review</span>@(_adminIsEn ? "Reviews" : "Đánh giá")</a>
             <a asp-page="/Admin/ReportedMessages" class="@AdminNavCls("ReportedMessages") relative">
-                <span class="material-symbols-outlined text-[18px]">flag</span>Báo cáo
+                <span class="material-symbols-outlined text-[18px]">flag</span>@(_adminIsEn ? "Reports" : "Báo cáo")
                 <span id="sb-badge-reports" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
             </a>
-            <a asp-page="/Admin/Subscriptions"  class="@AdminNavCls("Subscriptions")"><span class="material-symbols-outlined text-[18px]">workspace_premium</span>Gói đăng ký</a>
-            <a asp-page="/Admin/Wallet"          class="@AdminNavCls("Wallet")"><span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>Ví ảo</a>
-            <a asp-page="/Admin/Promotions"      class="@AdminNavCls("Promotions")"><span class="material-symbols-outlined text-[18px]">local_offer</span>Khuyến mãi</a>
+            <a asp-page="/Admin/Subscriptions"  class="@AdminNavCls("Subscriptions")"><span class="material-symbols-outlined text-[18px]">workspace_premium</span>@(_adminIsEn ? "Subscriptions" : "Gói dịch vụ")</a>
+            <a asp-page="/Admin/Wallet"          class="@AdminNavCls("Wallet")"><span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>@(_adminIsEn ? "Wallets" : "Ví tiền")</a>
+            <a asp-page="/Admin/Promotions"      class="@AdminNavCls("Promotions")"><span class="material-symbols-outlined text-[18px]">local_offer</span>@(_adminIsEn ? "Promotions" : "Khuyến mãi")</a>
+            <a asp-page="/Admin/Disputes"        class="@AdminNavCls("Disputes") relative">
+                <span class="material-symbols-outlined text-[18px]">gavel</span>@(_adminIsEn ? "Disputes" : "Khiếu nại")
+                <span id="sb-badge-disputes" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
+            </a>
         </nav>
         <div class="p-3 border-t border-slate-100 dark:border-slate-800">
-            <a href="/" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-primary rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                <span class="material-symbols-outlined text-[16px]">arrow_back</span>Về trang chính
+            <a href="/" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-500 hover:text-primary rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>@(_adminIsEn ? "Back to site" : "Về trang chính")
             </a>
         </div>
     </aside>
@@ -459,14 +469,14 @@
         @* Toast Notifications (TempData) *@
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-pulse" id="toast-success">
+            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-6 py-3 rounded-md shadow-lg flex items-center gap-2 animate-pulse" id="toast-success">
                 <span class="material-symbols-outlined">check_circle</span>
                 @TempData["SuccessMessage"]
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2" id="toast-error">
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg flex items-center gap-2" id="toast-error">
                 <span class="material-symbols-outlined">error</span>
                 @TempData["ErrorMessage"]
             </div>
@@ -494,12 +504,29 @@
 })();
 
 // Shared AI Insight loader for all admin pages
+function _fmtInsight(raw) {
+    if (!raw) return '';
+    var t = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // headings ##
+    t = t.replace(/^## (.+)$/gm, '<div style="font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-primary,#2563eb);margin-top:10px;margin-bottom:3px">$1</div>');
+    // bold **text**
+    t = t.replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:700;color:inherit">$1</strong>');
+    // italic *text*
+    t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // bullet lines
+    t = t.replace(/^[-•] (.+)$/gm, '<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:3px"><span style="color:var(--color-primary,#2563eb);flex-shrink:0;margin-top:1px">▸</span><span>$1</span></div>');
+    // double newline = paragraph break
+    t = t.replace(/\n\n+/g, '<div style="height:6px"></div>');
+    // single newline
+    t = t.replace(/\n/g, '<br>');
+    return t;
+}
 window.loadAiInsight = function(section, p1, p2, p3, p4) {
     var el = document.getElementById('ai-insight-' + section);
     if (!el) return;
     if (!el.classList.contains('hidden')) { el.classList.add('hidden'); return; }
     el.classList.remove('hidden');
-    el.innerHTML = '<span style="opacity:0.6">Đang phân tích AI...</span>';
+    el.innerHTML = '<span style="opacity:0.5;font-style:italic">Đang phân tích...</span>';
     var url = '/api/admin-insight?section=' + encodeURIComponent(section)
         + '&p1=' + encodeURIComponent(p1 || '')
         + '&p2=' + encodeURIComponent(p2 || '')
@@ -507,8 +534,8 @@ window.loadAiInsight = function(section, p1, p2, p3, p4) {
         + '&p4=' + encodeURIComponent(p4 || '');
     fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(d) { el.innerHTML = d ? (d.insight || 'Không có dữ liệu.') : 'Lỗi khi phân tích.'; })
-        .catch(function() { el.innerHTML = 'Không thể kết nối AI.'; });
+        .then(function(d) { el.innerHTML = d ? _fmtInsight(d.insight || 'Không có dữ liệu.') : '<span style="color:#ef4444">Lỗi khi phân tích.</span>'; })
+        .catch(function() { el.innerHTML = '<span style="color:#ef4444">Không thể kết nối AI.</span>'; });
 };
 </script>
 }
@@ -518,10 +545,10 @@ else
     @* Profile completion banner *@
     @if (showProfileBanner)
     {
-        <div class="mb-4 flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+        <div class="mb-4 flex items-center gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
             <span class="material-symbols-outlined text-amber-500">person_alert</span>
             <p class="flex-1 text-sm font-medium">Hồ sơ của bạn chưa đầy đủ. Điền số điện thoại, trình độ, môn thể thao và địa chỉ để kết nối đồng đội tốt hơn.</p>
-            <a href="/Profile" class="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Hoàn thiện ngay</a>
+            <a href="/Profile" class="shrink-0 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition-colors">Hoàn thiện ngay</a>
             <button onclick="this.parentElement.remove()" class="ml-1 text-amber-400 hover:text-amber-600 transition-colors" aria-label="Đóng">
                 <span class="material-symbols-outlined text-base">close</span>
             </button>
@@ -530,14 +557,14 @@ else
     @* Toast Notifications (TempData) *@
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-pulse" id="toast-success">
+        <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-6 py-3 rounded-md shadow-lg flex items-center gap-2 animate-pulse" id="toast-success">
             <span class="material-symbols-outlined">check_circle</span>
             @TempData["SuccessMessage"]
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2" id="toast-error">
+        <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg flex items-center gap-2" id="toast-error">
             <span class="material-symbols-outlined">error</span>
             @TempData["ErrorMessage"]
         </div>
@@ -629,7 +656,7 @@ else
         
         const toastId = "toast-" + Date.now();
         const html = `
-            <div id="${toastId}" class="pointer-events-auto max-w-sm w-full bg-white dark:bg-slate-800 shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 translate-y-4 opacity-0 transform">
+            <div id="${toastId}" class="pointer-events-auto max-w-sm w-full bg-white dark:bg-slate-800 shadow-lg rounded-md pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden transition-all duration-300 translate-y-4 opacity-0 transform">
                 <div class="w-2 flex ${color}"></div>
                 <div class="flex-1 p-4">
                     <div class="flex items-start">
@@ -664,13 +691,13 @@ else
             el.classList.remove('translate-y-4', 'opacity-0');
         }, 50);
         
-        // Auto remove after 5 seconds
+        // Auto remove after 8 seconds
         setTimeout(() => {
             if (document.getElementById(toastId)) {
                 el.classList.add('opacity-0', 'translate-x-full');
                 setTimeout(() => el.remove(), 300);
             }
-        }, 5000);
+        }, 8000);
     }
     
     // Listen to global events
@@ -682,7 +709,7 @@ else
             // Cập nhật wallet balance trên nav khi nhận tiền vào ví
             if (payload.type === 'WalletCredit') {
                 fetch('/api/wallet/balance').then(r => r.json()).then(data => {
-                    const fmt = Number(data.balance).toLocaleString('vi-VN') + ' ₫';
+                    const fmt = Number(data.balance).toLocaleString('vi-VN') + ' xu';
                     const desktop = document.getElementById('nav-wallet-balance');
                     const mobile  = document.getElementById('nav-wallet-balance-mobile');
                     if (desktop) desktop.textContent = fmt;
@@ -696,6 +723,18 @@ else
                 audio.play().catch(e => {}); // Bỏ qua nếu browser block autoplay
             } catch (err) {}
         }
+    });
+</script>
+<script>
+    // Auto-dismiss server-rendered TempData toasts
+    ['toast-success', 'toast-error'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        setTimeout(() => {
+            el.style.transition = 'opacity 0.4s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 400);
+        }, 8000);
     });
 </script>
 
@@ -767,8 +806,8 @@ else
                 var fmt = Number(data.newBalance).toLocaleString('vi-VN');
                 var el  = document.getElementById('nav-wallet-balance');
                 var elm = document.getElementById('nav-wallet-balance-mobile');
-                if (el)  el.textContent  = fmt + ' ₫';
-                if (elm) elm.textContent = fmt + ' ₫';
+                if (el)  el.textContent  = fmt + ' xu';
+                if (elm) elm.textContent = fmt + ' xu';
                 // Also update wallet page balance display if open
                 var walletEl = document.getElementById('wallet-balance-display');
                 if (walletEl) walletEl.textContent = fmt;
@@ -790,6 +829,40 @@ else
 
             connection.on('MatchPaymentRejected', function (data) {
                 _showWalletToast('Thanh toán bị từ chối: ' + (data.reason || 'Liên hệ admin'), 'rose');
+            });
+
+            // ── Matchmaking real-time events ────────────────────────────────
+            connection.on('match_join_request', function (data) {
+                _showWalletToast((data.playerName || 'Someone') + ' wants to join your match!', 'primary');
+                var pathMatch = location.pathname.match(/\/Matchmaking\/Details\/(\d+)/i);
+                if (pathMatch && parseInt(pathMatch[1]) === data.matchId) {
+                    setTimeout(function () { location.reload(); }, 1800);
+                }
+                window.dispatchEvent(new CustomEvent('sporthub:match_join_request', { detail: data }));
+            });
+
+            connection.on('match_join_approved', function (data) {
+                _showWalletToast('You\'re approved! Pay now to secure your spot.', 'emerald');
+                if (location.pathname.match(/\/Matchmaking/i)) {
+                    setTimeout(function () { location.reload(); }, 2200);
+                }
+                window.dispatchEvent(new CustomEvent('sporthub:match_join_approved', { detail: data }));
+            });
+
+            connection.on('match_join_rejected', function (data) {
+                _showWalletToast('Your join request was not approved.', 'rose');
+                if (location.pathname.match(/\/Matchmaking/i)) {
+                    setTimeout(function () { location.reload(); }, 2200);
+                }
+            });
+
+            connection.on('match_participant_paid', function (data) {
+                _showWalletToast((data.playerName || 'A player') + ' has paid and joined the match!', 'emerald');
+                var pathMatch = location.pathname.match(/\/Matchmaking\/Details\/(\d+)/i);
+                if (pathMatch && parseInt(pathMatch[1]) === data.matchId) {
+                    setTimeout(function () { location.reload(); }, 1800);
+                }
+                window.dispatchEvent(new CustomEvent('sporthub:match_participant_paid', { detail: data }));
             });
 
             function _showWalletToast(msg, color) {
@@ -820,7 +893,7 @@ else
 @if (isAuthenticated)
 {
 <style>
-body { transition: margin-right 0.32s cubic-bezier(0.4,0,0.2,1), margin-left 0.32s cubic-bezier(0.4,0,0.2,1); }
+body { }
 #ai-sidebar {
     position: fixed; top: 0; right: 0; bottom: 0; width: 480px; z-index: 9990;
     display: flex; flex-direction: column;
@@ -839,9 +912,9 @@ body { transition: margin-right 0.32s cubic-bezier(0.4,0,0.2,1), margin-left 0.3
     #ai-panel {
         position: fixed !important;
         left: 12px !important; right: 12px !important;
-        bottom: 148px !important;
+        bottom: 148px; /* no !important — visualViewport JS overrides when keyboard opens */
         width: auto !important; max-width: none !important;
-        height: 420px !important;
+        height: min(380px, calc(100dvh - 200px)) !important;
     }
     /* AI FAB smaller on mobile */
     #ai-fab { width: 48px !important; height: 48px !important; }
@@ -856,6 +929,10 @@ body { transition: margin-right 0.32s cubic-bezier(0.4,0,0.2,1), margin-left 0.3
 #mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
 /* Hide footer on mobile to save space */
 @@media (max-width: 1023px) { footer { display: none; } }
+/* ── Global rounding: tất cả button native → 6px, giữ nguyên rounded-full / 50% ── */
+button:not([class*="rounded-full"]):not([style*="50%"]):not([style*="border-radius: 50%"]) {
+    border-radius: 6px !important;
+}
 </style>
 <script>
 // Shared right-sidebar state manager
@@ -904,7 +981,7 @@ window.updateRightSidebarState = function () {
     </div>
     <div id="ai-messages-full" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px"></div>
     <div id="ai-img-preview-full" style="display:none;padding:8px 16px 0;flex-shrink:0">
-        <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 10px">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:6px 10px">
             <img id="ai-img-thumb-full" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0" src="" alt="" />
             <span id="ai-img-name-full" style="font-size:11px;color:#50A5B1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
             <button onclick="clearPendingImage()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1;padding:0 2px">✕</button>
@@ -916,7 +993,7 @@ window.updateRightSidebarState = function () {
             <span class="material-symbols-outlined" style="font-size:18px">attach_file</span>
         </button>
         <input id="ai-input-full" type="text" maxlength="500" placeholder="@aiInputPlaceholder"
-            style="flex:1;font-size:13px;border-radius:999px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
+            style="flex:1;font-size:13px;border-radius:6px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
             onkeydown="if(event.key==='Enter')sendAiMsg('full')" />
         <button id="ai-send-full" onclick="sendAiMsg('full')" style="width:38px;height:38px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#3d8a95'" onmouseout="if(!aiSending)this.style.background='#50A5B1'">
             <span class="material-symbols-outlined" style="font-size:18px">send</span>
@@ -926,7 +1003,7 @@ window.updateRightSidebarState = function () {
 
 <!-- AI Popup + FAB -->
 <div id="ai-chat-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:row;align-items:flex-end;gap:8px">
-    <div id="ai-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
+    <div id="ai-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:6px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
         <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <img src="/images/logo sporthub.png" style="width:26px;height:26px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.2);padding:2px;flex-shrink:0" />
             <div style="flex:1">
@@ -948,7 +1025,7 @@ window.updateRightSidebarState = function () {
         </div>
         <div id="ai-messages-popup" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px" class="dark:!bg-slate-900"></div>
         <div id="ai-img-preview-popup" style="display:none;padding:6px 12px 0;flex-shrink:0">
-            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 10px">
                 <img id="ai-img-thumb-popup" style="width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0" src="" alt="" />
                 <span id="ai-img-name-popup" style="font-size:11px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearPendingImage()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1;padding:0 2px">✕</button>
@@ -960,7 +1037,7 @@ window.updateRightSidebarState = function () {
                 <span class="material-symbols-outlined" style="font-size:16px">attach_file</span>
             </button>
             <input id="ai-input-popup" type="text" maxlength="500" placeholder="@aiInputPlaceholder"
-                style="flex:1;font-size:13px;border-radius:999px;padding:8px 14px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
+                style="flex:1;font-size:13px;border-radius:6px;padding:8px 14px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                 class="dark:!bg-slate-800 dark:!text-white"
                 onkeydown="if(event.key==='Enter')sendAiMsg('popup')" />
             <button id="ai-send-popup" onclick="sendAiMsg('popup')" style="width:34px;height:34px;border-radius:50%;background:#50A5B1;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onmouseover="if(!aiSending)this.style.background='#3d8a95'" onmouseout="if(!aiSending)this.style.background='#50A5B1'">
@@ -1187,8 +1264,8 @@ window.updateRightSidebarState = function () {
         var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
             .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
         var html = role === 'user'
-            ? '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:13px;max-width:85%">' + safe + '</div></div>'
-            : '<div style="display:flex;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(37,96,233,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px"><img src="/images/logo sporthub.png" style="width:16px;height:16px;object-fit:contain"/></div><div style="background:#f1f5f9;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;max-width:85%;color:#334155">' + safe + '</div></div>';
+            ? '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:6px;padding:10px 14px;font-size:13px;max-width:85%">' + safe + '</div></div>'
+            : '<div style="display:flex;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(37,96,233,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px"><img src="/images/logo sporthub.png" style="width:16px;height:16px;object-fit:contain"/></div><div style="background:#f1f5f9;border-radius:6px;padding:10px 14px;font-size:13px;max-width:85%;color:#334155">' + safe + '</div></div>';
         c.insertAdjacentHTML('beforeend', html);
         c.scrollTop = c.scrollHeight;
     }
@@ -1198,8 +1275,8 @@ window.updateRightSidebarState = function () {
         if (!c) return;
         var safeText = text ? '<div style="font-size:13px;margin-top:4px">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' : '';
         c.insertAdjacentHTML('beforeend',
-            '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:16px 16px 4px 16px;padding:8px 10px;max-width:85%">'
-            + '<img src="' + dataUrl + '" style="max-width:180px;max-height:120px;border-radius:8px;display:block"/>'
+            '<div style="display:flex;justify-content:flex-end"><div style="background:#50A5B1;color:white;border-radius:6px;padding:8px 10px;max-width:85%">'
+            + '<img src="' + dataUrl + '" style="max-width:180px;max-height:120px;border-radius:6px;display:block"/>'
             + safeText + '</div></div>');
         c.scrollTop = c.scrollHeight;
     }
@@ -1221,14 +1298,14 @@ window.updateRightSidebarState = function () {
             var loc = m.location ? '<div style="font-size:11px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ' + m.location + '</div>' : '';
             var skill = m.skillRequired ? '<span style="font-size:10px;color:#64748b">· ' + m.skillRequired + '</span>' : '';
             var btnLabel = m.isHost ? 'Quản lý' : (m.isJoined ? 'Xem chi tiết' : 'Tham gia');
-            scroll += '<div style="min-width:200px;max-width:220px;background:white;border:1px solid #e2e8f0;border-radius:14px;padding:12px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06)">'
+            scroll += '<div style="min-width:200px;max-width:220px;background:white;border:1px solid #e2e8f0;border-radius:6px;padding:12px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06)">'
                 + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:18px">' + icon + '</span>' + roleBadge + '</div>'
                 + '<div style="font-size:13px;font-weight:700;color:#0f172a;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + m.title + '</div>'
                 + '<div style="font-size:11px;color:#334155;margin-bottom:2px">📅 ' + m.dateDisplay + ' · ' + m.timeDisplay + '</div>'
                 + '<div style="font-size:11px;color:#334155;margin-bottom:2px">👥 ' + m.currentParticipants + '/' + m.maxParticipants + ' ' + skill + '</div>'
                 + loc
                 + '<div style="font-size:10px;font-weight:600;margin:6px 0 8px"><span style="color:' + sColor + '">● ' + sLabel + '</span></div>'
-                + '<a href="/Matchmaking/Details?id=' + m.matchId + '" style="display:block;text-align:center;padding:6px 0;background:#50A5B1;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none">' + btnLabel + '</a>'
+                + '<a href="/Matchmaking/Details?id=' + m.matchId + '" style="display:block;text-align:center;padding:6px 0;background:#50A5B1;color:white;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none">' + btnLabel + '</a>'
                 + '</div>';
         });
         scroll += '</div>';
@@ -1292,7 +1369,7 @@ window.updateRightSidebarState = function () {
              ondragover="event.preventDefault();" ondrop="handleChatWidgetDrop(event,'full')"></div>
         <!-- Typing indicator (shared) -->
         <div id="cw-typing-indicator" style="display:none;padding:4px 16px 6px;flex-direction:row;align-items:center;gap:6px;flex-shrink:0">
-            <div style="display:flex;gap:3px;background:#f1f5f9;border-radius:12px;padding:5px 10px">
+            <div style="display:flex;gap:3px;background:#f1f5f9;border-radius:6px;padding:5px 10px">
                 <span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:bounce 0.8s infinite 0ms" class="cw-dot"></span>
                 <span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:bounce 0.8s infinite 150ms" class="cw-dot"></span>
                 <span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:bounce 0.8s infinite 300ms" class="cw-dot"></span>
@@ -1313,14 +1390,14 @@ window.updateRightSidebarState = function () {
             <button onclick="cwCancelReply()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:14px;flex-shrink:0">✕</button>
         </div>
         <div id="chat-sw-img-preview" style="display:none;padding:6px 14px 0;flex-shrink:0">
-            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 10px">
                 <img id="chat-sw-img-thumb" style="width:32px;height:32px;object-fit:cover;border-radius:6px" src="" />
                 <span id="chat-sw-img-name" style="font-size:11px;color:#50A5B1;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearChatWidgetImage('full')" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1">✕</button>
             </div>
         </div>
         <div id="chat-sw-match-preview" style="display:none;padding:6px 14px 0;flex-shrink:0">
-            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:5px 10px">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 10px">
                 <span class="material-symbols-outlined" style="color:#50A5B1;font-size:16px">sports</span>
                 <span id="chat-sw-match-title" style="font-size:11px;color:#50A5B1;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                 <button onclick="clearChatWidgetMatch()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:14px;line-height:1">✕</button>
@@ -1332,7 +1409,7 @@ window.updateRightSidebarState = function () {
                 <span class="material-symbols-outlined" style="font-size:18px">image</span>
             </button>
             <input id="chat-sw-input" type="text" maxlength="500" placeholder="@msgInputPlaceholder"
-                style="flex:1;font-size:13px;border-radius:999px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
+                style="flex:1;font-size:13px;border-radius:6px;padding:9px 16px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                 class="dark:!bg-slate-800 dark:!text-white"
                 onpaste="handleChatWidgetPaste(event,'full')"
                 oninput="cwInputKeyup('full')"
@@ -1346,7 +1423,7 @@ window.updateRightSidebarState = function () {
 
 <!-- Chat Popup + FAB (bottom-right, stacked above AI chatbot FAB) -->
 <div id="chat-popup-wrap" style="position:fixed;bottom:24px;right:24px;z-index:9989;display:flex;flex-direction:row;align-items:flex-end;gap:8px">
-    <div id="chat-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
+    <div id="chat-panel" style="display:none;flex-direction:column;width:320px;height:490px;border-radius:6px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid rgba(148,163,184,0.3);background:white" class="dark:!bg-slate-900">
         <!-- Panel header -->
         <div id="chat-panel-header" style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:#50A5B1;flex-shrink:0">
             <span class="material-symbols-outlined" style="color:white;font-size:20px;flex-shrink:0">chat</span>
@@ -1368,14 +1445,14 @@ window.updateRightSidebarState = function () {
             <div id="chat-panel-msgs" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px"
                  ondragover="event.preventDefault();" ondrop="handleChatWidgetDrop(event,'popup')"></div>
             <div id="chat-panel-img-preview" style="display:none;padding:4px 10px 0;flex-shrink:0">
-                <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:4px 8px">
+                <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px">
                     <img id="chat-panel-img-thumb" style="width:28px;height:28px;object-fit:cover;border-radius:4px" src="" />
                     <span id="chat-panel-img-name" style="font-size:10px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                     <button onclick="clearChatWidgetImage('popup')" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:12px;line-height:1">✕</button>
                 </div>
             </div>
             <div id="chat-panel-match-preview" style="display:none;padding:4px 10px 0;flex-shrink:0">
-                <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:4px 8px">
+                <div style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px">
                     <span class="material-symbols-outlined" style="color:#50A5B1;font-size:14px">sports</span>
                     <span id="chat-panel-match-title" style="font-size:10px;color:#50A5B1;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
                     <button onclick="clearChatWidgetMatch()" style="background:none;border:none;cursor:pointer;color:#93c5fd;font-size:12px;line-height:1">✕</button>
@@ -1387,7 +1464,7 @@ window.updateRightSidebarState = function () {
                     <span class="material-symbols-outlined" style="font-size:16px">image</span>
                 </button>
                 <input id="chat-panel-input" type="text" maxlength="500" placeholder="@msgInputPlaceholder"
-                    style="flex:1;font-size:13px;border-radius:999px;padding:7px 12px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
+                    style="flex:1;font-size:13px;border-radius:6px;padding:7px 12px;background:#f1f5f9;border:none;outline:none;color:#0f172a"
                     class="dark:!bg-slate-800 dark:!text-white"
                     onpaste="handleChatWidgetPaste(event,'popup')"
                     oninput="cwInputKeyup('popup')"
@@ -1401,17 +1478,17 @@ window.updateRightSidebarState = function () {
 
     <!-- Report modal for popup widget -->
     <div id="cw-report-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)">
-        <div style="background:white;border-radius:20px;box-shadow:0 25px 50px rgba(0,0,0,0.25);width:320px;max-width:90vw;overflow:hidden" class="dark:!bg-slate-900">
+        <div style="background:white;border-radius:6px;box-shadow:0 25px 50px rgba(0,0,0,0.25);width:320px;max-width:90vw;overflow:hidden" class="dark:!bg-slate-900">
             <div style="padding:16px 20px 12px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between">
                 <span style="font-size:14px;font-weight:700">@reportMsgModalTitle</span>
                 <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:18px;line-height:1">✕</button>
             </div>
             <div id="cw-report-preview" style="padding:10px 20px;background:#f8fafc;font-size:12px;color:#64748b;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
             <div style="padding:12px 20px 16px">
-                <textarea id="cw-report-reason" placeholder="@reportReasonPlaceholder" style="width:100%;box-sizing:border-box;background:#f1f5f9;border:none;border-radius:10px;padding:8px 12px;font-size:12px;resize:none;height:70px;outline:none;font-family:inherit"></textarea>
+                <textarea id="cw-report-reason" placeholder="@reportReasonPlaceholder" style="width:100%;box-sizing:border-box;background:#f1f5f9;border:none;border-radius:6px;padding:8px 12px;font-size:12px;resize:none;height:70px;outline:none;font-family:inherit"></textarea>
                 <div style="display:flex;gap:8px;margin-top:10px">
-                    <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="flex:1;padding:8px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:12px;font-weight:600;cursor:pointer">@cancelText</button>
-                    <button onclick="cwSubmitReport()" style="flex:1;padding:8px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:12px;font-weight:700;cursor:pointer">@reportMsgText</button>
+                    <button onclick="document.getElementById('cw-report-modal').style.display='none'" style="flex:1;padding:8px;border-radius:6px;border:1px solid #e2e8f0;background:white;font-size:12px;font-weight:600;cursor:pointer">@cancelText</button>
+                    <button onclick="cwSubmitReport()" style="flex:1;padding:8px;border-radius:6px;border:none;background:#ef4444;color:white;font-size:12px;font-weight:700;cursor:pointer">@reportMsgText</button>
                 </div>
             </div>
         </div>
@@ -1494,7 +1571,7 @@ window.updateRightSidebarState = function () {
                     // Replace bubble content with placeholder
                     var bubble = row.querySelector('[data-cw-mid="' + payload.messageId + '"]');
                     if (bubble) {
-                        bubble.style.cssText = 'padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic';
+                        bubble.style.cssText = 'padding:6px 12px;border-radius:6px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic';
                         bubble.textContent = '@msgDeletedText';
                     }
                     // Hide react bar
@@ -1591,7 +1668,7 @@ window.updateRightSidebarState = function () {
             var preview = c.lastMessage || '';
             html += '<div onclick="openChatWidgetWith(' + c.userId + ',\'' + escJs(c.name) + '\',\'' + escJs(c.avatarUrl || '') + '\',\'' + mode + '\')" '
                 + 'id="cw-conv-' + c.userId + '" '
-                + 'style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:background 0.15s" '
+                + 'style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:6px;cursor:pointer;transition:background 0.15s" '
                 + 'onmouseover="this.style.background=\'#f1f5f9\'" onmouseout="this.style.background=\'transparent\'">'
                 + '<div style="position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden">' + avatarHtml + badgeHtml + '</div>'
                 + '<div style="flex:1;min-width:0">'
@@ -1825,7 +1902,7 @@ window.updateRightSidebarState = function () {
         var deleted = msg.isDeleted;
         var replyHtml = '';
         if (msg.replyPreview) {
-            replyHtml = '<div style="font-size:10px;color:' + (isMine?'rgba(255,255,255,0.7)':'#64748b') + ';background:rgba(0,0,0,0.08);border-radius:8px;padding:3px 8px;margin-bottom:5px;border-left:2px solid ' + (isMine?'rgba(255,255,255,0.5)':'#50A5B1') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            replyHtml = '<div style="font-size:10px;color:' + (isMine?'rgba(255,255,255,0.7)':'#64748b') + ';background:rgba(0,0,0,0.08);border-radius:6px;padding:3px 8px;margin-bottom:5px;border-left:2px solid ' + (isMine?'rgba(255,255,255,0.5)':'#50A5B1') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
                 + '↩ ' + escHtml(msg.replyPreview.content || '') + '</div>';
         }
         var receiptHtml = isMine ? '<span class="cw-read-receipt" style="font-size:9px;margin-left:3px;opacity:0.7">' + (msg.isRead ? '✓✓' : '✓') + '</span>' : '';
@@ -1838,17 +1915,17 @@ window.updateRightSidebarState = function () {
         var actionsHtml = deleted ? '' :
             '<div class="cw-actions-wrap" style="position:relative;flex-shrink:0;align-self:center">'
             // Nút hành động: react + reply + more_vert
-            + '<div class="cw-msg-actions" style="display:none;flex-direction:row;gap:2px;align-items:center;background:white;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:3px 6px">'
+            + '<div class="cw-msg-actions" style="display:none;flex-direction:row;gap:2px;align-items:center;background:white;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:3px 6px">'
             + '<button onclick="cwToggleReactPicker(' + mid + ')" style="' + btnStyle + '" title="Cảm xúc"><span style="font-size:14px">😊</span></button>'
             + '<button onclick="cwSetReply(' + mid + ',\'' + escHtml((msg.content||'').substring(0,60)) + '\')" style="' + btnStyle + '" title="Trả lời"><span class="material-symbols-outlined" style="font-size:14px;color:#64748b">reply</span></button>'
             + '<button onclick="cwToggleMsgMenu(' + mid + ')" style="' + btnStyle + '" title="Thêm"><span class="material-symbols-outlined" style="font-size:14px;color:#64748b">more_vert</span></button>'
             + '</div>'
             // Reaction picker (mở lên trên)
-            + '<div class="cw-reaction-picker" style="display:none;position:absolute;bottom:100%;margin-bottom:4px;' + pickerAlign + ';background:white;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,0.15);padding:4px 8px;flex-direction:row;gap:4px;z-index:11;white-space:nowrap" data-mid="' + mid + '">'
+            + '<div class="cw-reaction-picker" style="display:none;position:absolute;bottom:100%;margin-bottom:4px;' + pickerAlign + ';background:white;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,0.15);padding:4px 8px;flex-direction:row;gap:4px;z-index:11;white-space:nowrap" data-mid="' + mid + '">'
             + emojiList.map(function(e, i) { return '<button onclick="cwPickReaction(' + mid + ',\'' + emojiTypes[i] + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;transition:transform 0.1s" onmouseover="this.style.transform=\'scale(1.3)\'" onmouseout="this.style.transform=\'\'">' + e + '</button>'; }).join('')
             + '</div>'
             // 3-dot dropdown menu (mở lên trên)
-            + '<div class="cw-msg-menu" data-mid="' + mid + '" style="display:none;position:absolute;bottom:100%;margin-bottom:4px;' + pickerAlign + ';background:white;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:4px 0;min-width:160px;z-index:12">'
+            + '<div class="cw-msg-menu" data-mid="' + mid + '" style="display:none;position:absolute;bottom:100%;margin-bottom:4px;' + pickerAlign + ';background:white;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:4px 0;min-width:160px;z-index:12">'
             + '<button onclick="cwPinMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#0f172a;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px;color:#64748b">push_pin</span>@pinMsgText</button>'
             + (isMine
                 ? '<button onclick="cwDeleteMsg(' + mid + ')" style="width:100%;padding:8px 14px;text-align:left;border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'none\'"><span class="material-symbols-outlined" style="font-size:14px">delete</span>@deleteMsgText</button>'
@@ -1859,10 +1936,10 @@ window.updateRightSidebarState = function () {
         // Bubble column — max-width trực tiếp trên flex item, không bọc thêm position:relative
         var bubbleContent = '';
         if (deleted) {
-            bubbleContent = '<div style="padding:6px 12px;border-radius:12px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic">@msgDeletedText</div>';
+            bubbleContent = '<div style="padding:6px 12px;border-radius:6px;border:1px dashed #cbd5e1;background:#f8fafc;font-size:12px;color:#94a3b8;font-style:italic">@msgDeletedText</div>';
         } else if (msg.messageType === 'Image' && msg.imageUrl) {
             bubbleContent = replyHtml
-                + '<img src="' + msg.imageUrl + '" data-cw-mid="' + mid + '" style="max-width:160px;border-radius:12px;cursor:pointer;display:block" onclick="window.open(this.src)" />'
+                + '<img src="' + msg.imageUrl + '" data-cw-mid="' + mid + '" style="max-width:160px;border-radius:6px;cursor:pointer;display:block" onclick="window.open(this.src)" />'
                 + '<div style="font-size:10px;margin:2px 0 0;opacity:0.6;text-align:' + (isMine?'right':'left') + '">' + timeStr + receiptHtml + '</div>'
                 + '<div class="cw-react-bar" data-mid="' + mid + '" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px"></div>';
         } else if (msg.messageType === 'MatchCard' && msg.matchCardJson) {
@@ -1871,7 +1948,7 @@ window.updateRightSidebarState = function () {
                 + '<div style="font-size:10px;margin:2px 0 0;opacity:0.6;text-align:' + (isMine?'right':'left') + '">' + timeStr + receiptHtml + '</div>'
                 + '<div class="cw-react-bar" data-mid="' + mid + '" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px"></div>';
         } else {
-            bubbleContent = '<div style="padding:8px 12px;border-radius:16px ' + (isMine?'16px 4px 16px':'16px 16px 4px') + ';font-size:13px;word-break:break-word;'
+            bubbleContent = '<div style="padding:8px 12px;border-radius:6px;font-size:13px;word-break:break-word;'
                 + (isMine?'background:#50A5B1;color:white':'background:#f1f5f9;color:#0f172a') + '" data-cw-mid="' + mid + '">'
                 + replyHtml
                 + escHtml(msg.content || '')
@@ -1975,7 +2052,7 @@ window.updateRightSidebarState = function () {
             Object.entries(reactions).forEach(function([type, users]) {
                 if (!users.length) return;
                 var btn = document.createElement('button');
-                btn.style.cssText = 'background:white;border:1px solid #e2e8f0;border-radius:12px;padding:1px 6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:2px';
+                btn.style.cssText = 'background:white;border:1px solid #e2e8f0;border-radius:6px;padding:1px 6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:2px';
                 btn.innerHTML = (emojiMap[type]||'?') + '<span style="font-size:11px">' + users.length + '</span>';
                 btn.onclick = function() { cwPickReaction(messageId, type); };
                 bar.appendChild(btn);
@@ -1988,7 +2065,7 @@ window.updateRightSidebarState = function () {
             var m = JSON.parse(jsonStr);
             var link = m.id ? '<a href="/Matchmaking/Details?id=' + m.id + '" style="display:block;text-align:center;background:#50A5B1;color:white;border-radius:8px;padding:5px;font-size:11px;font-weight:700;text-decoration:none;margin-top:6px">Xem chi tiết</a>' : '';
             var bg = isMine ? 'background:rgba(37,96,233,0.06)' : 'background:#f8fafc';
-            return '<div style="border:1px solid ' + (isMine ? '#bfdbfe' : '#e2e8f0') + ';border-radius:12px;padding:10px;' + bg + '">'
+            return '<div style="border:1px solid ' + (isMine ? '#bfdbfe' : '#e2e8f0') + ';border-radius:6px;padding:10px;' + bg + '">'
                 + '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px"><span class="material-symbols-outlined" style="font-size:13px;color:#50A5B1">sports</span><strong style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(m.title || m.type || '') + '</strong></div>'
                 + '<p style="font-size:11px;color:#64748b;margin:0">📅 ' + (m.date || '') + ' · ' + (m.time || '') + '</p>'
                 + (m.venue ? '<p style="font-size:11px;color:#64748b;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📍 ' + escHtml(m.venue) + '</p>' : '')
@@ -2218,40 +2295,40 @@ window.updateRightSidebarState = function () {
             </div>
             <a href="/Wallet" onclick="closeMoreSheet()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold">
                 <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
-                @currentWalletBalance.ToString("N0")₫
+                @currentWalletBalance.ToString("N0") xu
             </a>
         </div>
         <div class="py-2 px-2">
-            <a href="/Profile" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <a href="/Profile" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span class="material-symbols-outlined text-primary">person</span>
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navProfile</span>
             </a>
-            <a href="/Users/Index" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <a href="/Users/Index" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span class="material-symbols-outlined text-slate-400">groups</span>
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navCommunity</span>
             </a>
-            <a href="/Matchmaking/Create" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <a href="/Matchmaking/Create" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span class="material-symbols-outlined text-accent">add_circle</span>
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@createMatchText</span>
             </a>
-            <a href="/Subscription" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <a href="/Subscription" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span class="material-symbols-outlined text-amber-500">workspace_premium</span>
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Gói đăng ký</span>
             </a>
-            <a href="/Settings" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <a href="/Settings" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span class="material-symbols-outlined text-slate-400">settings</span>
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@navSettings</span>
             </a>
             @if (User.IsInRole("Admin"))
             {
-                <a href="/Admin" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent/5 transition-colors">
+                <a href="/Admin" onclick="closeMoreSheet()" class="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent/5 transition-colors">
                     <span class="material-symbols-outlined text-accent">admin_panel_settings</span>
                     <span class="text-sm font-medium text-accent">Admin</span>
                 </a>
             }
             <div class="border-t border-slate-100 dark:border-slate-800 mt-1 pt-1">
                 <form method="post" asp-page="/Auth/Logout">
-                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
                         <span class="material-symbols-outlined text-rose-500">logout</span>
                         <span class="text-sm font-medium text-rose-600">@logoutText</span>
                     </button>
@@ -2262,8 +2339,8 @@ window.updateRightSidebarState = function () {
     else
     {
         <div class="px-5 py-4 flex flex-col gap-3">
-            <a asp-page="/Auth/Login" onclick="closeMoreSheet()" class="block text-center py-3 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300">@loginText</a>
-            <a asp-page="/Auth/Register" onclick="closeMoreSheet()" class="block text-center py-3 rounded-xl bg-primary text-white text-sm font-semibold">@registerText</a>
+            <a asp-page="/Auth/Login" onclick="closeMoreSheet()" class="block text-center py-3 rounded-md border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300">@loginText</a>
+            <a asp-page="/Auth/Register" onclick="closeMoreSheet()" class="block text-center py-3 rounded-md bg-primary text-white text-sm font-semibold">@registerText</a>
         </div>
     }
 </div>
@@ -2468,8 +2545,9 @@ window.setChatBadge = function(n) {
             var t = e.touches[0]; onStart(t.clientX, t.clientY);
         }, { passive: true });
         document.addEventListener('touchmove', function(e) {
-            if (dragging && didMove) e.preventDefault();
-            if (dragging) { var t = e.touches[0]; onMove(t.clientX, t.clientY); }
+            if (!dragging) return;
+            e.preventDefault();
+            var t = e.touches[0]; onMove(t.clientX, t.clientY);
         }, { passive: false });
         document.addEventListener('touchend', function() { onEnd(); });
 
@@ -2498,6 +2576,33 @@ window.setChatBadge = function(n) {
             'sh_chat_fab_pos', 'ai-chat-wrap', 'sh_ai_fab_pos'
         );
     });
+})();
+</script>
+<script>
+// Mobile: keep AI panel above the on-screen keyboard using visualViewport API
+(function () {
+    if (!window.visualViewport) return;
+    var panel = document.getElementById('ai-panel');
+    if (!panel) return;
+    var BASE_BOTTOM = 148, _adjusting = false;
+
+    function adjust() {
+        if (window.innerWidth >= 1024) return;
+        if (panel.style.display !== 'flex') { panel.style.bottom = ''; return; }
+        var kbH = Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop);
+        _adjusting = true;
+        panel.style.bottom = (kbH > 80 ? kbH + 8 : BASE_BOTTOM) + 'px';
+        _adjusting = false;
+    }
+
+    window.visualViewport.addEventListener('resize', adjust);
+    window.visualViewport.addEventListener('scroll', adjust);
+
+    // Fire adjust when panel visibility changes (handles keyboard-already-open case)
+    new MutationObserver(function () {
+        if (_adjusting) return;
+        adjust();
+    }).observe(panel, { attributeFilter: ['style'] });
 })();
 </script>
 </body>

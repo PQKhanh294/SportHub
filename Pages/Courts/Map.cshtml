@@ -30,10 +30,10 @@
             <h1 class="text-4xl font-black tracking-tight text-slate-950 dark:text-white">Bản đồ sân đấu</h1>
             <p class="text-slate-500 dark:text-slate-400 mt-1">Xem vị trí tất cả các sân đấu trên bản đồ trực quan.</p>
         </div>
-        <a asp-page="/Courts/Search" class="px-5 py-2.5 rounded-xl bg-primary text-white font-extrabold hover:bg-primary/95 transition-colors shadow-md shadow-primary/20">Quay lại tìm kiếm</a>
+        <a asp-page="/Courts/Search" class="px-5 py-2.5 rounded-md bg-primary text-white font-extrabold hover:bg-primary/95 transition-colors shadow-md shadow-primary/20">Quay lại tìm kiếm</a>
     </div>
     
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+    <div class="rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
         <div id="courtsMap" class="h-[600px] w-full" style="z-index: 10;"></div>
     </div>
 </section>
@@ -56,7 +56,7 @@
 
             venues.forEach(function(venue) {
                 var sportsList = venue.sports.join(', ') || 'Chưa rõ';
-                var detailsLink = venue.courtId ? `<a href="/Courts/Details?id=${venue.courtId}" class="mt-2 inline-block px-3 py-1.5 text-xs font-bold bg-primary text-white rounded-lg hover:bg-primary/90 text-center transition-colors">Xem chi tiết sân</a>` : '';
+                var detailsLink = venue.courtId ? `<a href="/Courts/Details?id=${venue.courtId}" class="mt-2 inline-block px-3 py-1.5 text-xs font-bold bg-primary text-white rounded-md hover:bg-primary/90 text-center transition-colors">Xem chi tiết sân</a>` : '';
                 
                 var popupContent = `
                     <div class="p-1 min-w-[200px]">

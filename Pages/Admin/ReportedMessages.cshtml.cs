@@ -43,6 +43,9 @@ namespace SportHub.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public string Tab { get; set; } = "pending";
 
+        [BindProperty(SupportsGet = true)]
+        public string? Search { get; set; }
+
         public async Task<IActionResult> OnGetAsync()
         {
             ViewData["ActivePage"] = "Admin";
@@ -56,6 +59,11 @@ namespace SportHub.Pages.Admin
                 Reports = await _reportService.GetProcessedReportsAsync(Page, 20);
             else
                 Reports = await _reportService.GetPendingReportsAsync(Page, 20);
+
+            if (!string.IsNullOrWhiteSpace(Search))
+                Reports = Reports.Where(r =>
+                    (r.Reporter?.FullName ?? "").Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    (r.Message?.Content ?? "").Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
 
             // Chart aggregates — use all reports for stats
             var allReports = await _context.MessageReports
@@ -93,8 +101,8 @@ namespace SportHub.Pages.Admin
             }
 
             await _banService.BanUserAsync(targetUserId, adminId, banType, reason, reportId);
-            await _reportService.ReviewReportAsync(reportId, adminId, "Reviewed", $"Đã ban người dùng: {banType}");
-            SuccessMessage = "Đã ban người dùng và đánh dấu báo cáo là đã xử lý.";
+            await _reportService.ReviewReportAsync(reportId, adminId, "Reviewed", $"Đã cấm người dùng: {banType}");
+            SuccessMessage = "Đã cấm người dùng và đánh dấu báo cáo là đã xử lý.";
             return RedirectToPage();
         }
 

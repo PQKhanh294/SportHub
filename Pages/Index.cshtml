@@ -7,7 +7,7 @@
 }
 
 <!-- HERO BANNER -->
-<section class="relative rounded-xl lg:rounded-xl overflow-hidden mb-12">
+<section class="relative rounded-md lg:rounded-md overflow-hidden mb-12">
     <!-- Overlay -->
     <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent z-10"></div>
     <video class="absolute inset-0 w-full h-full object-cover"
@@ -29,11 +29,11 @@
             @(isEn ? "Join the largest sports community. Connect with players at your level and find the right match in minutes." : "Tham gia cộng đồng thể thao lớn nhất. Kết nối với người chơi cùng trình độ và tìm trận đấu phù hợp chỉ trong vài phút.")
         </p>
         <div class="flex flex-wrap gap-4">
-            <a asp-page="/Matchmaking/Index" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
+            <a asp-page="/Matchmaking/Index" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-md transition-all shadow-lg shadow-primary/30 flex items-center gap-2">
                 <span class="material-symbols-outlined">person_search</span>
                 @(isEn ? "Find Players" : "Tìm đồng đội")
             </a>
-            <a asp-page="/Matchmaking/Create" class="bg-accent hover:bg-accent/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-accent/30 flex items-center gap-2">
+            <a asp-page="/Matchmaking/Create" class="bg-accent hover:bg-accent/90 text-white font-bold py-3 px-8 rounded-md transition-all shadow-lg shadow-accent/30 flex items-center gap-2">
                 <span class="material-symbols-outlined">bolt</span>
                 @(isEn ? "Create Match" : "Tạo trận đấu")
             </a>
@@ -42,7 +42,7 @@
 </section>
 
 <!-- STATS BAR -->
-<div class="bg-primary text-white rounded-xl mb-8 px-6 py-5 flex flex-wrap justify-around gap-4">
+<div class="bg-primary text-white rounded-md mb-8 px-6 py-5 flex flex-wrap justify-around gap-4">
     @if (Model.TotalUsers > 0)
     {
         <div class="text-center">
@@ -83,22 +83,22 @@
 
 <!-- QUICK ACTIONS -->
 <section class="mb-6 sm:mb-12">
-    <div class="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="rounded-md border border-slate-200 bg-white p-3 sm:p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-primary">@(isEn ? "Quick start" : "Bắt đầu nhanh")</p>
                 <h2 class="mt-0.5 sm:mt-1 text-base sm:text-2xl font-black text-slate-900 dark:text-white">@(isEn ? "What do you want to do today?" : "Hôm nay bạn muốn làm gì?")</h2>
             </div>
             <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:min-w-[460px]">
-                <a asp-page="/Matchmaking/Index" class="group flex items-center gap-2 sm:gap-3 rounded-xl border border-primary/20 bg-primary/5 p-2.5 sm:p-4 transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20">
-                    <span class="material-symbols-outlined rounded-lg bg-primary text-white p-1.5 sm:p-2 text-[18px] sm:text-[24px] group-hover:bg-white group-hover:text-primary">person_search</span>
+                <a asp-page="/Matchmaking/Index" class="group flex items-center gap-2 sm:gap-3 rounded-md border border-primary/20 bg-primary/5 p-2.5 sm:p-4 transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20">
+                    <span class="material-symbols-outlined rounded-md bg-primary text-white p-1.5 sm:p-2 text-[18px] sm:text-[24px] group-hover:bg-white group-hover:text-primary">person_search</span>
                     <span>
                         <span class="block text-xs sm:text-sm font-black">@(isEn ? "Find players" : "Tìm người chơi")</span>
                         <span class="block text-[10px] sm:text-xs text-slate-500 group-hover:text-white/80 leading-tight">@(isEn ? "Match by skill level and free time" : "Ghép theo trình độ và giờ rảnh")</span>
                     </span>
                 </a>
-                <a asp-page="/Matchmaking/Create" class="group flex items-center gap-2 sm:gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5 sm:p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:shadow-md dark:border-slate-800 dark:bg-slate-800/60 dark:hover:bg-slate-800">
-                    <span class="material-symbols-outlined rounded-lg bg-amber-500 text-white p-1.5 sm:p-2 text-[18px] sm:text-[24px]">bolt</span>
+                <a asp-page="/Matchmaking/Create" class="group flex items-center gap-2 sm:gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 sm:p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:shadow-md dark:border-slate-800 dark:bg-slate-800/60 dark:hover:bg-slate-800">
+                    <span class="material-symbols-outlined rounded-md bg-amber-500 text-white p-1.5 sm:p-2 text-[18px] sm:text-[24px]">bolt</span>
                     <span>
                         <span class="block text-xs sm:text-sm font-black">@(isEn ? "Create match" : "Tạo trận đấu")</span>
                         <span class="block text-[10px] sm:text-xs text-slate-500 leading-tight">@(isEn ? "Need players? Create a match" : "Thiếu người thì tạo trận")</span>
@@ -109,6 +109,67 @@
     </div>
 </section>
 
+<!-- PERSONAL SECTIONS (chỉ hiện khi đã đăng nhập) -->
+@if (User.Identity?.IsAuthenticated == true && (Model.PendingRequests.Any() || Model.UpcomingMyMatches.Any()))
+{
+    <section class="mb-6 sm:mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @if (Model.PendingRequests.Any())
+        {
+            <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-amber-500 text-[20px]">hourglass_top</span>
+                    <h2 class="font-bold text-sm text-amber-800 dark:text-amber-300">@(isEn ? "Pending requests" : "Yêu cầu chờ duyệt")</h2>
+                    <span class="ml-auto bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">@Model.PendingRequests.Count</span>
+                </div>
+                <div class="space-y-2">
+                    @foreach (var req in Model.PendingRequests)
+                    {
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@req.MatchId"
+                           class="flex items-center gap-2 p-2 bg-white dark:bg-amber-900/30 rounded-md hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors group">
+                            <span class="material-symbols-outlined text-amber-400 text-[16px] flex-shrink-0">sports_tennis</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">@req.Title</p>
+                                <p class="text-[10px] text-slate-500">@req.Date.AddHours(7).ToString("dd/MM") · @req.Start.ToString(@"hh\:mm")</p>
+                            </div>
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary text-sm transition-colors">chevron_right</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+        @if (Model.UpcomingMyMatches.Any())
+        {
+            <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-md p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-primary text-[20px]">sports</span>
+                    <h2 class="font-bold text-sm text-primary dark:text-primary">@(isEn ? "My upcoming matches" : "Trận của tôi")</h2>
+                </div>
+                <div class="space-y-2">
+                    @foreach (var m in Model.UpcomingMyMatches)
+                    {
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@m.MatchId"
+                           class="flex items-center gap-2 p-2 bg-white dark:bg-primary/10 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group">
+                            @if (m.IsHost)
+                            {
+                                <span class="material-symbols-outlined text-primary text-[16px] flex-shrink-0">star</span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-emerald-500 text-[16px] flex-shrink-0">check_circle</span>
+                            }
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">@m.Title</p>
+                                <p class="text-[10px] text-slate-500">@m.Date.AddHours(7).ToString("dd/MM") · @m.Start.ToString(@"hh\:mm") @(m.IsHost ? (isEn ? "· Host" : "· Chủ trận") : "")</p>
+                            </div>
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary text-sm transition-colors">chevron_right</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+}
+
 <!-- RECOMMENDED MATCHES -->
 <section class="mb-8 sm:mb-12">
     <div class="flex items-center justify-between mb-3 sm:mb-5">
@@ -116,46 +177,46 @@
         <a asp-page="/Matchmaking/Index" class="text-primary font-semibold text-sm hover:underline">@(isEn ? "View all" : "Xem tất cả")</a>
     </div>
 
-    <div class="flex gap-3 sm:gap-5 overflow-x-auto pb-3 hide-scrollbar">
+    <div class="flex gap-2.5 sm:gap-4 overflow-x-auto pb-3 hide-scrollbar">
         @foreach (var match in Model.RecommendedMatches)
         {
-            <div class="min-w-[220px] sm:min-w-[280px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div class="relative h-28 sm:h-36">
+            <div class="min-w-[168px] sm:min-w-[240px] bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div class="relative h-20 sm:h-28">
                     <img class="w-full h-full object-cover" src="@match.CourtImageUrl" alt="@match.Title" />
-                    <div class="absolute top-2 right-2 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full @match.BadgeCssClass">
+                    <div class="absolute top-1.5 right-1.5 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-md @match.BadgeCssClass">
                         @match.MatchCategory
                     </div>
                     @if (match.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
                     {
-                        <div class="absolute top-2 left-2 text-white text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full badge-badminton shadow-sm flex items-center gap-0.5">
-                            <span class="material-symbols-outlined" style="font-size:10px;font-variation-settings:'FILL' 1">sports_tennis</span>
+                        <div class="absolute top-1.5 left-1.5 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md badge-badminton shadow-sm flex items-center gap-0.5">
+                            <span class="material-symbols-outlined" style="font-size:9px;font-variation-settings:'FILL' 1">sports_tennis</span>
                             <span class="hidden sm:inline">Cầu lông</span>
                         </div>
                     }
                 </div>
-                <div class="p-3 sm:p-4">
-                    <h3 class="font-bold text-sm sm:text-base mb-1 truncate">@match.Title</h3>
-                    <div class="flex items-center text-slate-500 dark:text-slate-400 text-xs gap-1.5 mb-2 sm:mb-3 truncate">
-                        <span class="material-symbols-outlined text-[13px]">schedule</span>
+                <div class="p-2.5 sm:p-3.5">
+                    <h3 class="font-bold text-xs sm:text-sm mb-0.5 truncate">@match.Title</h3>
+                    <div class="flex items-center text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs gap-1 mb-1.5 sm:mb-2 truncate">
+                        <span class="material-symbols-outlined text-[11px] sm:text-[13px]">schedule</span>
                         @match.DateTimeDisplay
                         <span>•</span>
-                        <span class="material-symbols-outlined text-[13px]">location_on</span>
+                        <span class="material-symbols-outlined text-[11px] sm:text-[13px]">location_on</span>
                         <span class="truncate">@match.VenueName</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <div class="flex -space-x-1.5">
+                        <div class="flex -space-x-1">
                             @foreach (var avatar in match.ParticipantAvatars.Take(3))
                             {
-                                <img class="size-7 sm:size-8 rounded-full border-2 border-white dark:border-slate-900" src="@avatar" alt="Player" />
+                                <img class="size-6 sm:size-7 rounded-full border-2 border-white dark:border-slate-900" src="@avatar" alt="Player" />
                             }
                             @if (match.CurrentParticipants > 3)
                             {
-                                <div class="size-7 sm:size-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[9px] font-bold">
+                                <div class="size-6 sm:size-7 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] font-bold">
                                     +@(match.CurrentParticipants - 3)
                                 </div>
                             }
                         </div>
-                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchID" class="bg-primary/10 hover:bg-primary/20 text-primary font-bold px-2.5 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap">
+                        <a asp-page="/Matchmaking/Details" asp-route-id="@match.MatchID" class="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-semibold px-2 py-0.5 sm:px-3 sm:py-1 rounded-md text-[10px] sm:text-xs transition-colors whitespace-nowrap">
                             @(isEn ? "Join" : "Tham gia")
                         </a>
                     </div>
@@ -175,10 +236,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
             @foreach (var player in Model.SuggestedPlayers)
             {
-                <div class="flex items-center p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:shadow-sm transition-shadow">
+                <div class="flex items-center p-3 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md hover:shadow-sm transition-shadow">
                     <img class="size-12 sm:size-14 rounded-full object-cover flex-shrink-0" src="@player.AvatarUrl" alt="@player.FullName" />
                     <div class="ml-3 sm:ml-4 flex-1 min-w-0">
-                        <h4 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">@player.FullName</h4>
+                        <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">@player.FullName</h3>
                         <p class="text-slate-500 text-xs sm:text-sm truncate">@player.FavoriteSport • @player.SkillLevel</p>
                         <div class="flex items-center mt-0.5">
                             <span class="material-symbols-outlined text-amber-400 text-xs">star</span>
@@ -203,12 +264,12 @@
         <div class="space-y-4">
             @foreach (var court in Model.NearbyCourts)
             {
-                <a asp-page="/Courts/Details" asp-route-id="@court.CourtID" class="flex gap-4 group cursor-pointer bg-white dark:bg-slate-900 p-2 rounded-xl hover:shadow-md transition-shadow">
-                    <div class="size-20 shrink-0 rounded-lg overflow-hidden bg-slate-200">
+                <a asp-page="/Courts/Details" asp-route-id="@court.CourtID" class="flex gap-4 group cursor-pointer bg-white dark:bg-slate-900 p-2 rounded-md hover:shadow-md transition-shadow">
+                    <div class="size-20 shrink-0 rounded-md overflow-hidden bg-slate-200">
                         <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" src="@court.MainImageUrl" alt="@court.VenueName" />
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">@court.VenueName</h4>
+                        <h3 class="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">@court.VenueName</h3>
                         <p class="text-slate-500 text-xs mb-1">@court.DistanceKm.ToString() km • @court.TotalCourts sân</p>
                         
                         @if (court.Availability == CourtCardViewModel.AvailabilityStatus.Available)
@@ -219,7 +280,7 @@
                         }
                         else if (court.Availability == CourtCardViewModel.AvailabilityStatus.Limited)
                         {
-                            <span class="text-amber-500 text-xs font-bold flex items-center">
+                            <span class="text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center">
                                 <span class="size-2 bg-amber-500 rounded-full mr-1.5"></span>Sắp hết chỗ
                             </span>
                         }
@@ -237,7 +298,7 @@
         </div>
 
         <!-- Map Container -->
-        <div class="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-56 relative">
+        <div class="mt-6 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 h-56 relative">
             <div id="homeNearbyMap" class="w-full h-full" style="z-index: 10;"></div>
         </div>
     </div>

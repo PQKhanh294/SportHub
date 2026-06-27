@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
@@ -123,7 +123,7 @@ namespace SportHub.Controllers
                             topUp.UserID,
                             "WalletCredit",
                             "Ví đã được nạp tiền",
-                            $"Số dư ví của bạn đã được cộng {payload.TransferAmount:N0} VND. Số dư hiện tại: {newBalance:N0} VND.",
+                            $"Số dư ví của bạn đã được cộng {payload.TransferAmount:N0} xu. Số dư hiện tại: {newBalance:N0} xu.",
                             "/Wallet");
                     }
                     return Ok(new { success = credited, type = "topup" });
@@ -202,9 +202,9 @@ namespace SportHub.Controllers
             var matchTitle = mp.Match.Title ?? mp.Match.MatchType;
             var notifType = mp.PaymentType switch
             {
-                "HostDeposit"   => ("MatchPaymentConfirmed", "Đặt cọc đã được xác nhận tự động", $"Khoản đặt cọc {mp.Amount:N0} VND cho trận \"{matchTitle}\" đã được ghi nhận qua hệ thống SePay."),
+                "HostDeposit"   => ("MatchPaymentConfirmed", "Đặt cọc đã được xác nhận tự động", $"Khoản đặt cọc {mp.Amount:N0} xu cho trận \"{matchTitle}\" đã được ghi nhận qua hệ thống SePay."),
                 "PlayerFee"     => ("MatchPaymentConfirmed", "Phí tham gia đã được xác nhận tự động", $"Chỗ của bạn tại trận \"{matchTitle}\" đã được xác nhận qua SePay!"),
-                "HostRemaining" => ("MatchPaymentConfirmed", "Phí còn lại đã được xác nhận tự động", $"Phí còn lại {mp.Amount:N0} VND cho trận \"{matchTitle}\" đã được ghi nhận qua SePay."),
+                "HostRemaining" => ("MatchPaymentConfirmed", "Phí còn lại đã được xác nhận tự động", $"Phí còn lại {mp.Amount:N0} xu cho trận \"{matchTitle}\" đã được ghi nhận qua SePay."),
                 _ => ("MatchPaymentConfirmed", "Thanh toán đã được xác nhận", $"Giao dịch cho trận \"{matchTitle}\" đã được xác nhận.")
             };
 

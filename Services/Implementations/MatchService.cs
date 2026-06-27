@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
+using SportHub.Services.Interfaces;
 using ExpiredPendingJoin = SportHub.Services.Interfaces.ExpiredPendingJoin;
 
 namespace SportHub.Services.Interfaces
@@ -20,6 +21,8 @@ namespace SportHub.Services.Interfaces
         Task<bool> RejectParticipantAsync(int matchId, int participantId, int hostUserId);
         Task<bool> LeaveMatchAsync(int matchId, int userId);
         Task<IReadOnlyList<ExpiredPendingJoin>> ExpireStalePendingJoinsAsync(TimeSpan maxPendingAge, CancellationToken cancellationToken = default);
+        Task<(bool Success, string Message)> LockMatchByHostAsync(int matchId, int hostUserId);
+        Task<(bool Success, string Message)> CancelMatchByHostAsync(int matchId, int hostUserId, string reason);
     }
 
     public record ExpiredPendingJoin(int UserId, int MatchId, string MatchTitle);
@@ -30,10 +33,19 @@ namespace SportHub.Services.Implementations
     public class MatchService : Interfaces.IMatchService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWalletService _walletService;
+        private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
-        public MatchService(ApplicationDbContext context)
+        public MatchService(ApplicationDbContext context, IWalletService walletService,
+            INotificationService notificationService, IEmailService emailService, IConfiguration config)
         {
             _context = context;
+            _walletService = walletService;
+            _notificationService = notificationService;
+            _emailService = emailService;
+            _config = config;
         }
 
         /// <summary>
@@ -142,7 +154,7 @@ namespace SportHub.Services.Implementations
                 .Include(m => m.Participants)
                 .FirstOrDefaultAsync(m => m.MatchID == matchId);
 
-            if (match == null || match.Status != "Open") return false;
+            if (match == null || match.Status != "Open" || match.IsLockedByHost) return false;
 
             // Đã có yêu cầu đang chờ hoặc đã được duyệt/chấp nhận
             if (match.Participants.Any(p => p.UserID == userId &&
@@ -248,6 +260,12 @@ namespace SportHub.Services.Implementations
             match.MaxParticipants = updatedMatch.MaxParticipants;
             match.Title = updatedMatch.Title;
             match.Description = updatedMatch.Description;
+            match.CustomCourtName = updatedMatch.CustomCourtName;
+            match.CustomCourtAddress = updatedMatch.CustomCourtAddress;
+            match.CustomPriceVnd = updatedMatch.CustomPriceVnd;
+            match.CustomLatitude = updatedMatch.CustomLatitude;
+            match.CustomLongitude = updatedMatch.CustomLongitude;
+            match.IsSplitFee = updatedMatch.IsSplitFee;
             match.RequiresApproval = true;
 
             await _context.SaveChangesAsync();
@@ -374,6 +392,59 @@ namespace SportHub.Services.Implementations
 
             await _context.SaveChangesAsync(cancellationToken);
             return result;
+        }
+
+        public async Task<(bool Success, string Message)> LockMatchByHostAsync(int matchId, int hostUserId)
+        {
+            var match = await _context.Matches.FindAsync(matchId);
+            if (match == null) return (false, "Không tìm thấy trận.");
+            if (match.CreatedByUserID != hostUserId) return (false, "Bạn không có quyền.");
+            if (match.Status == "Cancelled") return (false, "Trận đã bị hủy.");
+
+            match.IsLockedByHost = !match.IsLockedByHost;
+            await _context.SaveChangesAsync();
+            return (true, match.IsLockedByHost ? "Đã khóa trận — không nhận thêm người tham gia." : "Đã mở khóa trận.");
+        }
+
+        public async Task<(bool Success, string Message)> CancelMatchByHostAsync(int matchId, int hostUserId, string reason)
+        {
+            var match = await _context.Matches
+                .Include(m => m.Participants)
+                .FirstOrDefaultAsync(m => m.MatchID == matchId);
+            if (match == null) return (false, "Không tìm thấy trận.");
+            if (match.CreatedByUserID != hostUserId) return (false, "Bạn không có quyền hủy trận này.");
+            if (match.Status is "Cancelled" or "Completed" or "InProgress")
+                return (false, "Không thể hủy trận ở trạng thái hiện tại.");
+
+            // Refund confirmed player fees
+            var playerFeePayments = await _context.MatchPayments
+                .Where(p => p.MatchID == matchId && p.PaymentType == "PlayerFee" && p.Status == "Confirmed")
+                .ToListAsync();
+
+            foreach (var payment in playerFeePayments)
+            {
+                await _walletService.CreditAsync(payment.PayerUserID, payment.Amount,
+                    $"Hoàn phí trận #{matchId} — {match.Title ?? "Trận đấu"}", matchId: matchId, type: "Refund");
+                payment.Status = "Refunded";
+
+                await _notificationService.CreateAsync(
+                    payment.PayerUserID, "System",
+                    "Trận đấu đã bị hủy bởi chủ trận",
+                    $"Hoàn {payment.Amount:N0}đ — {match.Title ?? "Trận đấu"}. Lý do: {reason}",
+                    $"/Matchmaking/Details/{matchId}");
+
+                var payer = await _context.Users.FindAsync(payment.PayerUserID);
+                if (payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(payer.Email))
+                    await _emailService.SendMatchCancelledAsync(payer.Email, payer.FullName,
+                        match.Title ?? "Trận đấu", reason, payment.Amount);
+            }
+
+            match.Status = "Cancelled";
+            match.CancelReason = reason.Trim();
+            match.CancelledAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return (true, $"Đã hủy trận và hoàn tiền cho {playerFeePayments.Count} người tham gia.");
         }
     }
 }

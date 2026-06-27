@@ -31,6 +31,10 @@ namespace SportHub.Services.Interfaces
         Task<List<PromoCode>> GetPromoCodesAsync(int campaignId);
         Task SetPromoCodeActiveAsync(int promoCodeId, bool active);
 
+        // Admin: manual campaign distribution
+        Task<(int Distributed, int Skipped)> DistributeManualCampaignAsync(int campaignId, int adminId);
+        Task<int> GetEligibleUserCountAsync(int campaignId);
+
         // Admin: wallet credit + personal vouchers
         Task AdminCreditAsync(int adminId, int userId, decimal amount, string note);
         Task<UserVoucher> IssueVoucherAsync(int adminId, int userId, int? campaignId, decimal amount, DateTime? expiresAt, string? note);

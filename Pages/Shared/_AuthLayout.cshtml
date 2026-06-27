@@ -54,11 +54,11 @@
     <main class="relative z-10 flex items-center justify-center min-h-[calc(100vh-140px)] p-4">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-5 py-2 rounded-xl shadow-lg" id="toast-success">@TempData["SuccessMessage"]</div>
+            <div class="fixed top-20 right-4 z-50 bg-emerald-500 text-white px-5 py-2 rounded-md shadow-lg" id="toast-success">@TempData["SuccessMessage"]</div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-5 py-2 rounded-xl shadow-lg" id="toast-error">@TempData["ErrorMessage"]</div>
+            <div class="fixed top-20 right-4 z-50 bg-red-500 text-white px-5 py-2 rounded-md shadow-lg" id="toast-error">@TempData["ErrorMessage"]</div>
         }
         @RenderBody()
     </main>

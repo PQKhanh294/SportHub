@@ -16,11 +16,11 @@
 
     @if (!Model.HasAccess)
     {
-        <div class="rounded-2xl border border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-8 text-center">
+        <div class="rounded-md border border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-8 text-center">
             <span class="material-symbols-outlined text-5xl text-purple-400 mb-4 block">lock</span>
             <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Tính năng Pro</h2>
             <p class="text-slate-500 mb-6">Thống kê chi tiết chỉ dành cho người dùng gói <strong>Pro</strong> và <strong>Club</strong>.</p>
-            <a href="/Subscription" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-colors">
+            <a href="/Subscription" class="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-bold transition-colors">
                 <span class="material-symbols-outlined text-sm">workspace_premium</span>
                 Nâng cấp lên Pro
             </a>
@@ -37,7 +37,7 @@
             ("Bạn bè", Model.FriendsCount.ToString(), "group", "purple")
         })
         {
-            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+            <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
                 <span class="material-symbols-outlined text-@color-500 mb-1 block text-2xl">@icon</span>
                 <div class="text-2xl font-extrabold text-slate-900 dark:text-white">@value</div>
                 <div class="text-xs text-slate-500 mt-0.5">@label</div>
@@ -47,7 +47,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <!-- Rating -->
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
             <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                 <span class="material-symbols-outlined text-amber-500 text-sm">star</span>
                 Đánh giá trung bình
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Tháng này -->
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
             <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                 <span class="material-symbols-outlined text-blue-500 text-sm">calendar_month</span>
                 Tháng này
@@ -103,7 +103,7 @@
     <!-- Top Sports -->
     @if (Model.TopSports.Any())
     {
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 mb-6">
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 mb-6">
             <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined text-green-500 text-sm">sports</span>
                 Môn thể thao chơi nhiều nhất
@@ -128,7 +128,7 @@
     <!-- Monthly Activity -->
     @if (Model.MonthlyActivities.Any())
     {
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
             <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined text-purple-500 text-sm">trending_up</span>
                 Hoạt động 6 tháng gần nhất

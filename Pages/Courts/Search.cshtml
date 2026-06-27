@@ -10,7 +10,7 @@
             <h1 class="text-4xl font-black tracking-tight">Tìm kiếm sân</h1>
             <p class="text-slate-500 dark:text-slate-400 mt-2">Khám phá các địa điểm chơi thể thao gần bạn.</p>
         </div>
-        <a asp-page="/Courts/Map" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2 shadow-sm">
+        <a asp-page="/Courts/Map" class="px-5 py-2.5 rounded-md bg-slate-100 dark:bg-slate-800 font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2 shadow-sm">
             <span class="material-symbols-outlined">map</span>
             Xem trên bản đồ
         </a>
@@ -18,7 +18,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside class="lg:col-span-1">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm sticky top-24">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm sticky top-24">
                 <h3 class="font-bold mb-6 text-lg flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">tune</span>
                     Bộ lọc
@@ -26,12 +26,12 @@
                 <form method="get" class="space-y-5">
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Tìm kiếm</label>
-                        <input asp-for="Query" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Nhập tên sân..." />
+                        <input asp-for="Query" class="w-full rounded-md bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Nhập tên sân..." />
                     </div>
                     
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Môn thể thao</label>
-                        <select asp-for="SportId" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        <select asp-for="SportId" class="w-full rounded-md bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <option value="">Tất cả</option>
                             <option value="1">Pickleball</option>
                             <option value="2">Tennis</option>
@@ -41,10 +41,10 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Ngày đặt</label>
-                        <input type="date" class="w-full rounded-lg bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                        <input type="date" class="w-full rounded-md bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
                     </div>
 
-                    <button type="submit" class="w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Áp dụng</button>
+                    <button type="submit" class="w-full py-4 bg-primary text-white rounded-md font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Áp dụng</button>
                     <a asp-page="/Courts/Search" class="block text-center text-sm text-slate-500 hover:text-primary transition-colors py-2">Xóa bộ lọc</a>
                 </form>
             </div>
@@ -53,14 +53,14 @@
         <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @if (Model.Courts.Count == 0)
             {
-                <div class="col-span-full rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
+                <div class="col-span-full rounded-md border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-12 text-center">
                     <span class="material-symbols-outlined text-5xl text-slate-300 mb-4">search_off</span>
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy sân nào phù hợp với yêu cầu của bạn.</p>
                 </div>
             }
             @foreach (var court in Model.Courts)
             {
-                <article class="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <article class="group bg-white dark:bg-slate-900 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                     <div class="relative h-48 overflow-hidden">
                         <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="@court.ImageUrl" alt="Court" />
                         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/80 to-transparent p-4">

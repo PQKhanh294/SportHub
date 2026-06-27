@@ -22,14 +22,17 @@ namespace SportHub.Pages.Admin
         }
 
         public List<Match> Matches { get; set; } = new();
+        public List<Sport> Sports { get; set; } = new();
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? FilterStatus { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterStatus { get; set; }
+        [BindProperty(SupportsGet = true)] public int? FilterSport { get; set; }
+        [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
+        public const int PageSize = 25;
+        public int TotalCount { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -44,14 +47,43 @@ namespace SportHub.Pages.Admin
                 .OrderByDescending(m => m.CreatedAt)
                 .AsQueryable();
 
+            Sports = await _context.Sports.OrderBy(s => s.SportName).ToListAsync();
+
             if (!string.IsNullOrWhiteSpace(FilterStatus))
                 query = query.Where(m => m.Status == FilterStatus);
 
-            if (!string.IsNullOrWhiteSpace(Search))
-                query = query.Where(m => (m.Title != null && m.Title.Contains(Search))
-                                      || m.CreatedByUser.FullName.Contains(Search));
+            if (FilterSport.HasValue)
+                query = query.Where(m => m.SportID == FilterSport.Value);
 
-            Matches = await query.Take(100).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(Search))
+            {
+                // Try SQL Server FTS CONTAINS(); fall back to LIKE if FTS not installed
+                bool ftsAvailable = false;
+                try
+                {
+                    var ftsCheck = await _context.Database
+                        .SqlQueryRaw<int>("SELECT FULLTEXTSERVICEPROPERTY('IsFullTextInstalled') AS Value")
+                        .FirstOrDefaultAsync();
+                    ftsAvailable = ftsCheck == 1;
+                }
+                catch { }
+
+                if (ftsAvailable)
+                {
+                    var ftsQuery = $"\"{Search}*\" OR \"{Search}\"";
+                    query = query.Where(m =>
+                        EF.Functions.Contains(m.Title!, ftsQuery) ||
+                        EF.Functions.Contains(m.CreatedByUser.FullName, ftsQuery));
+                }
+                else
+                {
+                    query = query.Where(m => (m.Title != null && m.Title.Contains(Search))
+                                          || m.CreatedByUser.FullName.Contains(Search));
+                }
+            }
+
+            TotalCount = await query.CountAsync();
+            Matches = await query.Skip((PageNumber - 1) * PageSize).Take(PageSize).ToListAsync();
             return Page();
         }
 

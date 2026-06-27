@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -46,7 +46,7 @@ namespace SportHub.Pages.Wallet
 
             if (Amount < 10_000 || Amount > 50_000_000)
             {
-                ErrorMessage = "Số tiền nạp phải từ 10.000 đến 50.000.000 VND.";
+                ErrorMessage = "Số tiền nạp phải từ 10.000 đến 50.000.000 xu.";
                 return RedirectToPage();
             }
 

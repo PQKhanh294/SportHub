@@ -1,0 +1,228 @@
+﻿@page
+@model SportHub.Pages.Admin.DisputesModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Admin — Disputes";
+    ViewData["AdminPage"] = "Disputes";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    string StatusBadge(string s) => s switch {
+        "Pending"       => "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+        "UnderReview"   => "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+        "AdminResolved" => "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+        "AutoResolved"  => "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+        "Dismissed"     => "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+        _ => ""
+    };
+    string StatusLabel(string s) => s switch {
+        "Pending"       => "Pending",
+        "UnderReview"   => "Under Review",
+        "AdminResolved" => "Resolved",
+        "AutoResolved"  => "Auto-closed",
+        "Dismissed"     => "Dismissed",
+        _ => s
+    };
+    string TypeLabel(string t) => t switch {
+        "HostNoShow"      => "Host No-show",
+        "PlayerNoShow"    => "Player No-show",
+        "WrongVenue"      => "Wrong Venue",
+        "QualityIssue"    => "Quality Issue",
+        "PaymentDispute"  => "Payment Dispute",
+        _ => t
+    };
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-lg sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight">@(isEn ? "Match Disputes" : "Khiếu nại trận đấu")</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">@(isEn ? $"{Model.PendingCount} disputes awaiting review" : $"{Model.PendingCount} khiếu nại chờ xử lý")</p>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    <form method="get" class="space-y-2">
+        <input type="hidden" name="tab" value="@Model.ActiveTab" />
+        <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">search</span>
+            <input type="text" name="search" value="@Model.Search"
+                   placeholder="@(isEn ? "Search by reporter / match…" : "Tìm theo người báo cáo / trận…")"
+                   class="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a asp-page="Disputes" asp-route-tab="pending" asp-route-search="@Model.Search" asp-route-filterType="@Model.FilterType"
+               class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md border transition-colors whitespace-nowrap @(Model.ActiveTab == "pending" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "Pending" : "Đang chờ") (@Model.PendingCount)
+            </a>
+            <a asp-page="Disputes" asp-route-tab="all" asp-route-search="@Model.Search" asp-route-filterType="@Model.FilterType"
+               class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md border transition-colors whitespace-nowrap @(Model.ActiveTab == "all" ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "All" : "Tất cả")
+            </a>
+            <span class="w-px bg-slate-200 dark:bg-slate-700 self-stretch mx-1"></span>
+            @foreach (var (dtype, dlabel) in new[] {
+                ("HostNoShow", isEn ? "Host no-show" : "Host vắng"),
+                ("PlayerNoShow", isEn ? "Player no-show" : "Player vắng"),
+                ("WrongVenue", isEn ? "Wrong venue" : "Sai địa điểm"),
+                ("QualityIssue", isEn ? "Quality" : "Chất lượng"),
+                ("PaymentDispute", isEn ? "Payment" : "Thanh toán")
+            })
+            {
+                <a asp-page="Disputes" asp-route-tab="@Model.ActiveTab" asp-route-search="@Model.Search" asp-route-filterType="@(Model.FilterType == dtype ? null : dtype)"
+                   class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors whitespace-nowrap @(Model.FilterType == dtype ? "bg-slate-700 text-white border-slate-700" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                    @dlabel
+                </a>
+            }
+        </div>
+    </form>
+
+    @if (TempData["Msg"] != null)
+    {
+        <div class="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-md text-sm font-semibold">
+            @TempData["Msg"]
+        </div>
+    }
+
+    @if (!Model.Disputes.Any())
+    {
+        <div class="text-center py-20 text-slate-400">
+            <span class="material-symbols-outlined text-5xl mb-3 block">gavel</span>
+            <p class="font-semibold">@(isEn ? "No disputes found" : "Không có khiếu nại nào")</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var d in Model.Disputes)
+            {
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap mb-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-md @StatusBadge(d.Status)">@StatusLabel(d.Status)</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">@TypeLabel(d.DisputeType)</span>
+                                    <span class="text-xs text-slate-400">#@d.Id · @d.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <p class="font-bold text-slate-800 dark:text-white truncate">
+                                    <a asp-page="/Matchmaking/Details" asp-route-id="@d.MatchId" class="hover:text-primary transition-colors">
+                                        @(d.Match?.Title ?? $"Match #{d.MatchId}")
+                                    </a>
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    @(isEn ? "Reporter" : "Người báo cáo"): <span class="font-semibold text-slate-700 dark:text-slate-300">@(d.Reporter?.FullName ?? "?")</span>
+                                    · @(d.Reporter?.Email ?? "")
+                                </p>
+                                <p class="text-sm text-slate-700 dark:text-slate-300 mt-2">@d.Description</p>
+                                @if (!string.IsNullOrEmpty(d.EvidenceUrl))
+                                {
+                                    <div class="mt-2">
+                                        <a href="@d.EvidenceUrl" target="_blank" class="inline-block">
+                                            <img src="@d.EvidenceUrl" alt="Evidence" class="max-h-40 rounded-md object-cover border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity" />
+                                        </a>
+                                        <p class="text-xs text-slate-400 mt-0.5">Evidence image (click to enlarge)</p>
+                                    </div>
+                                }
+
+                                @if (d.Resolution != null)
+                                {
+                                    <div class="mt-2 text-xs px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                                        <span class="font-semibold">@(isEn ? "Outcome" : "Kết quả"):</span> @d.Resolution
+                                        @if (d.RefundAmount.HasValue && d.RefundAmount > 0)
+                                        {
+                                            <span class="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">· Refunded @d.RefundAmount.Value.ToString("N0") xu</span>
+                                        }
+                                    </div>
+                                }
+                                @if (d.AdminNote != null)
+                                {
+                                    <p class="mt-1 text-xs text-slate-400 italic">@(isEn ? "Admin note" : "Ghi chú admin"): @d.AdminNote</p>
+                                }
+                            </div>
+
+                            @if (d.Status == "Pending" || d.Status == "UnderReview")
+                            {
+                                <button onclick="openResolveModal(@d.Id, '@d.Match?.Title?.Replace("'", "\\'") ', @d.ReporterId)"
+                                        class="px-4 py-2 bg-primary text-white rounded-md font-bold text-sm hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                    @(isEn ? "Resolve" : "Xử lý")
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.ActiveTab == "all")
+        {
+            <div class="flex justify-center gap-3">
+                @if (Model.P > 1)
+                {
+                    <a asp-page="Disputes" asp-route-tab="all" asp-route-p="@(Model.P - 1)"
+                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">← Prev</a>
+                }
+                @if (Model.Disputes.Count == 20)
+                {
+                    <a asp-page="Disputes" asp-route-tab="all" asp-route-p="@(Model.P + 1)"
+                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Next →</a>
+                }
+            </div>
+        }
+    }
+</div>
+
+@* Resolve Modal *@
+<div id="resolveModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-md p-6">
+        <h2 class="text-lg font-black text-slate-800 dark:text-white mb-4">Resolve dispute</h2>
+        <form id="resolveForm" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="rDisputeId" name="disputeId" />
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Note to user</label>
+                <textarea name="adminNote" rows="3" required
+                          class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Outcome</label>
+                <select name="resolution" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
+                    <option value="FullRefund">Full refund</option>
+                    <option value="PartialRefund">Partial refund</option>
+                    <option value="NoRefund">No refund</option>
+                    <option value="Warning">Warn user</option>
+                </select>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Refund amount (if any)</label>
+                <input type="number" name="refundAmount" min="0" step="1000"
+                       class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="0" />
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" formaction="/Admin/Disputes?handler=Resolve"
+                        class="flex-1 py-2.5 bg-primary text-white rounded-md font-bold text-sm hover:bg-primary/90 transition-colors">
+                    Resolve
+                </button>
+                <button type="submit" formaction="/Admin/Disputes?handler=Dismiss"
+                        class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    Dismiss
+                </button>
+                <button type="button" onclick="closeResolveModal()"
+                        class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openResolveModal(id, title, reporterId) {
+    document.getElementById('rDisputeId').value = id;
+    document.getElementById('resolveModal').classList.remove('hidden');
+    document.getElementById('resolveModal').classList.add('flex');
+}
+function closeResolveModal() {
+    document.getElementById('resolveModal').classList.add('hidden');
+    document.getElementById('resolveModal').classList.remove('flex');
+}
+document.getElementById('resolveModal').addEventListener('click', function(e) {
+    if (e.target === this) closeResolveModal();
+});
+</script>

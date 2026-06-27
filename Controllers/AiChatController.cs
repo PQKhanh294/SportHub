@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
@@ -92,7 +92,7 @@ Trả lời ngắn gọn, thân thiện, bằng tiếng Việt. Tối đa 3-4 c�
 
 Thông tin người dùng hiện tại:
 - Tên: {user.FullName}
-- Số dư ví: {walletBalance:N0} VND
+- Số dư ví: {walletBalance:N0} xu
 {string.Join("\n", contextLines)}
 
 Bạn hỗ trợ về:

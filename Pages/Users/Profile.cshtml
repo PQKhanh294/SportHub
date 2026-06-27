@@ -5,7 +5,7 @@
 }
 
 <div class="max-w-4xl mx-auto space-y-6">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center gap-8">
+    <div class="bg-white dark:bg-slate-900 rounded-md p-8 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center gap-8">
         <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 dark:border-slate-800 flex-shrink-0">
             @if (string.IsNullOrEmpty(Model.TargetUser.AvatarUrl))
             {
@@ -27,7 +27,7 @@
                 @if (Model.FriendshipStatus == "None")
                 {
                     <form method="post" asp-page-handler="AddFriend" asp-route-id="@Model.TargetUser.UserID">
-                        <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2 transition-colors">
+                        <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary/90 flex items-center gap-2 transition-colors">
                             <span class="material-symbols-outlined">person_add</span> Thêm bạn bè
                         </button>
                     </form>
@@ -37,7 +37,7 @@
                     @if (Model.IsSender)
                     {
                         <form method="post" asp-page-handler="CancelRequest" asp-route-id="@Model.TargetUser.UserID">
-                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 transition-colors flex items-center gap-2">
+                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-md hover:bg-slate-300 transition-colors flex items-center gap-2">
                                 <span class="material-symbols-outlined">cancel</span> Hủy lời mời
                             </button>
                         </form>
@@ -46,12 +46,12 @@
                     {
                         <div class="flex gap-2">
                             <form method="post" asp-page-handler="AcceptRequest" asp-route-id="@Model.TargetUser.UserID">
-                                <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2 transition-colors">
+                                <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary/90 flex items-center gap-2 transition-colors">
                                     <span class="material-symbols-outlined">check_circle</span> Chấp nhận
                                 </button>
                             </form>
                             <form method="post" asp-page-handler="DeclineRequest" asp-route-id="@Model.TargetUser.UserID">
-                                <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 transition-colors flex items-center gap-2">
+                                <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-md hover:bg-slate-300 transition-colors flex items-center gap-2">
                                     <span class="material-symbols-outlined">cancel</span> Từ chối
                                 </button>
                             </form>
@@ -61,11 +61,11 @@
                 else if (Model.FriendshipStatus == "Accepted")
                 {
                     <div class="flex gap-2">
-                        <a href="/Messages?userId=@Model.TargetUser.UserID" class="px-6 py-2 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 flex items-center gap-2 transition-colors">
+                        <a href="/Messages?userId=@Model.TargetUser.UserID" class="px-6 py-2 bg-emerald-500 text-white font-bold rounded-md hover:bg-emerald-600 flex items-center gap-2 transition-colors">
                             <span class="material-symbols-outlined">chat</span> Nhắn tin
                         </a>
                         <form method="post" asp-page-handler="Unfriend" asp-route-id="@Model.TargetUser.UserID" onsubmit="return confirm('Bạn có chắc chắn muốn hủy kết bạn?');">
-                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2">
+                            <button type="submit" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-md hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2">
                                 <span class="material-symbols-outlined">person_remove</span> Hủy kết bạn
                             </button>
                         </form>
@@ -73,7 +73,7 @@
                 }
                 else if (Model.FriendshipStatus == "Self")
                 {
-                    <a href="/Auth/Profile" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-300 transition-colors">
+                    <a href="/Auth/Profile" class="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-md flex items-center gap-2 hover:bg-slate-300 transition-colors">
                         <span class="material-symbols-outlined">edit</span> Chỉnh sửa hồ sơ
                     </a>
                 }
@@ -81,18 +81,18 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+    <div class="bg-white dark:bg-slate-900 rounded-md p-6 shadow-sm border border-slate-200 dark:border-slate-800">
         <h2 class="text-lg font-black mb-4">Huy hiệu SportHub</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             @foreach (var badge in Model.Badges)
             {
-                <div class="p-4 rounded-2xl border @(badge.IsEarned ? "border-primary/30 bg-primary/5" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50")">
+                <div class="p-4 rounded-md border @(badge.IsEarned ? "border-primary/30 bg-primary/5" : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50")">
                     <div class="flex items-start gap-3">
                         <span class="material-symbols-outlined @(badge.IsEarned ? "text-primary" : "text-slate-400")">@badge.Icon</span>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="font-black text-sm">@badge.Name</p>
-                                <span class="text-[10px] font-bold px-2 py-1 rounded-full @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-md @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">@badge.Description</p>
                             <div class="mt-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">

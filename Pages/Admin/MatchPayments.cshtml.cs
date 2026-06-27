@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -33,13 +33,24 @@ namespace SportHub.Pages.Admin
         public List<MatchPaymentAdminItem> Payments { get; set; } = new();
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
+        [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterType { get; set; }
+        public int TotalPendingCount { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
             ViewData["ActivePage"] = "Admin";
             ViewData["AdminPage"] = "Payments";
             if (!await IsAdminAsync()) return Forbid();
-            Payments = await _matchPaymentService.GetPendingPaymentsAsync();
+            var all = await _matchPaymentService.GetPendingPaymentsAsync();
+            TotalPendingCount = all.Count;
+            Payments = all;
+            if (!string.IsNullOrWhiteSpace(Search))
+                Payments = Payments.Where(p =>
+                    p.MatchTitle.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    p.PayerName.Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (!string.IsNullOrWhiteSpace(FilterType))
+                Payments = Payments.Where(p => p.PaymentType == FilterType).ToList();
             return Page();
         }
 
@@ -82,7 +93,7 @@ namespace SportHub.Pages.Admin
                         payment.PayerUserID,
                         "MatchPaymentConfirmed",
                         "Đặt cọc đã được xác nhận",
-                        $"Khoản đặt cọc {payment.Amount:N0} VND cho trận \"{matchTitle}\" đã được xác nhận. Trận của bạn hiện đã được đăng!",
+                        $"Khoản đặt cọc {payment.Amount:N0} xu cho trận \"{matchTitle}\" đã được xác nhận. Trận của bạn hiện đã được đăng!",
                         $"/Matchmaking/Details?id={payment.MatchID}");
                     break;
 
@@ -109,7 +120,7 @@ namespace SportHub.Pages.Admin
                         payment.PayerUserID,
                         "MatchPaymentConfirmed",
                         "Phí còn lại đã được xác nhận",
-                        $"Phí còn lại {payment.Amount:N0} VND cho trận \"{matchTitle}\" đã được xác nhận.",
+                        $"Phí còn lại {payment.Amount:N0} xu cho trận \"{matchTitle}\" đã được xác nhận.",
                         $"/Matchmaking/Details?id={payment.MatchID}");
                     break;
             }

@@ -22,6 +22,7 @@ namespace SportHub.Pages.Admin
 
         [BindProperty(SupportsGet = true)] public string ActiveTab { get; set; } = "campaigns";
         [BindProperty(SupportsGet = true)] public int? SelectedCampaignId { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterTrigger { get; set; }
 
         public List<PromotionCampaign> Campaigns { get; set; } = new();
         public List<PromoCode> PromoCodes { get; set; } = new();
@@ -34,6 +35,8 @@ namespace SportHub.Pages.Admin
             if (!await IsAdminAsync()) return Forbid();
 
             Campaigns = await _promotionService.GetAllCampaignsAsync();
+            if (!string.IsNullOrWhiteSpace(FilterTrigger))
+                Campaigns = Campaigns.Where(c => c.TriggerType == FilterTrigger).ToList();
 
             if (ActiveTab == "codes" && SelectedCampaignId.HasValue)
             {
@@ -133,6 +136,15 @@ namespace SportHub.Pages.Admin
             if (!await IsAdminAsync()) return Forbid();
             await _promotionService.SetPromoCodeActiveAsync(promoCodeId, active);
             return RedirectToPage(new { ActiveTab = "codes", SelectedCampaignId = campaignId });
+        }
+
+        public async Task<IActionResult> OnPostDistributeCampaignAsync(int campaignId)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            var adminId = GetAdminId();
+            var (distributed, skipped) = await _promotionService.DistributeManualCampaignAsync(campaignId, adminId);
+            TempData["DistributeResult"] = $"Phát thưởng xong: {distributed} người nhận, {skipped} bỏ qua.";
+            return RedirectToPage(new { ActiveTab = "campaigns" });
         }
 
         private int GetAdminId()

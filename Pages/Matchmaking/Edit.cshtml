@@ -1,4 +1,4 @@
-@page "{id:int}"
+﻿@page "{id:int}"
 @model SportHub.Pages.Matchmaking.EditModel
 @{
     ViewData["Title"] = "Chỉnh sửa trận";
@@ -10,25 +10,26 @@
         <p class="text-slate-500 dark:text-slate-400">Cập nhật thông tin chi tiết trận đấu của bạn.</p>
     </div>
 
-    <form method="post" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-sm">
+    <form method="post" id="editMatchForm" class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-sm">
         <input asp-for="Input.MatchId" type="hidden" />
         <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
 
         <div>
             <label class="block text-sm font-semibold mb-2">Tên trận đấu</label>
-            <input asp-for="Input.Title" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+            <input asp-for="Input.Title" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
             <span asp-validation-for="Input.Title" class="text-xs text-red-500"></span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-semibold mb-2">Sân cầu lông (ID, tùy chọn)</label>
-                <input asp-for="Input.CourtId" type="number" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <label class="block text-sm font-semibold mb-2">Sân (ID, tùy chọn)</label>
+                <input asp-for="Input.CourtId" type="number" min="1" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập ID sân (để trống nếu không chọn)" />
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Mẹo: vào <a asp-page="/Courts/Search" class="text-primary font-semibold hover:underline">Tìm sân</a> để tìm ID sân.</p>
                 <span asp-validation-for="Input.CourtId" class="text-xs text-red-500"></span>
             </div>
             <div>
-                <label class="block text-sm font-semibold mb-2">Môn thể thao</label>
-                <select asp-for="Input.SportId" asp-items="Model.SportOptions" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+                <label class="block text-sm font-semibold mb-2">Môn thể thao <span class="text-red-500">*</span></label>
+                <select asp-for="Input.SportId" asp-items="Model.SportOptions" id="sportSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
                     <option value="">Chọn môn</option>
                 </select>
                 <span asp-validation-for="Input.SportId" class="text-xs text-red-500"></span>
@@ -38,81 +39,149 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Tên sân (tùy chọn)</label>
-                <input asp-for="Input.CourtName" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.CourtName" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập tên sân/địa điểm" />
                 <span asp-validation-for="Input.CourtName" class="text-xs text-red-500"></span>
             </div>
             <div class="relative">
                 <label class="block text-sm font-semibold mb-2">Địa chỉ sân (tùy chọn)</label>
-                <input asp-for="Input.CourtAddress" id="courtAddressInput" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập địa chỉ sân" autocomplete="off" />
+                <input asp-for="Input.CourtAddress" id="courtAddressInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập địa chỉ sân" autocomplete="off" />
                 <span asp-validation-for="Input.CourtAddress" class="text-xs text-red-500"></span>
-                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg mt-1 max-h-40 overflow-y-auto hidden z-[1000] shadow-lg"></div>
+                <div id="createLocationSuggestions" class="absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md mt-1 max-h-52 overflow-y-auto hidden z-[1000] shadow-lg"></div>
                 <input type="hidden" asp-for="Input.Latitude" id="courtLatitude" />
                 <input type="hidden" asp-for="Input.Longitude" id="courtLongitude" />
-                <p class="mt-1 text-[11px] text-amber-700 dark:text-amber-400">Gợi ý tự động có thể chỉ tới mức đường. Sau khi chọn, <strong>kéo ghim đỏ</strong> đúng cổng sân.</p>
+                <p class="mt-1 text-[11px] text-amber-700 dark:text-amber-400">Gợi ý tự động có thể chỉ tới mức đường. Sau khi chọn, <strong>kéo ghim đỏ</strong> đúng cổng sân để khoảng cách chính xác.</p>
             </div>
         </div>
 
         <div id="createMapContainer" class="hidden">
             <label class="block text-sm font-semibold mb-2">Ghim vị trí chính xác trên bản đồ</label>
-            <p class="text-xs text-slate-500 mb-2">Kéo thả ghim đến đúng sân.</p>
-            <div id="createMap" class="h-56 w-full rounded-lg border border-slate-200 dark:border-slate-800 mb-4"></div>
+            <p class="text-xs text-slate-500 mb-2">Kéo thả ghim đến đúng sân — tọa độ này được dùng để tính khoảng cách.</p>
+            <div id="createMap" class="h-56 w-full rounded-md border border-slate-200 dark:border-slate-800 mb-4"></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Ngày thi đấu</label>
-                <input asp-for="Input.MatchDate" type="date" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.MatchDate" type="date" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.MatchDate" class="text-xs text-red-500"></span>
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-2">Giờ bắt đầu</label>
-                <input asp-for="Input.StartTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.StartTime" type="time" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.StartTime" class="text-xs text-red-500"></span>
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-2">Giờ kết thúc</label>
-                <input asp-for="Input.EndTime" type="time" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.EndTime" type="time" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.EndTime" class="text-xs text-red-500"></span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-semibold mb-2">Loại trận</label>
-                <select asp-for="Input.MatchType" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800">
-                    <option value="Singles">Đơn (Singles)</option>
-                    <option value="Doubles">Đôi</option>
-                    <option value="Mixed">Hỗn hợp</option>
-                </select>
+        <!-- Loại trận (sport-specific) -->
+        <div>
+            <label class="block text-sm font-semibold mb-2">
+                Loại trận <span class="text-red-500">*</span>
+                <span id="sport-warn-matchtype" class="hidden text-amber-700 dark:text-amber-400 text-xs font-normal ml-1">⚠ Vui lòng chọn môn thể thao trước</span>
+            </label>
+            <select id="matchTypeSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+            </select>
+            <div id="matchTypeCheckboxes" class="hidden flex flex-wrap gap-2">
+                @foreach (var mt in new[] { "Đơn Nam", "Đơn Nữ", "Đôi Nam", "Đôi Nữ", "Đôi Hỗn hợp" })
+                {
+                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                        <input type="checkbox" class="mt-type-cb" style="accent-color:#50A5B1" value="@mt" />
+                        <span>@mt</span>
+                    </label>
+                }
             </div>
-            <div>
-                <label class="block text-sm font-semibold mb-2">Trình độ yêu cầu</label>
-                <select asp-for="Input.SkillRequired" asp-items="Model.SkillOptions" data-original-value="@Model.Input.SkillRequired" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800"></select>
+            <span id="matchtype-err" class="hidden text-xs text-red-500 mt-1">Vui lòng chọn ít nhất một loại trận.</span>
+            <input type="hidden" name="Input.MatchType" id="matchTypeHidden" value="@Model.Input.MatchType" />
+        </div>
+
+        <!-- Trình độ yêu cầu (sport-specific) -->
+        <div>
+            <label class="block text-sm font-semibold mb-2">
+                Trình độ yêu cầu
+                <span id="sport-warn-skill" class="hidden text-amber-700 dark:text-amber-400 text-xs font-normal ml-1">⚠ Vui lòng chọn môn thể thao trước</span>
+            </label>
+            <select id="skillSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+            </select>
+            <!-- Cầu lông: Nam/Nữ checkbox groups -->
+            <div id="skillBadmintonSection" class="hidden space-y-3 mt-1">
+                @{
+                    var badmintonSkills = new (string Label, string Val)[] {
+                        ("Mọi trình độ", "Any"), ("Newbie", "Newbie"), ("Yếu", "Yếu"),
+                        ("Yếu+", "Yếu+"), ("TBY/TB-", "TBY/TB-"), ("Trung Bình", "Trung Bình"), ("TB+/Khá", "TB+/Khá")
+                    };
+                }
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 mb-2">Trình Nam</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var sk in badmintonSkills)
+                        {
+                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                                <input type="checkbox" class="skill-male-cb" style="accent-color:#50A5B1" value="@sk.Val" />
+                                <span>@sk.Label</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 mb-2">Trình Nữ</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var sk in badmintonSkills)
+                        {
+                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                                <input type="checkbox" class="skill-female-cb" style="accent-color:#50A5B1" value="@sk.Val" />
+                                <span>@sk.Label</span>
+                            </label>
+                        }
+                    </div>
+                </div>
             </div>
+            <input type="hidden" name="Input.SkillRequired" id="skillRequiredHidden" value="@Model.Input.SkillRequired" />
+        </div>
+
+        <!-- Số người + Phí -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Số người tối đa</label>
-                <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" id="maxParticipantsInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
                 <span asp-validation-for="Input.MaxParticipants" class="text-xs text-red-500"></span>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold mb-2">Tổng chi phí sân (xu, tùy chọn)</label>
+                <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" id="priceVndInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 200000" />
+                <span asp-validation-for="Input.PriceVnd" class="text-xs text-red-500"></span>
+                <div id="splitFeeSection" class="hidden pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="splitFeeChk" style="accent-color:#50A5B1;width:16px;height:16px" @(Model.Input.IsSplitFee ? "checked" : "") />
+                        <span class="text-sm font-medium">Phí chia đều <span class="font-normal text-slate-500">(tổng / số người)</span></span>
+                    </label>
+                    <p id="splitFeePreview" class="hidden text-xs text-primary mt-1 font-medium"></p>
+                </div>
+                <input type="hidden" name="Input.IsSplitFee" id="isSplitFeeHidden" value="@Model.Input.IsSplitFee.ToString().ToLower()" />
             </div>
         </div>
 
         <div>
-            <label class="block text-sm font-semibold mb-2">Giá trị trận đấu (VND, tùy chọn)</label>
-            <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
-            <span asp-validation-for="Input.PriceVnd" class="text-xs text-red-500"></span>
-        </div>
-
-        <div>
-            <label class="block text-sm font-semibold mb-2">Mô tả trận</label>
-            <textarea asp-for="Input.Description" rows="3" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Mô tả thêm về trận đấu..."></textarea>
+            <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-semibold">Mô tả trận</label>
+                <button type="button" id="aiDescBtn" onclick="generateAiDesc()"
+                        class="flex items-center gap-1 px-3 py-1 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors">
+                    <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                    <span id="aiDescBtnText">Gợi ý AI</span>
+                </button>
+            </div>
+            <textarea id="descriptionTextarea" asp-for="Input.Description" rows="3" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Mô tả thêm về trận đấu..."></textarea>
         </div>
 
         <div class="flex gap-3 flex-wrap">
-            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors">Lưu thay đổi</button>
-            <a asp-page="/Matchmaking/Details" asp-route-id="@Model.Input.MatchId" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Quay lại</a>
+            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors">Lưu thay đổi</button>
+            <a asp-page="/Matchmaking/Details" asp-route-id="@Model.Input.MatchId" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-md font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Quay lại</a>
             <button type="button"
                     onclick="openDeleteMatchModal()"
-                    class="px-6 py-2.5 bg-rose-500 text-white rounded-lg font-bold hover:bg-rose-600 transition-colors inline-flex items-center gap-2">
+                    class="px-6 py-2.5 bg-rose-500 text-white rounded-md font-bold hover:bg-rose-600 transition-colors inline-flex items-center gap-2">
                 <span class="material-symbols-outlined text-base">delete</span>
                 Xóa trận
             </button>
@@ -123,7 +192,7 @@
 
     <div id="deleteMatchModal" class="hidden fixed inset-0 z-[1200]">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeDeleteMatchModal()"></div>
-        <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
+        <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
             <div class="flex items-start gap-3">
                 <div class="size-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center">
                     <span class="material-symbols-outlined">warning</span>
@@ -137,11 +206,11 @@
             </div>
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" onclick="closeDeleteMatchModal()"
-                        class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">
+                        class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">
                     Hủy
                 </button>
                 <button type="button" onclick="confirmDeleteMatch()"
-                        class="px-4 py-2 rounded-lg bg-rose-500 text-white font-bold hover:bg-rose-600">
+                        class="px-4 py-2 rounded-md bg-rose-500 text-white font-bold hover:bg-rose-600">
                     Xóa ngay
                 </button>
             </div>
@@ -154,78 +223,317 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/location-picker.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sportSelect = document.querySelector('select[name="Input.SportId"]');
-            const skillSelect = document.querySelector('select[name="Input.SkillRequired"]');
-            
-            const badmintonSkills = [
-                { value: "Any", text: "Mọi trình độ" },
-                { value: "Newbie", text: "Newbie" },
-                { value: "Yếu", text: "Yếu" },
-                { value: "Yếu+", text: "Yếu+" },
-                { value: "TBY/TB-", text: "TBY/TB-" },
-                { value: "Trung Bình", text: "Trung bình" },
-                { value: "TB+/Khá", text: "TB+/Khá" }
-            ];
-            
-            const defaultSkills = [
-                { value: "Any", text: "Mọi trình độ" },
-                { value: "Beginner", text: "Người mới (Beginner)" },
-                { value: "Intermediate", text: "Trung bình (Intermediate)" },
-                { value: "Advanced", text: "Nâng cao (Advanced)" },
-                { value: "Professional", text: "Chuyên nghiệp (Professional)" }
-            ];
+    document.addEventListener('DOMContentLoaded', function () {
+        const sportSelect = document.getElementById('sportSelect');
 
-            function updateSkillOptions() {
-                const selectedSportText = sportSelect.options[sportSelect.selectedIndex]?.text || "";
-                let options = defaultSkills;
-                
-                if (selectedSportText.includes("Cầu lông") || selectedSportText.includes("Badminton")) {
-                    options = badmintonSkills;
-                }
-                
-                const currentValue = skillSelect.getAttribute('data-original-value') || skillSelect.value;
-                skillSelect.removeAttribute('data-original-value');
+        const matchTypesBySport = {
+            'Cầu lông':   null,
+            'Bóng đá':    ['5v5', '7v7', '11v11'],
+            'Tennis':     ['Đơn (Singles)', 'Đôi (Doubles)'],
+            'Bóng bàn':   ['Đơn', 'Đôi', 'Đồng đội'],
+            'Pickleball': ['Đơn', 'Đôi', 'Hỗn hợp'],
+            'default':    ['Đơn', 'Đôi', 'Hỗn hợp']
+        };
+
+        const skillsBySport = {
+            'Cầu lông': null,
+            'Pickleball': [
+                { v: 'Any', t: 'Tất cả trình độ' }, { v: '2.0', t: '2.0 — Mới bắt đầu' },
+                { v: '2.5', t: '2.5 — Biết cơ bản' }, { v: '3.0', t: '3.0 — Ổn định' },
+                { v: '3.5', t: '3.5 — Trung bình khá' }, { v: '4.0', t: '4.0 — Khá' },
+                { v: '4.5+', t: '4.5+ — Nâng cao / Thi đấu' }
+            ],
+            'Tennis': [
+                { v: 'Any', t: 'Tất cả trình độ' }, { v: '1.0-2.0', t: '1.0-2.0 — Mới bắt đầu' },
+                { v: '2.5-3.0', t: '2.5-3.0 — Biết cơ bản' }, { v: '3.5', t: '3.5 — Trung bình' },
+                { v: '4.0', t: '4.0 — Khá' }, { v: '4.5', t: '4.5 — Tốt' },
+                { v: '5.0+', t: '5.0+ — Chuyên nghiệp' }
+            ],
+            'Bóng đá': [
+                { v: 'Any', t: 'Tất cả trình độ' }, { v: 'Phong trào', t: 'Phong trào' },
+                { v: 'Trung bình', t: 'Trung bình' }, { v: 'Khá', t: 'Khá' },
+                { v: 'Tốt', t: 'Tốt' }, { v: 'Chuyên nghiệp', t: 'Chuyên nghiệp' }
+            ],
+            'Bóng bàn': [
+                { v: 'Any', t: 'Tất cả trình độ' }, { v: 'Mới', t: 'Mới bắt đầu' },
+                { v: 'Cơ bản', t: 'Cơ bản' }, { v: 'Trung bình', t: 'Trung bình' },
+                { v: 'Khá', t: 'Khá' }, { v: 'Nâng cao', t: 'Nâng cao / Thi đấu' }
+            ],
+            'default': [
+                { v: 'Any', t: 'Tất cả trình độ' }, { v: 'Mới', t: 'Mới bắt đầu' },
+                { v: 'Trung bình', t: 'Trung bình' }, { v: 'Khá', t: 'Khá' },
+                { v: 'Nâng cao', t: 'Nâng cao' }
+            ]
+        };
+
+        const matchTypeSelect      = document.getElementById('matchTypeSelect');
+        const matchTypeCheckboxes  = document.getElementById('matchTypeCheckboxes');
+        const matchTypeHidden      = document.getElementById('matchTypeHidden');
+        const matchTypeErr         = document.getElementById('matchtype-err');
+        const sportWarnMatchtype   = document.getElementById('sport-warn-matchtype');
+        const skillSelect          = document.getElementById('skillSelect');
+        const skillBadmintonSection= document.getElementById('skillBadmintonSection');
+        const skillRequiredHidden  = document.getElementById('skillRequiredHidden');
+        const sportWarnSkill       = document.getElementById('sport-warn-skill');
+        const splitFeeSection      = document.getElementById('splitFeeSection');
+        const splitFeeChk          = document.getElementById('splitFeeChk');
+        const splitFeePreview      = document.getElementById('splitFeePreview');
+        const isSplitFeeHidden     = document.getElementById('isSplitFeeHidden');
+        const priceVndInput        = document.getElementById('priceVndInput');
+        const maxParticipantsInput = document.getElementById('maxParticipantsInput');
+
+        function getSportName() {
+            const opt = sportSelect.options[sportSelect.selectedIndex];
+            return opt ? opt.text.trim() : '';
+        }
+        function isBadminton() { return getSportName().includes('Cầu lông'); }
+        function sportSelected() { return sportSelect.value !== ''; }
+
+        function updateMatchType(existingValue) {
+            const sport = getSportName();
+            if (isBadminton()) {
+                matchTypeSelect.classList.add('hidden');
+                matchTypeCheckboxes.classList.remove('hidden');
+            } else {
+                matchTypeSelect.classList.remove('hidden');
+                matchTypeCheckboxes.classList.add('hidden');
+                const types = matchTypesBySport[sport] || matchTypesBySport['default'];
+                const prev = existingValue || matchTypeHidden.value || matchTypeSelect.value;
+                matchTypeSelect.innerHTML = '';
+                types.forEach(t => {
+                    const o = document.createElement('option');
+                    o.value = t; o.text = t;
+                    if (t === prev) o.selected = true;
+                    matchTypeSelect.appendChild(o);
+                });
+                matchTypeHidden.value = matchTypeSelect.value;
+            }
+        }
+
+        function updateSkill(existingValue) {
+            const sport = getSportName();
+            if (isBadminton()) {
+                skillSelect.classList.add('hidden');
+                skillBadmintonSection.classList.remove('hidden');
+            } else {
+                skillSelect.classList.remove('hidden');
+                skillBadmintonSection.classList.add('hidden');
+                const skills = skillsBySport[sport] || skillsBySport['default'];
+                const prev = existingValue || skillRequiredHidden.value || skillSelect.value;
                 skillSelect.innerHTML = '';
-                
-                options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt.value;
-                    option.text = opt.text;
-                    if (opt.value === currentValue) {
-                        option.selected = true;
+                skills.forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = s.v; o.text = s.t;
+                    if (s.v === prev) o.selected = true;
+                    skillSelect.appendChild(o);
+                });
+                skillRequiredHidden.value = skillSelect.value;
+            }
+        }
+
+        function updateSplitFeeVisibility() {
+            if (isBadminton()) {
+                splitFeeSection.classList.remove('hidden');
+            } else {
+                splitFeeSection.classList.add('hidden');
+                splitFeeChk.checked = false;
+                isSplitFeeHidden.value = 'false';
+                splitFeePreview.classList.add('hidden');
+            }
+        }
+
+        function updateSplitFeePreview() {
+            if (!splitFeeChk.checked) { splitFeePreview.classList.add('hidden'); return; }
+            const total = parseFloat(priceVndInput.value) || 0;
+            const people = parseInt(maxParticipantsInput.value) || 1;
+            if (total > 0 && people > 0) {
+                splitFeePreview.textContent = '≈ ' + Math.ceil(total / people).toLocaleString('vi-VN') + ' xu/người';
+                splitFeePreview.classList.remove('hidden');
+            } else { splitFeePreview.classList.add('hidden'); }
+        }
+
+        // Pre-populate existing values after sport-specific UI is built
+        function prePopulate() {
+            const existingMatchType = matchTypeHidden.value;
+            const existingSkill    = skillRequiredHidden.value;
+
+            if (isBadminton()) {
+                // Pre-check MatchType checkboxes: value like "Đơn Nam,Đôi Nam"
+                const types = existingMatchType.split(',').map(s => s.trim());
+                document.querySelectorAll('.mt-type-cb').forEach(cb => {
+                    if (types.includes(cb.value)) {
+                        cb.checked = true;
+                        const lbl = cb.closest('label');
+                        if (lbl) lbl.style.borderColor = '#50A5B1';
                     }
-                    skillSelect.appendChild(option);
+                });
+
+                // Pre-check skill checkboxes: value like "Nam:Yếu+,TBY/TB-|Nữ:Trung Bình"
+                const parts = existingSkill.split('|');
+                parts.forEach(part => {
+                    const [gender, vals] = part.split(':');
+                    if (!vals) return;
+                    const values = vals.split(',').map(s => s.trim());
+                    const cls = (gender && gender.trim() === 'Nam') ? '.skill-male-cb' : '.skill-female-cb';
+                    document.querySelectorAll(cls).forEach(cb => {
+                        if (values.includes(cb.value)) {
+                            cb.checked = true;
+                            const lbl = cb.closest('label');
+                            if (lbl) lbl.style.borderColor = '#50A5B1';
+                        }
+                    });
                 });
             }
 
-            if (sportSelect && skillSelect) {
-                sportSelect.addEventListener('change', updateSkillOptions);
-                // Initial update
-                updateSkillOptions();
+            // SplitFee init
+            if (splitFeeChk.checked) {
+                isSplitFeeHidden.value = 'true';
+                updateSplitFeePreview();
             }
+        }
 
-            SportHubLocationPicker.init({
-                addressInputId: 'courtAddressInput',
-                latInputId: 'courtLatitude',
-                lonInputId: 'courtLongitude',
-                suggestionsId: 'createLocationSuggestions',
-                mapContainerId: 'createMapContainer',
-                mapId: 'createMap',
-                searchUrl: '/geo/search'
+        sportSelect.addEventListener('change', function () {
+            updateMatchType();
+            updateSkill();
+            updateSplitFeeVisibility();
+            sportWarnMatchtype.classList.add('hidden');
+            sportWarnSkill.classList.add('hidden');
+        });
+
+        matchTypeSelect.addEventListener('focus', function () {
+            if (!sportSelected()) sportWarnMatchtype.classList.remove('hidden');
+        });
+        matchTypeCheckboxes.addEventListener('click', function () {
+            if (!sportSelected()) { sportWarnMatchtype.classList.remove('hidden'); return; }
+        });
+        skillSelect.addEventListener('focus', function () {
+            if (!sportSelected()) sportWarnSkill.classList.remove('hidden');
+        });
+        skillBadmintonSection.addEventListener('click', function () {
+            if (!sportSelected()) { sportWarnSkill.classList.remove('hidden'); return; }
+        });
+
+        document.querySelectorAll('.mt-type-cb, .skill-male-cb, .skill-female-cb').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const lbl = this.closest('label');
+                if (lbl) lbl.style.borderColor = this.checked ? '#50A5B1' : '';
             });
         });
 
-        function openDeleteMatchModal() {
-            document.getElementById('deleteMatchModal')?.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+        splitFeeChk.addEventListener('change', function () {
+            isSplitFeeHidden.value = this.checked ? 'true' : 'false';
+            updateSplitFeePreview();
+        });
+        priceVndInput.addEventListener('input', updateSplitFeePreview);
+        maxParticipantsInput.addEventListener('input', updateSplitFeePreview);
+
+        document.getElementById('editMatchForm').addEventListener('submit', function (e) {
+            if (isBadminton()) {
+                const checked = [...document.querySelectorAll('.mt-type-cb:checked')].map(c => c.value);
+                if (checked.length === 0) {
+                    e.preventDefault();
+                    matchTypeErr.classList.remove('hidden');
+                    matchTypeCheckboxes.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                matchTypeErr.classList.add('hidden');
+                matchTypeHidden.value = checked.join(',');
+            } else {
+                matchTypeHidden.value = matchTypeSelect.value;
+            }
+
+            if (isBadminton()) {
+                const male   = [...document.querySelectorAll('.skill-male-cb:checked')].map(c => c.value);
+                const female = [...document.querySelectorAll('.skill-female-cb:checked')].map(c => c.value);
+                const parts  = [];
+                if (male.length > 0)   parts.push('Nam:' + male.join(','));
+                if (female.length > 0) parts.push('Nữ:' + female.join(','));
+                skillRequiredHidden.value = parts.length > 0 ? parts.join('|') : 'Any';
+            } else {
+                skillRequiredHidden.value = skillSelect.value || 'Any';
+            }
+        });
+
+        // Init — populate UI then pre-fill existing values
+        updateMatchType();
+        updateSkill();
+        updateSplitFeeVisibility();
+        prePopulate();
+
+        SportHubLocationPicker.init({
+            addressInputId: 'courtAddressInput',
+            latInputId: 'courtLatitude',
+            lonInputId: 'courtLongitude',
+            suggestionsId: 'createLocationSuggestions',
+            mapContainerId: 'createMapContainer',
+            mapId: 'createMap',
+            searchUrl: '/geo/search'
+        });
+    });
+
+    function openDeleteMatchModal() {
+        document.getElementById('deleteMatchModal')?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDeleteMatchModal() {
+        document.getElementById('deleteMatchModal')?.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    function confirmDeleteMatch() {
+        document.getElementById('editDeleteMatchForm')?.submit();
+    }
+
+    async function generateAiDesc() {
+        const btn = document.getElementById('aiDescBtn');
+        const btnText = document.getElementById('aiDescBtnText');
+        const textarea = document.getElementById('descriptionTextarea');
+
+        const sportEl = document.getElementById('sportSelect');
+        const sportText = sportEl && sportEl.value ? (sportEl.options[sportEl.selectedIndex]?.text || '') : '';
+
+        let typeText = '';
+        const mtCheckboxes = document.getElementById('matchTypeCheckboxes');
+        if (mtCheckboxes && !mtCheckboxes.classList.contains('hidden')) {
+            const checked = [...document.querySelectorAll('.mt-type-cb:checked')].map(c => c.value);
+            typeText = checked.join(', ');
+        } else {
+            const typeEl = document.getElementById('matchTypeSelect');
+            if (typeEl && typeEl.value) typeText = typeEl.options[typeEl.selectedIndex]?.text || '';
         }
-        function closeDeleteMatchModal() {
-            document.getElementById('deleteMatchModal')?.classList.add('hidden');
-            document.body.style.overflow = '';
+
+        let skillText = '';
+        const skillBadmintonSec = document.getElementById('skillBadmintonSection');
+        if (skillBadmintonSec && !skillBadmintonSec.classList.contains('hidden')) {
+            const male = [...document.querySelectorAll('.skill-male-cb:checked')].map(c => c.value);
+            const female = [...document.querySelectorAll('.skill-female-cb:checked')].map(c => c.value);
+            const parts = [];
+            if (male.length) parts.push('Nam ' + male.join('/'));
+            if (female.length) parts.push('Nữ ' + female.join('/'));
+            skillText = parts.join(', ') || 'Mọi trình độ';
+        } else {
+            const skillEl = document.getElementById('skillSelect');
+            if (skillEl && skillEl.value) skillText = skillEl.options[skillEl.selectedIndex]?.text || '';
         }
-        function confirmDeleteMatch() {
-            document.getElementById('editDeleteMatchForm')?.submit();
+
+        const dateVal = document.querySelector('[name="Input.MatchDate"]')?.value || '';
+
+        if (!sportText) { alert('Vui lòng chọn môn thể thao trước khi gợi ý AI.'); return; }
+
+        btnText.textContent = 'Đang tạo...';
+        btn.disabled = true;
+
+        try {
+            const params = new URLSearchParams({ sport: sportText, skill: skillText, type: typeText, date: dateVal });
+            const res = await fetch('/api/chat/match-desc?' + params.toString());
+            if (!res.ok) throw new Error('API error ' + res.status);
+            const data = await res.json();
+            if (data.description) textarea.value = data.description;
+        } catch (e) {
+            alert('Không thể tạo mô tả AI. Vui lòng thử lại.');
+        } finally {
+            btnText.textContent = 'Gợi ý AI';
+            btn.disabled = false;
         }
+    }
     </script>
 }

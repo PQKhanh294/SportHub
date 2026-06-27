@@ -361,12 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-# Local secrets
-appsettings.Development.json
-appsettings.*.json
+# Local secrets — never commit real credentials
 appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.Example.json
 
 # User-uploaded files
 wwwroot/uploads/
-
-appsettings.Production.json

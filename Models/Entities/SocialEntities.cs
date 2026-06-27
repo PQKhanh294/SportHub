@@ -49,6 +49,7 @@ namespace SportHub.Models.Entities
         public string? MatchCardJson { get; set; }
 
         public bool IsRead { get; set; } = false;
+        public DateTime? ReadAt { get; set; }
 
         // Reply / Pin / Delete extensions
         public int? ReplyToMessageID { get; set; }

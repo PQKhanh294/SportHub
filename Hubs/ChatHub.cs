@@ -112,6 +112,30 @@ namespace SportHub.Hubs
             await Clients.Group($"chat:{senderId}").SendAsync("MessageSent", payload);
         }
 
+        // Read receipt: caller marks all messages from senderId as read
+        public async Task MarkMessagesRead(int senderId)
+        {
+            var readerIdStr = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(readerIdStr, out int readerId)) return;
+
+            var now = DateTime.UtcNow;
+            var updated = await _context.ChatMessages
+                .Where(m => m.SenderID == senderId && m.ReceiverID == readerId && !m.IsRead)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(m => m.IsRead, true)
+                    .SetProperty(m => m.ReadAt, now));
+
+            if (updated > 0)
+            {
+                // Notify sender that reader has read messages
+                await Clients.Group($"chat:{senderId}").SendAsync("MessagesRead", new
+                {
+                    readerId,
+                    updatedCount = updated
+                });
+            }
+        }
+
         // ---- Phase 2 Hub methods ----
 
         public async Task TypingStart(int receiverId)
