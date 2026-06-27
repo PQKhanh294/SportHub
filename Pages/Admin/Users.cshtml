@@ -1,7 +1,9 @@
-@page
+﻿@page
 @model SportHub.Pages.Admin.AdminUsersModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Admin — Người dùng";
+    ViewData["Title"] = "Admin — Users";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
     var activeCount   = Model.Users.Count(u => u.IsActive);
     var inactiveCount = Model.Users.Count(u => !u.IsActive);
     var joinedByMonth = Model.Users
@@ -16,8 +18,8 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Người dùng</h1>
-            <p class="text-sm text-slate-500 mt-1">@Model.Users.Count tài khoản</p>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">@(isEn ? "Users" : "Người dùng")</h1>
+            <p class="text-sm text-slate-500 mt-1">@Model.TotalCount @(isEn ? "accounts" : "tài khoản") — @(isEn ? "page" : "trang") @Model.PageNumber/@(Math.Max(1,Model.TotalPages))</p>
         </div>
     </div>
 
@@ -25,26 +27,58 @@
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium">
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-400 font-medium">
             @TempData["SuccessMessage"]
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium">
+        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-md text-rose-700 dark:text-rose-400 font-medium">
             @TempData["ErrorMessage"]
         </div>
     }
 
-    <!-- Search -->
-    <form method="get" class="flex gap-2">
-        <input name="search" value="@Model.Search" placeholder="Tìm theo tên hoặc email..."
-               class="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-4 py-2 text-sm" />
-        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold">Tìm</button>
-        @if (!string.IsNullOrWhiteSpace(Model.Search))
-        {
-            <a asp-page="/Admin/Users" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-semibold">Xóa lọc</a>
-        }
+    <!-- Search + filter -->
+    <form method="get" class="space-y-2">
+        <input type="hidden" name="filterRole" value="@Model.FilterRole" />
+        <input type="hidden" name="filterStatus" value="@Model.FilterStatus" />
+        <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">search</span>
+            <input name="search" value="@Model.Search" placeholder="@(isEn ? "Search by name or email..." : "Tìm theo tên hoặc email...")"
+                   class="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-filterStatus="@Model.FilterStatus"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterRole) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "All roles" : "Tất cả")
+            </a>
+            @foreach (var (role, color, label) in new[] {
+                ("Admin","rose", "Admin"),
+                ("Host","blue", isEn ? "Host" : "Chủ kèo"),
+                ("CourtOwner","purple", isEn ? "CourtOwner" : "Chủ sân"),
+                ("User","slate", isEn ? "Player" : "Người chơi")
+            })
+            {
+                var active = Model.FilterRole == role;
+                <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-filterRole="@role" asp-route-filterStatus="@Model.FilterStatus"
+                   class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(active ? $"bg-{color}-500 text-white border-{color}-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                    @label
+                </a>
+            }
+            <span class="w-px bg-slate-200 dark:bg-slate-700 mx-1"></span>
+            <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-filterRole="@Model.FilterRole"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterStatus) ? "bg-slate-700 text-white border-slate-700" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "All status" : "Tất cả trạng thái")
+            </a>
+            <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-filterRole="@Model.FilterRole" asp-route-filterStatus="active"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(Model.FilterStatus == "active" ? "bg-emerald-500 text-white border-emerald-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "Active" : "Hoạt động")
+            </a>
+            <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-filterRole="@Model.FilterRole" asp-route-filterStatus="banned"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(Model.FilterStatus == "banned" ? "bg-rose-500 text-white border-rose-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "Banned" : "Bị khóa")
+            </a>
+        </div>
     </form>
 
     <!-- Users card list — mobile only -->
@@ -53,7 +87,7 @@
         {
             var mobileRoles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null);
             var mobileAvatar = string.IsNullOrWhiteSpace(user.AvatarUrl) ? "/images/avatar-default.png" : user.AvatarUrl;
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
                 <div class="flex items-center gap-3">
                     <img src="@mobileAvatar" class="size-10 rounded-full object-cover flex-shrink-0" alt="@user.FullName" />
                     <div class="flex-1 min-w-0">
@@ -66,33 +100,33 @@
                                     "CourtOwner" => "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
                                     _            => "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                                 };
-                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold @mrc">@role</span>
+                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold @mrc">@role</span>
                             }
                         </div>
                         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                             <span class="text-xs text-slate-400">#@user.UserID</span>
                             @if (user.IsActive)
                             {
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">Hoạt động</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">Active</span>
                             }
                             else
                             {
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400">Đã khóa</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400">Suspended</span>
                             }
-                            <span class="text-xs font-bold @(user.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@user.WalletBalance.ToString("N0") ₫</span>
+                            <span class="text-xs font-bold @(user.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@user.WalletBalance.ToString("N0") xu</span>
                         </div>
                     </div>
                     <div class="flex flex-col gap-1.5 flex-shrink-0">
                         <form method="post" asp-page-handler="ToggleActive">
                             <input type="hidden" name="userId" value="@user.UserID" />
                             <input type="hidden" name="currentActive" value="@user.IsActive.ToString().ToLower()" />
-                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
-                                @(user.IsActive ? "Khóa" : "Mở khóa")
+                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
+                                @(user.IsActive ? "Suspend" : "Activate")
                             </button>
                         </form>
                         <button type="button" onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
-                                class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
-                            + Ví
+                                class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
+                            + Credit
                         </button>
                     </div>
                 </div>
@@ -101,18 +135,18 @@
     </div>
 
     <!-- Users table — desktop only -->
-    <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800 text-xs text-slate-500 uppercase tracking-wider">
                     <tr>
-                        <th class="px-4 py-3 text-left">Người dùng</th>
+                        <th class="px-4 py-3 text-left">@(isEn ? "User" : "Người dùng")</th>
                         <th class="px-4 py-3 text-left">Email</th>
-                        <th class="px-4 py-3 text-left">Vai trò</th>
-                        <th class="px-4 py-3 text-right">Số dư ví</th>
-                        <th class="px-4 py-3 text-left">Ngày tham gia</th>
-                        <th class="px-4 py-3 text-center">Trạng thái</th>
-                        <th class="px-4 py-3 text-center">Hành động</th>
+                        <th class="px-4 py-3 text-left">@(isEn ? "Role" : "Vai trò")</th>
+                        <th class="px-4 py-3 text-right">@(isEn ? "Wallet Balance" : "Số dư ví")</th>
+                        <th class="px-4 py-3 text-left">@(isEn ? "Joined" : "Ngày tham gia")</th>
+                        <th class="px-4 py-3 text-center">@(isEn ? "Status" : "Trạng thái")</th>
+                        <th class="px-4 py-3 text-center">@(isEn ? "Actions" : "Thao tác")</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -124,10 +158,10 @@
                             : user.AvatarUrl;
                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td class="px-4 py-3">
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 min-w-0">
                                     <img src="@avatarUrl" class="size-8 rounded-full object-cover flex-shrink-0" alt="@user.FullName" />
-                                    <div>
-                                        <p class="font-semibold text-slate-900 dark:text-white">@user.FullName</p>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-slate-900 dark:text-white truncate">@user.FullName</p>
                                         <p class="text-xs text-slate-400">#@user.UserID</p>
                                     </div>
                                 </div>
@@ -141,21 +175,21 @@
                                         "CourtOwner" => "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
                                         _            => "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                                     };
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold @roleColor">@role</span>
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold @roleColor">@role</span>
                                 }
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <span class="text-sm font-bold @(user.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@user.WalletBalance.ToString("N0") ₫</span>
+                                <span class="text-sm font-bold @(user.WalletBalance > 0 ? "text-emerald-600" : "text-slate-400")">@user.WalletBalance.ToString("N0") xu</span>
                             </td>
                             <td class="px-4 py-3 text-slate-500 text-xs">@user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
                             <td class="px-4 py-3 text-center">
                                 @if (user.IsActive)
                                 {
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">Hoạt động</span>
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">@(isEn ? "Active" : "Hoạt động")</span>
                                 }
                                 else
                                 {
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400">Đã khóa</span>
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400">@(isEn ? "Suspended" : "Bị khóa")</span>
                                 }
                             </td>
                             <td class="px-4 py-3 text-center">
@@ -164,13 +198,13 @@
                                         <input type="hidden" name="userId" value="@user.UserID" />
                                         <input type="hidden" name="currentActive" value="@user.IsActive.ToString().ToLower()" />
                                         <button type="submit"
-                                                class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
-                                            @(user.IsActive ? "Khóa" : "Mở khóa")
+                                                class="px-3 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
+                                            @(user.IsActive ? "Suspend" : "Activate")
                                         </button>
                                     </form>
                                     <button type="button" onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
-                                            class="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
-                                        + Ví
+                                            class="px-3 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
+                                        + Credit
                                     </button>
                                 </div>
                             </td>
@@ -180,66 +214,80 @@
             </table>
         </div>
     </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="flex items-center justify-center gap-1">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                var isActive = i == Model.PageNumber;
+                <a asp-page="/Admin/Users" asp-route-search="@Model.Search" asp-route-PageNumber="@i"
+                   class="@(isActive ? "bg-primary text-white" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary") w-9 h-9 rounded-md text-sm font-semibold flex items-center justify-center transition-colors">
+                    @i
+                </a>
+            }
+        </div>
+    }
 </div>
 
 <!-- Credit Wallet Modal -->
 <div id="creditModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Cộng tiền vào ví</h3>
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-sm mx-4 p-6">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">@(isEn ? "Add wallet credit" : "Nạp tiền ví")</h3>
         <p id="creditModalName" class="text-sm text-slate-500 mb-4"></p>
         <form method="post" asp-page-handler="CreditWallet">
             <input type="hidden" name="userId" id="creditUserId" />
             <div class="space-y-3">
                 <div>
-                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Số tiền (VND)</label>
-                    <input type="number" name="amount" min="1000" step="1000" required placeholder="vd: 10000"
-                           class="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Amount (xu)</label>
+                    <input type="number" name="amount" min="1000" step="1000" required placeholder="e.g. 10000"
+                           class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
                 </div>
                 <div>
-                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Lý do</label>
-                    <input type="text" name="description" placeholder="vd: Hoàn tiền cọc trận #5"
-                           class="w-full rounded-lg border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Reason</label>
+                    <input type="text" name="description" placeholder="e.g. Refund for match #5"
+                           class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
                 </div>
             </div>
             <div class="flex gap-2 mt-4">
-                <button type="submit" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-colors">Xác nhận</button>
+                <button type="submit" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-semibold transition-colors">Confirm</button>
                 <button type="button" onclick="document.getElementById('creditModal').classList.add('hidden')"
-                        class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold">Hủy</button>
+                        class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-sm font-semibold">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Users chart section -->
-<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
     <button onclick="toggleAdminChart('users-chart-section', this)" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
         <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
             <span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span>
-            Biểu đồ người dùng
+            User chart
         </div>
         <span class="material-symbols-outlined text-slate-400 text-[18px] chart-chevron">expand_more</span>
     </button>
     <div id="users-chart-section" class="hidden px-5 pb-5">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
             <div>
-                <p class="text-xs text-slate-500 mb-3 font-semibold uppercase">Tình trạng tài khoản</p>
+                <p class="text-xs text-slate-500 mb-3 font-semibold uppercase">@(isEn ? "Account status" : "Trạng thái tài khoản")</p>
                 <div style="height:180px;position:relative">
                     <canvas id="usersStatusChart"></canvas>
                 </div>
             </div>
             <div>
-                <p class="text-xs text-slate-500 mb-3 font-semibold uppercase">Đăng ký 6 tháng gần nhất</p>
+                <p class="text-xs text-slate-500 mb-3 font-semibold uppercase">@(isEn ? "Signups — last 6 months" : "Đăng ký — 6 tháng qua")</p>
                 <div style="height:180px;position:relative">
                     <canvas id="usersJoinChart"></canvas>
                 </div>
             </div>
         </div>
         <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <button onclick="loadAiInsight('users', '@Model.Users.Count', '@activeCount', '@inactiveCount', '')" class="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+            <button onclick="loadAiInsight('users', '@Model.Users.Count', '@activeCount', '@inactiveCount', '')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/5 hover:bg-primary/10 rounded-md transition-colors">
+                <span class="material-symbols-outlined text-[15px]">auto_awesome</span>
                 Phân tích AI
             </button>
-            <div id="ai-insight-users" class="hidden mt-2 p-3 bg-primary/5 rounded-lg text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></div>
+            <div id="ai-insight-users" class="hidden mt-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-xs text-slate-600 dark:text-slate-400 leading-relaxed"></div>
         </div>
     </div>
 </div>
@@ -267,13 +315,13 @@ function initUsersCharts() {
     var ctx1 = document.getElementById('usersStatusChart');
     if (ctx1) new Chart(ctx1, {
         type: 'doughnut',
-        data: { labels: ['Hoạt động', 'Bị khóa'], datasets: [{ data: [@activeCount, @inactiveCount], backgroundColor: ['#10b981','#ef4444'], borderWidth: 0 }] },
+        data: { labels: ['Active', 'Suspended'], datasets: [{ data: [@activeCount, @inactiveCount], backgroundColor: ['#10b981','#ef4444'], borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '55%' }
     });
     var ctx2 = document.getElementById('usersJoinChart');
     if (ctx2) new Chart(ctx2, {
         type: 'bar',
-        data: { labels: [@Html.Raw(monthLabels)], datasets: [{ label: 'Đăng ký', data: [@Html.Raw(monthCounts)], backgroundColor: '#50A5B1', borderRadius: 6 }] },
+        data: { labels: [@Html.Raw(monthLabels)], datasets: [{ label: 'Registrations', data: [@Html.Raw(monthCounts)], backgroundColor: '#50A5B1', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
     });
 }

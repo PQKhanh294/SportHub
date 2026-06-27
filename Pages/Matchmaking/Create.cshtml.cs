@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -221,7 +221,7 @@ namespace SportHub.Pages.Matchmaking
             var matchId = await _matchService.CreateMatchAsync(match, userId, Input.HostJoins);
             await _matchPaymentService.CreateHostDepositAsync(matchId, userId);
             await _subscriptionService.RecordCreateAsync(userId);
-            TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} VND để đăng trận.";
+            TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} xu để đăng trận.";
             return RedirectToPage("/Matchmaking/Payment", new { matchId, type = "deposit" });
         }
 

@@ -51,6 +51,68 @@ namespace SportHub.Services.Implementations
                 .ToListAsync();
         }
 
+        public async Task<(int Distributed, int Skipped)> DistributeManualCampaignAsync(int campaignId, int adminId)
+        {
+            var campaign = await _context.PromotionCampaigns.FindAsync(campaignId);
+            if (campaign == null || !campaign.IsActive || campaign.TriggerType != "Manual")
+                return (0, 0);
+
+            var adminIds = await _context.UserRoles
+                .Where(ur => ur.Role.RoleName == "Admin")
+                .Select(ur => ur.UserID)
+                .ToListAsync();
+
+            var users = await _context.Users
+                .Where(u => u.IsActive && !u.IsBanned && !adminIds.Contains(u.UserID))
+                .ToListAsync();
+
+            int distributed = 0, skipped = 0;
+            foreach (var user in users)
+            {
+                if (campaign.MaxRedemptions.HasValue && campaign.RedemptionCount >= campaign.MaxRedemptions)
+                    break;
+
+                if (!await CheckScopeBasicAsync(user, campaign.ApplicableScope)) { skipped++; continue; }
+
+                var alreadyReceived = await _context.PromotionRedemptions
+                    .AnyAsync(r => r.UserID == user.UserID && r.CampaignID == campaignId
+                              && r.PromoCodeID == null && r.VoucherID == null);
+                if (alreadyReceived) { skipped++; continue; }
+
+                await CreditCampaignAsync(user.UserID, campaign, "Thưởng từ admin");
+                distributed++;
+            }
+
+            return (distributed, skipped);
+        }
+
+        public async Task<int> GetEligibleUserCountAsync(int campaignId)
+        {
+            var campaign = await _context.PromotionCampaigns.FindAsync(campaignId);
+            if (campaign == null || !campaign.IsActive) return 0;
+
+            var adminIds = await _context.UserRoles
+                .Where(ur => ur.Role.RoleName == "Admin")
+                .Select(ur => ur.UserID)
+                .ToListAsync();
+
+            var users = await _context.Users
+                .Where(u => u.IsActive && !u.IsBanned && !adminIds.Contains(u.UserID))
+                .ToListAsync();
+
+            int count = 0;
+            foreach (var user in users)
+            {
+                if (campaign.MaxRedemptions.HasValue && count >= campaign.MaxRedemptions) break;
+                if (!await CheckScopeBasicAsync(user, campaign.ApplicableScope)) continue;
+                var alreadyReceived = await _context.PromotionRedemptions
+                    .AnyAsync(r => r.UserID == user.UserID && r.CampaignID == campaignId
+                              && r.PromoCodeID == null && r.VoucherID == null);
+                if (!alreadyReceived) count++;
+            }
+            return count;
+        }
+
         public async Task SetCampaignActiveAsync(int campaignId, bool active)
         {
             var campaign = await _context.PromotionCampaigns.FindAsync(campaignId);
@@ -265,29 +327,50 @@ namespace SportHub.Services.Implementations
                 .Include(p => p.Campaign)
                 .FirstAsync(p => p.Code == code.Trim().ToUpper());
 
-            promo.UseCount++;
+            // Atomic UseCount increment — 0 rows = code ran out under concurrent load
+            var incremented = await _context.PromoCodes
+                .Where(p => p.PromoCodeID == promo.PromoCodeID
+                         && (p.MaxUses == null || p.UseCount < p.MaxUses))
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.UseCount, p => p.UseCount + 1));
+
+            if (incremented == 0)
+                return new RedeemResult(false, "Mã đã hết lượt dùng.", 0);
+
             if (promo.Campaign.MaxRedemptions.HasValue)
-                promo.Campaign.RedemptionCount++;
+                await _context.PromotionCampaigns
+                    .Where(c => c.CampaignID == promo.CampaignID)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.RedemptionCount, c => c.RedemptionCount + 1));
 
-            await _walletService.CreditAsync(userId, promo.Campaign.Amount,
-                $"Mã khuyến mãi {promo.Code} — {promo.Campaign.Name}", type: "Promotion");
-
-            var tx = await _context.WalletTransactions
-                .Where(wt => wt.UserID == userId)
-                .OrderByDescending(wt => wt.CreatedAt)
-                .FirstOrDefaultAsync();
-
+            // Insert redemption BEFORE crediting — DB unique index UX_Redemptions_User_PromoCode
+            // catches the double-claim race condition at DB level
             _context.PromotionRedemptions.Add(new PromotionRedemption
             {
                 UserID = userId,
                 CampaignID = promo.CampaignID,
                 PromoCodeID = promo.PromoCodeID,
                 AmountCredited = promo.Campaign.Amount,
-                WalletTransactionID = tx?.WalletTransactionID,
                 Note = promo.Code,
                 RedeemedAt = DateTime.UtcNow
             });
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException?.Message?.Contains("UX_Redemptions_User_PromoCode") == true
+                   || ex.InnerException?.Message?.Contains("Cannot insert duplicate") == true)
+            {
+                // Concurrent double-claim: roll back UseCount we just incremented
+                await _context.PromoCodes
+                    .Where(p => p.PromoCodeID == promo.PromoCodeID)
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.UseCount, p => p.UseCount - 1));
+                return new RedeemResult(false, "Mã đã được sử dụng rồi.", 0);
+            }
+
+            // Credit wallet after redemption record committed
+            await _walletService.CreditAsync(userId, promo.Campaign.Amount,
+                $"Mã khuyến mãi {promo.Code} — {promo.Campaign.Name}", type: "Promotion");
 
             await _notificationService.CreateAsync(
                 userId,

@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Matchmaking.PaymentModel
 @{
     ViewData["Title"] = "Thanh toán";
@@ -8,20 +8,20 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="max-w-lg mx-auto mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium">
+    <div class="max-w-lg mx-auto mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-400 font-medium">
         @TempData["SuccessMessage"]
     </div>
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="max-w-lg mx-auto mb-4 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium">
+    <div class="max-w-lg mx-auto mb-4 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-md text-rose-700 dark:text-rose-400 font-medium">
         @TempData["ErrorMessage"]
     </div>
 }
 
 @if (item == null)
 {
-    <section class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
+    <section class="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
         <p class="text-slate-500">Không tìm thấy thông tin thanh toán.</p>
         <a asp-page="/Matchmaking/Index" class="mt-4 inline-block text-primary font-bold hover:underline">← Quay lại</a>
     </section>
@@ -31,7 +31,7 @@ else
 <div class="max-w-lg mx-auto space-y-6">
 
     <!-- Header -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
         <div class="flex items-center gap-3 mb-4">
             <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <span class="material-symbols-outlined text-primary">payments</span>
@@ -42,9 +42,9 @@ else
             </div>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+        <div class="flex items-center justify-between p-4 bg-primary/5 rounded-md border border-primary/20">
             <span class="text-slate-600 dark:text-slate-300 font-medium">Số tiền cần thanh toán</span>
-            <span class="text-2xl font-black text-primary">@item.Amount.ToString("N0") VND</span>
+            <span class="text-2xl font-black text-primary">@item.Amount.ToString("N0") xu</span>
         </div>
 
         @if (item.Deadline.HasValue)
@@ -52,7 +52,7 @@ else
             var deadline = item.Deadline.Value.ToLocalTime();
             var remaining = deadline - DateTime.Now;
             var urgent = remaining.TotalMinutes < 15;
-            <div class="mt-3 flex items-center gap-2 p-3 rounded-lg @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800")">
+            <div class="mt-3 flex items-center gap-2 p-3 rounded-md @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800")">
                 <span class="material-symbols-outlined text-sm @(urgent ? "text-rose-500" : "text-amber-500")">timer</span>
                 <span class="text-sm @(urgent ? "text-rose-700 dark:text-rose-400" : "text-amber-700 dark:text-amber-400") font-medium">
                     Hạn thanh toán: @deadline.ToString("HH:mm dd/MM/yyyy")
@@ -70,15 +70,15 @@ else
     </div>
 
     <!-- Payment method tabs -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <!-- Tab switcher -->
         <div class="flex border-b border-slate-200 dark:border-slate-700">
             <button id="tab-wallet" onclick="switchTab('wallet')"
                     class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold border-b-2 transition-colors tab-btn tab-active">
                 <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
                 Ví SportHub
-                <span class="text-xs px-2 py-0.5 rounded-full @(canPayFromWallet ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400")">
-                    @Model.WalletBalance.ToString("N0") ₫
+                <span class="text-xs px-2 py-0.5 rounded-md @(canPayFromWallet ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400")">
+                    @Model.WalletBalance.ToString("N0") xu
                 </span>
             </button>
             <button id="tab-qr" onclick="switchTab('qr')"
@@ -92,13 +92,13 @@ else
         <div id="panel-wallet" class="p-6">
             @if (canPayFromWallet)
             {
-                <div class="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5">
+                <div class="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md mb-5">
                     <span class="material-symbols-outlined text-3xl text-emerald-500">account_balance_wallet</span>
                     <div>
                         <p class="text-sm text-emerald-700 dark:text-emerald-400">Số dư ví của bạn</p>
-                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">@Model.WalletBalance.ToString("N0") VND</p>
+                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">@Model.WalletBalance.ToString("N0") xu</p>
                         <p class="text-xs text-emerald-600 dark:text-emerald-500 mt-0.5">
-                            Sau thanh toán còn: <span class="font-bold">@((Model.WalletBalance - item.Amount).ToString("N0")) VND</span>
+                            Sau thanh toán còn: <span class="font-bold">@((Model.WalletBalance - item.Amount).ToString("N0")) xu</span>
                         </p>
                     </div>
                 </div>
@@ -106,9 +106,9 @@ else
                     <input type="hidden" name="matchId" value="@item.MatchId" />
                     <input type="hidden" name="type" value="@item.PaymentType" />
                     <button type="submit"
-                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
+                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-md transition-colors flex items-center justify-center gap-2 shadow-md">
                         <span class="material-symbols-outlined">bolt</span>
-                        Thanh toán ngay @item.Amount.ToString("N0") VND từ ví
+                        Thanh toán ngay @item.Amount.ToString("N0") xu từ ví
                     </button>
                 </form>
                 <p class="text-xs text-slate-400 text-center mt-3">Xác nhận tức thì, không cần chờ admin duyệt.</p>
@@ -116,20 +116,20 @@ else
             else
             {
                 var shortfall = item.Amount - Model.WalletBalance;
-                <div class="flex items-center gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl mb-5">
+                <div class="flex items-center gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md mb-5">
                     <span class="material-symbols-outlined text-3xl text-amber-500">account_balance_wallet</span>
                     <div>
                         <p class="text-sm text-amber-700 dark:text-amber-400">Số dư ví hiện tại</p>
-                        <p class="text-2xl font-black text-amber-600 dark:text-amber-400">@Model.WalletBalance.ToString("N0") VND</p>
+                        <p class="text-2xl font-black text-amber-600 dark:text-amber-400">@Model.WalletBalance.ToString("N0") xu</p>
                         <p class="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
-                            Cần nạp thêm: <span class="font-bold">@shortfall.ToString("N0") VND</span>
+                            Cần nạp thêm: <span class="font-bold">@shortfall.ToString("N0") xu</span>
                         </p>
                     </div>
                 </div>
                 <a href="/Wallet/TopUp"
-                   class="w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
+                   class="w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-md transition-colors flex items-center justify-center gap-2 shadow-md">
                     <span class="material-symbols-outlined">add_card</span>
-                    Nạp thêm @shortfall.ToString("N0") VND vào ví
+                    Nạp thêm @shortfall.ToString("N0") xu vào ví
                 </a>
                 <p class="text-xs text-slate-400 text-center mt-3">Hoặc chọn tab <strong>Chuyển khoản QR</strong> để thanh toán trực tiếp.</p>
             }
@@ -138,7 +138,7 @@ else
         <!-- QR tab content -->
         <div id="panel-qr" class="p-6 hidden">
             <div class="text-center mb-4">
-                <div class="inline-flex p-3 bg-white rounded-2xl shadow-md border border-slate-100">
+                <div class="inline-flex p-3 bg-white rounded-md shadow-md border border-slate-100">
                     <img src="@item.QrUrl" alt="VietQR" class="w-52 h-52 object-contain"
                          onerror="this.style.display='none';document.getElementById('qr-fallback').style.display='flex'" />
                     <div id="qr-fallback" class="w-52 h-52 hidden flex-col items-center justify-center text-slate-400 text-sm gap-2">
@@ -149,11 +149,11 @@ else
             </div>
 
             <div class="space-y-2 text-sm">
-                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                     <span class="text-slate-500">Ngân hàng</span>
                     <span class="font-bold text-slate-900 dark:text-white">@item.BankDisplayName</span>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                     <span class="text-slate-500">Số tài khoản</span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold font-mono text-slate-900 dark:text-white" id="accountNo">@item.AccountNumber</span>
@@ -162,17 +162,17 @@ else
                         </button>
                     </div>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                     <span class="text-slate-500">Tên tài khoản</span>
                     <span class="font-bold text-slate-900 dark:text-white">@item.AccountName</span>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                     <span class="text-slate-500">Số tiền</span>
-                    <span class="font-bold text-primary">@item.Amount.ToString("N0") VND</span>
+                    <span class="font-bold text-primary">@item.Amount.ToString("N0") xu</span>
                 </div>
                 @if (!string.IsNullOrWhiteSpace(item.TransactionRef))
                 {
-                    <div class="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <div class="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
                         <span class="text-slate-500">Nội dung CK</span>
                         <div class="flex items-center gap-2">
                             <span class="font-bold font-mono text-amber-700 dark:text-amber-400 text-xs" id="txRef">@item.TransactionRef</span>
@@ -196,7 +196,7 @@ else
 
                 @if (item.AlreadySubmitted)
                 {
-                    <div class="mb-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
+                    <div class="mb-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md flex items-center gap-3">
                         <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
                         <p class="text-sm text-emerald-700 dark:text-emerald-400 flex-1">Biên lai đã tải lên — đang chờ admin xác nhận.</p>
                         <a href="@item.ExistingReceiptUrl" target="_blank" class="text-xs text-primary hover:underline font-medium">Xem</a>
@@ -206,7 +206,7 @@ else
                 <form method="post" asp-page-handler="UploadReceipt" enctype="multipart/form-data">
                     <input type="hidden" name="matchId" value="@item.MatchId" />
                     <input type="hidden" name="type" value="@item.PaymentType" />
-                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-5 text-center cursor-pointer hover:border-primary transition-colors"
+                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-md p-5 text-center cursor-pointer hover:border-primary transition-colors"
                          onclick="document.getElementById('receiptFile').click()">
                         <span class="material-symbols-outlined text-3xl text-slate-300 block mb-1">add_photo_alternate</span>
                         <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Nhấn để chọn biên lai</p>
@@ -217,7 +217,7 @@ else
                            accept=".jpg,.jpeg,.png,.webp,.pdf" class="hidden"
                            onchange="onFileChosen(this)" />
                     <button type="submit"
-                            class="mt-3 w-full py-2.5 bg-slate-700 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+                            class="mt-3 w-full py-2.5 bg-slate-700 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-md transition-colors flex items-center justify-center gap-2 text-sm">
                         <span class="material-symbols-outlined text-sm">send</span>
                         @(item.AlreadySubmitted ? "Cập nhật biên lai" : "Gửi biên lai xét duyệt")
                     </button>
@@ -228,7 +228,7 @@ else
 
     <!-- Back link -->
     <a asp-page="/Matchmaking/Details" asp-route-id="@item.MatchId"
-       class="w-full py-2 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400">
+       class="w-full py-2 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-md transition-all text-sm flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400">
         <span class="material-symbols-outlined text-sm">arrow_back</span>
         Quay lại chi tiết trận
     </a>

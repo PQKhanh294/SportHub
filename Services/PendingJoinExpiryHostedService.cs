@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -62,7 +62,7 @@ namespace SportHub.Services
                     p.PayerUserID,
                     "RemainingFeeReminder",
                     "Nhắc nhở: còn 24h để nộp phí còn lại",
-                    $"Trận \"{title}\" — còn 24 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} VND.",
+                    $"Trận \"{title}\" — còn 24 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu.",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
                 p.ReminderSentAt = now;
             }
@@ -74,7 +74,7 @@ namespace SportHub.Services
                     p.PayerUserID,
                     "RemainingFeeReminder",
                     "Khẩn: còn ít hơn 4h nộp phí còn lại!",
-                    $"Trận \"{title}\" — còn ít hơn 4 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} VND. Hãy nộp ngay!",
+                    $"Trận \"{title}\" — còn ít hơn 4 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu. Hãy nộp ngay!",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
                 p.ReminderSentAt = now;
             }
@@ -138,7 +138,7 @@ namespace SportHub.Services
                                 match.CreatedByUserID,
                                 "WalletCredit",
                                 "Hoàn tiền đặt cọc",
-                                $"Trận \"{matchTitle}\" kết thúc mà không có người tham gia. {deposit.Amount:N0} VND đã được hoàn vào ví.",
+                                $"Trận \"{matchTitle}\" kết thúc mà không có người tham gia. {deposit.Amount:N0} xu đã được hoàn vào ví.",
                                 "/Wallet");
 
                             _logger.LogInformation("Refunded {Amount} to host {HostId} for empty match {MatchId}.",
@@ -213,7 +213,7 @@ namespace SportHub.Services
                             item.UserId,
                             "MatchJoinExpired",
                             "Hết hạn thanh toán phí tham gia",
-                            $"Bạn không thanh toán phí 5,000 VND đúng hạn. Chỗ tại trận \"{item.MatchTitle}\" đã bị hủy.",
+                            $"Bạn không thanh toán phí 5,000 xu đúng hạn. Chỗ tại trận \"{item.MatchTitle}\" đã bị hủy.",
                             $"/Matchmaking/Details?id={item.MatchId}");
                     }
                     if (expiredFees.Count > 0)
@@ -227,7 +227,7 @@ namespace SportHub.Services
                             hostUserId,
                             "MatchRemainingFeeRequired",
                             "Trận đã bắt đầu — hoàn thành phí còn lại",
-                            $"Trận \"{matchTitle}\" đã bắt đầu. Vui lòng hoàn thành {remaining:N0} VND phí dịch vụ còn lại.",
+                            $"Trận \"{matchTitle}\" đã bắt đầu. Vui lòng hoàn thành {remaining:N0} xu phí dịch vụ còn lại.",
                             $"/Matchmaking/Payment?matchId={matchId}&type=remaining");
                     }
                     if (remainingFeeMatches.Count > 0)

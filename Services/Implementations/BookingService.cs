@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
 
@@ -57,7 +57,7 @@ namespace SportHub.Services.Implementations
                 foreach (var slotId in slotIds)
                 {
                     var price = pricingRules.FirstOrDefault(p => p.SlotID == slotId && p.DayType == currentDayType)?.UnitPrice ?? 100000;
-                    Console.WriteLine($"{dbg}   Slot {slotId} → giá {price:N0} VND ({(pricingRules.Any(p => p.SlotID == slotId) ? "có rule" : "dùng default")})");
+                    Console.WriteLine($"{dbg}   Slot {slotId} → giá {price:N0} xu ({(pricingRules.Any(p => p.SlotID == slotId) ? "có rule" : "dùng default")})");
                     totalAmount += price;
                     
                     createdBookingSlots.Add(new BookingSlot
@@ -66,7 +66,7 @@ namespace SportHub.Services.Implementations
                         UnitPrice = price
                     });
                 }
-                Console.WriteLine($"{dbg}   TotalAmount = {totalAmount:N0} VND");
+                Console.WriteLine($"{dbg}   TotalAmount = {totalAmount:N0} xu");
 
                 // Bước 4: Tạo Booking
                 Console.WriteLine($"{dbg} BƯỚC 4: Tạo Booking entity...");

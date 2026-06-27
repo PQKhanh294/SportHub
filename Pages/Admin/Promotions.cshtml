@@ -1,88 +1,158 @@
-@page
+﻿@page
 @model SportHub.Pages.Admin.PromotionsModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Quản lý Khuyến mãi";
+    ViewData["Title"] = "Admin — Promotions";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="space-y-5">
     <partial name="_AdminNav" />
 
-    <div>
-        <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Quản lý Khuyến mãi</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Tạo chiến dịch, mã chia sẻ và theo dõi lịch sử phát thưởng.</p>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">@(isEn ? "Promotions" : "Khuyến mãi")</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">@(isEn ? "Create campaigns, share codes, and track reward history." : "Tạo chiến dịch, mã chia sẻ và theo dõi lịch sử phần thưởng.")</p>
+        </div>
+        <button type="button" onclick="document.getElementById('promoGuideModal').classList.remove('hidden')"
+                class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-sm rounded-md transition-colors">
+            <span class="material-symbols-outlined text-sm">help</span>
+            @(isEn ? "Campaign guide" : "Hướng dẫn chiến dịch")
+        </button>
+    </div>
+
+    <!-- Guide Modal -->
+    <div id="promoGuideModal" class="hidden fixed inset-0 z-[1200] bg-black/50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl max-w-lg w-full p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between">
+                <h2 class="font-black text-slate-900 dark:text-white text-lg">How to create a promotion campaign</h2>
+                <button onclick="document.getElementById('promoGuideModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                    <p class="font-bold text-amber-700 dark:text-amber-400 mb-1">🎁 Manual (admin grants directly)</p>
+                    <p>Admin clicks <strong>"Distribute now"</strong> to reward all eligible users. Good for events, platform anniversaries, etc.</p>
+                </div>
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                    <p class="font-bold text-blue-700 dark:text-blue-400 mb-1">🆕 First login</p>
+                    <p>Auto-triggered when a new user registers. Granted only once. Ideal as a welcome reward for new users.</p>
+                </div>
+                <div class="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-md border border-rose-200 dark:border-rose-800">
+                    <p class="font-bold text-rose-700 dark:text-rose-400 mb-1">🎂 Birthday</p>
+                    <p>Auto-triggered on the user's birthday. Requires the user to have a birth date set in their profile.</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                    <p class="font-bold text-green-700 dark:text-green-400 mb-1">🎟 Share code</p>
+                    <p>Create codes users can enter manually in their wallet. Can limit usage count and expiry.</p>
+                </div>
+                <div class="border-t border-slate-200 dark:border-slate-700 pt-3 space-y-1 text-xs text-slate-500">
+                    <p><strong>Scope:</strong> "All" = every user | "Host only" = users who created at least 1 match | "Player only" = users who joined at least 1 match</p>
+                    <p><strong>Limit:</strong> Leave blank = no total usage cap for the campaign</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium text-sm">@TempData["SuccessMessage"]</div>
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-400 font-medium text-sm">@TempData["SuccessMessage"]</div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 font-medium text-sm">@TempData["ErrorMessage"]</div>
+        <div class="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-md text-rose-700 dark:text-rose-400 font-medium text-sm">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["DistributeResult"] != null)
+    {
+        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md text-amber-700 dark:text-amber-400 font-medium text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">task_alt</span>@TempData["DistributeResult"]
+        </div>
     }
 
     <!-- Tab Nav -->
     <div class="flex gap-2 border-b border-slate-200 dark:border-slate-700">
         <a asp-page="/Admin/Promotions" asp-route-ActiveTab="campaigns"
            class="pb-2 px-1 text-sm font-semibold border-b-2 transition-colors @(Model.ActiveTab == "campaigns" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
-            Chiến dịch (@Model.Campaigns.Count)
+            @(isEn ? "Campaigns" : "Chiến dịch") (@Model.Campaigns.Count)
         </a>
         <a asp-page="/Admin/Promotions" asp-route-ActiveTab="codes"
            class="pb-2 px-1 text-sm font-semibold border-b-2 transition-colors @(Model.ActiveTab == "codes" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
-            Mã chia sẻ
+            @(isEn ? "Share codes" : "Mã chia sẻ")
         </a>
         <a asp-page="/Admin/Promotions" asp-route-ActiveTab="history"
            class="pb-2 px-1 text-sm font-semibold border-b-2 transition-colors @(Model.ActiveTab == "history" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
-            Lịch sử phát thưởng
+            @(isEn ? "Reward history" : "Lịch sử phần thưởng")
         </a>
     </div>
 
     @* ── Tab 1: Campaigns ─────────────────────────────────────────── *@
     @if (Model.ActiveTab == "campaigns")
     {
+        <!-- Trigger type filter -->
+        <div class="flex flex-wrap gap-2">
+            <a asp-page="/Admin/Promotions" asp-route-activeTab="campaigns"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterTrigger) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "All types" : "Tất cả") (@Model.Campaigns.Count)
+            </a>
+            @foreach (var (ttype, tcolor, tlabel) in new[] {
+                ("Manual",     "amber",   isEn ? "Manual" : "Thủ công"),
+                ("FirstLogin", "emerald", isEn ? "First login" : "Đăng ký mới"),
+                ("Birthday",   "rose",    isEn ? "Birthday" : "Sinh nhật"),
+                ("ShareCode",  "blue",    isEn ? "Share code" : "Mã chia sẻ")
+            })
+            {
+                var tActive = Model.FilterTrigger == ttype;
+                <a asp-page="/Admin/Promotions" asp-route-activeTab="campaigns" asp-route-filterTrigger="@(tActive ? null : ttype)"
+                   class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(tActive ? $"bg-{tcolor}-500 text-white border-{tcolor}-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                    @tlabel
+                </a>
+            }
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <!-- Campaign list -->
             <div class="lg:col-span-2 space-y-3">
                 @if (!Model.Campaigns.Any())
                 {
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-10 text-center">
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-10 text-center">
                         <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">campaign</span>
-                        <p class="text-slate-400 text-sm">Chưa có chiến dịch nào. Tạo chiến dịch đầu tiên bên phải.</p>
+                        <p class="text-slate-400 text-sm">@(isEn ? "No campaigns yet. Create your first campaign on the right." : "Chưa có chiến dịch nào. Tạo chiến dịch đầu tiên ở bên phải.")</p>
                     </div>
                 }
                 @foreach (var c in Model.Campaigns)
                 {
                     var triggerLabel = c.TriggerType switch {
-                        "Manual" => "Thủ công",
-                        "FirstLogin" => "Đăng nhập lần đầu",
-                        "Birthday" => "Sinh nhật",
-                        "WomensDay" => "8/3 Phụ nữ",
-                        "MensDay" => "19/11 Nam giới",
-                        "PromoCode" => "Mã chia sẻ",
-                        "PersonalVoucher" => "Voucher cá nhân",
+                        "Manual" => "Manual",
+                        "FirstLogin" => "First login",
+                        "Birthday" => "Birthday",
+                        "WomensDay" => "Women's Day 8/3",
+                        "MensDay" => "Men's Day 19/11",
+                        "PromoCode" => "Share code",
+                        "PersonalVoucher" => "Personal voucher",
                         _ => c.TriggerType
                     };
                     var scopeLabel = c.ApplicableScope switch {
-                        "All" => "Tất cả",
-                        "HostOnly" => "Chỉ Host",
-                        "Gender:F" => "Nữ",
-                        "Gender:M" => "Nam",
-                        "NewUser" => "Người mới",
+                        "All" => "All users",
+                        "HostOnly" => "Host only",
+                        "Gender:F" => "Female",
+                        "Gender:M" => "Male",
+                        "NewUser" => "New users",
                         _ => c.ApplicableScope
                     };
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm p-4">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="font-bold text-slate-800 dark:text-slate-200">@c.Name</h3>
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">@triggerLabel</span>
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">@triggerLabel</span>
                                     @if (c.IsActive)
                                     {
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Đang bật</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Active</span>
                                     }
                                     else
                                     {
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-500">Đã tắt</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-500">Disabled</span>
                                     }
                                 </div>
                                 @if (!string.IsNullOrEmpty(c.Description))
@@ -91,11 +161,21 @@
                                 }
                                 <div class="flex items-center gap-4 mt-2 text-xs text-slate-500 flex-wrap">
                                     <span class="font-bold text-emerald-600 dark:text-emerald-400">+@c.Amount.ToString("N0")đ</span>
-                                    <span>Phạm vi: @scopeLabel</span>
-                                    <span>Đã dùng: @c.RedemptionCount@(c.MaxRedemptions.HasValue ? $"/{c.MaxRedemptions}" : "") lượt</span>
+                                    <span class="flex items-center gap-1">
+                                        Scope: @scopeLabel
+                                        <span class="relative group cursor-help">
+                                            <span class="material-symbols-outlined text-[13px] text-slate-400">info</span>
+                                            <span class="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 hidden group-hover:block bg-slate-800 text-white text-[11px] rounded-md px-3 py-2 w-56 shadow-xl leading-relaxed">
+                                                <strong>Scope:</strong> @scopeLabel<br/>
+                                                <strong>Trigger:</strong> @triggerLabel<br/>
+                                                @(c.MaxRedemptions.HasValue ? $"Limit: {c.MaxRedemptions} uses" : "No usage limit")
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span>Used: @c.RedemptionCount@(c.MaxRedemptions.HasValue ? $"/{c.MaxRedemptions}" : "") times</span>
                                     @if (c.EndDate.HasValue)
                                     {
-                                        <span>HSD: @c.EndDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                        <span>Expires: @c.EndDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</span>
                                     }
                                 </div>
                             </div>
@@ -103,16 +183,28 @@
                                 @if (c.TriggerType == "PromoCode")
                                 {
                                     <a asp-page="/Admin/Promotions" asp-route-ActiveTab="codes" asp-route-SelectedCampaignId="@c.CampaignID"
-                                       class="px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:border-primary hover:text-primary transition-colors">
-                                        Xem mã
+                                       class="px-2 py-1.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:border-primary hover:text-primary transition-colors">
+                                        View codes
                                     </a>
+                                }
+                                @if (c.TriggerType == "Manual" && c.IsActive)
+                                {
+                                    <form id="dist-form-@c.CampaignID" method="post" asp-page-handler="DistributeCampaign" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="campaignId" value="@c.CampaignID" />
+                                        <button type="button"
+                                                onclick="previewDistribute(@c.CampaignID, '@c.Amount.ToString("N0")đ', '@c.Name.Replace("'", "\\'")')"
+                                                class="px-2 py-1.5 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">send</span> @(isEn ? "Distribute now" : "Phát thưởng ngay")
+                                        </button>
+                                    </form>
                                 }
                                 <form method="post" asp-page-handler="ToggleCampaign" class="inline">
                                     <input type="hidden" name="campaignId" value="@c.CampaignID" />
                                     <input type="hidden" name="active" value="@(!c.IsActive)" />
                                     <button type="submit"
-                                            class="px-2 py-1.5 rounded-lg @(c.IsActive ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400" : "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400") text-xs font-semibold hover:opacity-80 transition-opacity">
-                                        @(c.IsActive ? "Tắt" : "Bật")
+                                            class="px-2 py-1.5 rounded-md @(c.IsActive ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400" : "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400") text-xs font-semibold hover:opacity-80 transition-opacity">
+                                        @(c.IsActive ? "Disable" : "Enable")
                                     </button>
                                 </form>
                             </div>
@@ -122,61 +214,61 @@
             </div>
 
             <!-- Create campaign form -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 h-fit">
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm p-5 h-fit">
                 <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-sm">add_circle</span>
-                    Tạo chiến dịch mới
+                    New campaign
                 </h3>
                 <form method="post" asp-page-handler="CreateCampaign" class="space-y-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Tên chiến dịch *</label>
-                        <input type="text" name="name" required class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Thưởng sinh nhật 2026" />
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Campaign name *</label>
+                        <input type="text" name="name" required class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Birthday reward 2026" />
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Ghi chú</label>
-                        <input type="text" name="description" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Mô tả ngắn..." />
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Description</label>
+                        <input type="text" name="description" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Short description..." />
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Loại trigger *</label>
-                        <select name="triggerType" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
-                            <option value="Manual">Thủ công (admin tự cấp)</option>
-                            <option value="FirstLogin">Đăng nhập lần đầu</option>
-                            <option value="Birthday">Sinh nhật</option>
-                            <option value="WomensDay">8/3 — Quốc tế Phụ nữ</option>
-                            <option value="MensDay">19/11 — Quốc tế Đàn ông</option>
-                            <option value="PromoCode">Mã chia sẻ (người dùng nhập)</option>
-                            <option value="PersonalVoucher">Voucher cá nhân (phát tay)</option>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Trigger type *</label>
+                        <select name="triggerType" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
+                            <option value="Manual">Manual (admin grants)</option>
+                            <option value="FirstLogin">First login</option>
+                            <option value="Birthday">Birthday</option>
+                            <option value="WomensDay">8/3 — Women's Day</option>
+                            <option value="MensDay">19/11 — Men's Day</option>
+                            <option value="PromoCode">Share code (user enters)</option>
+                            <option value="PersonalVoucher">Personal voucher (issued manually)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Số tiền thưởng (VND) *</label>
-                        <input type="number" name="amount" min="1000" step="1000" required class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="50000" />
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Reward amount (xu) *</label>
+                        <input type="number" name="amount" min="1000" step="1000" required class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="50000" />
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Phạm vi áp dụng</label>
-                        <select name="applicableScope" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
-                            <option value="All">Tất cả người dùng</option>
-                            <option value="HostOnly">Chỉ Host</option>
-                            <option value="Gender:F">Giới tính: Nữ</option>
-                            <option value="Gender:M">Giới tính: Nam</option>
-                            <option value="NewUser">Người mới (LoginCount ≤ 1)</option>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Applicable scope</label>
+                        <select name="applicableScope" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
+                            <option value="All">All users</option>
+                            <option value="HostOnly">Host only</option>
+                            <option value="Gender:F">Gender: Female</option>
+                            <option value="Gender:M">Gender: Male</option>
+                            <option value="NewUser">New users (LoginCount ≤ 1)</option>
                         </select>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Bắt đầu</label>
-                            <input type="date" name="startDate" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Start date</label>
+                            <input type="date" name="startDate" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Kết thúc</label>
-                            <input type="date" name="endDate" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">End date</label>
+                            <input type="date" name="endDate" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Giới hạn tổng lượt (để trống = ∞)</label>
-                        <input type="number" name="maxRedemptions" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Không giới hạn" />
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Total usage limit (blank = ∞)</label>
+                        <input type="number" name="maxRedemptions" min="1" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="Unlimited" />
                     </div>
-                    <button type="submit" class="w-full py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">Tạo chiến dịch</button>
+                    <button type="submit" class="w-full py-2.5 bg-primary text-white rounded-md text-sm font-bold hover:bg-primary/90 transition-colors">@(isEn ? "Create campaign" : "Tạo chiến dịch")</button>
                 </form>
             </div>
         </div>
@@ -192,28 +284,28 @@
                 <form method="get" class="flex gap-2 items-end">
                     <input type="hidden" name="ActiveTab" value="codes" />
                     <div class="flex-1">
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Chọn chiến dịch PromoCode</label>
-                        <select name="SelectedCampaignId" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
-                            <option value="">-- Chọn chiến dịch --</option>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Select PromoCode campaign</label>
+                        <select name="SelectedCampaignId" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
+                            <option value="">-- Select campaign --</option>
                             @foreach (var c in Model.Campaigns.Where(c => c.TriggerType == "PromoCode"))
                             {
                                 <option value="@c.CampaignID" selected="@(Model.SelectedCampaignId == c.CampaignID)">@c.Name</option>
                             }
                         </select>
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90">Xem</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90">View</button>
                 </form>
 
                 @if (Model.SelectedCampaign != null)
                 {
                     <!-- Code table -->
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                         <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">@Model.PromoCodes.Count mã — @Model.SelectedCampaign.Name</span>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">@Model.PromoCodes.Count codes — @Model.SelectedCampaign.Name</span>
                         </div>
                         @if (!Model.PromoCodes.Any())
                         {
-                            <div class="p-8 text-center text-slate-400 text-sm">Chưa có mã nào. Tạo bên phải.</div>
+                            <div class="p-8 text-center text-slate-400 text-sm">@(isEn ? "No codes yet. Create one on the right." : "Chưa có mã nào. Tạo mã ở bên phải.")</div>
                         }
                         else
                         {
@@ -225,31 +317,31 @@
                                     <div class="flex items-center gap-3 px-5 py-3 text-sm">
                                         <span class="font-mono font-bold text-slate-800 dark:text-slate-200 text-sm">@p.Code</span>
                                         <span class="flex-1 text-slate-400 text-xs">
-                                            @p.UseCount@(p.MaxUses.HasValue ? $"/{p.MaxUses}" : "/∞") lượt
+                                            @p.UseCount@(p.MaxUses.HasValue ? $"/{p.MaxUses}" : "/∞") uses
                                             @if (p.ExpiresAt.HasValue)
-                                            { <text> · HSD @p.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yy")</text> }
+                                            { <text> · Exp @p.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yy")</text> }
                                         </span>
                                         @if (expired)
                                         {
-                                            <span class="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs">Hết hạn</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs">Expired</span>
                                         }
                                         else if (exhausted)
                                         {
-                                            <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs">Hết lượt</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs">Exhausted</span>
                                         }
                                         else if (p.IsActive)
                                         {
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs">Đang bật</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs">Active</span>
                                         }
                                         else
                                         {
-                                            <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 text-xs">Đã tắt</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 text-xs">Disabled</span>
                                         }
                                         <form method="post" asp-page-handler="ToggleCode" class="inline">
                                             <input type="hidden" name="promoCodeId" value="@p.PromoCodeID" />
                                             <input type="hidden" name="active" value="@(!p.IsActive)" />
                                             <input type="hidden" name="campaignId" value="@Model.SelectedCampaignId" />
-                                            <button type="submit" class="text-xs text-slate-400 hover:text-primary font-semibold">@(p.IsActive ? "Tắt" : "Bật")</button>
+                                            <button type="submit" class="text-xs text-slate-400 hover:text-primary font-semibold">@(p.IsActive ? "Disable" : "Enable")</button>
                                         </form>
                                     </div>
                                 }
@@ -264,71 +356,71 @@
             {
                 <div class="space-y-4">
                     <!-- Single code -->
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Tạo mã đơn</h3>
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Create single code</h3>
                         <form method="post" asp-page-handler="CreateCode" class="space-y-3" id="createCodeForm">
                             <input type="hidden" name="campaignId" value="@Model.SelectedCampaignId" />
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Mã *</label>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Code *</label>
                                 <div class="flex gap-1.5">
                                     <input type="text" name="code" id="singleCodeInput" required maxlength="10"
-                                           class="flex-1 rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm font-mono uppercase"
+                                           class="flex-1 rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm font-mono uppercase"
                                            placeholder="SUMMER26"
                                            oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" />
                                     <button type="button" onclick="genRandCode()"
-                                            class="px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:border-primary hover:text-primary transition-colors"
-                                            title="Tạo ngẫu nhiên">
+                                            class="px-2 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:border-primary hover:text-primary transition-colors"
+                                            title="Generate random">
                                         <span class="material-symbols-outlined text-[14px]">shuffle</span>
                                     </button>
                                 </div>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Tối đa 10 ký tự, chữ hoa + số</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Max 10 characters, uppercase letters + digits</p>
                             </div>
 
                             <!-- AI suggest -->
                             <div>
                                 <button type="button" onclick="aiSuggestCodes()"
-                                        class="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 text-xs font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
+                                        class="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 text-xs font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
                                         id="aiSuggestBtn">
                                     <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
-                                    AI gợi ý mã
+                                    AI suggest codes
                                 </button>
                                 <div id="aiCodeSuggestions" class="hidden mt-2 space-y-1"></div>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Số lần dùng (để trống = ∞)</label>
-                                <input type="number" name="maxUses" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Usage limit (blank = ∞)</label>
+                                <input type="number" name="maxUses" min="1" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Hết hạn</label>
-                                <input type="date" name="expiresAt" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Expiry date</label>
+                                <input type="date" name="expiresAt" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                             </div>
-                            <button type="submit" class="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90">Tạo mã</button>
+                            <button type="submit" class="w-full py-2 bg-primary text-white rounded-md text-sm font-bold hover:bg-primary/90">Create code</button>
                         </form>
                     </div>
 
                     <!-- Bulk generate -->
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
-                        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Tạo hàng loạt</h3>
+                    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Bulk generate</h3>
                         <form method="post" asp-page-handler="GenerateCodes" class="space-y-3">
                             <input type="hidden" name="campaignId" value="@Model.SelectedCampaignId" />
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Prefix *</label>
-                                <input type="text" name="prefix" required class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="SUMMER" />
+                                <input type="text" name="prefix" required class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="SUMMER" />
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Số lượng (1–100) *</label>
-                                <input type="number" name="count" min="1" max="100" required class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="10" />
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Count (1–100) *</label>
+                                <input type="number" name="count" min="1" max="100" required class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="10" />
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Số lần dùng / mã (để trống = ∞)</label>
-                                <input type="number" name="maxUses" min="1" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="1" />
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Uses per code (blank = ∞)</label>
+                                <input type="number" name="maxUses" min="1" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="1" />
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Hết hạn</label>
-                                <input type="date" name="expiresAt" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Expiry date</label>
+                                <input type="date" name="expiresAt" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                             </div>
-                            <button type="submit" class="w-full py-2 bg-slate-700 dark:bg-slate-600 text-white rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-slate-500">Tạo hàng loạt</button>
+                            <button type="submit" class="w-full py-2 bg-slate-700 dark:bg-slate-600 text-white rounded-md text-sm font-bold hover:bg-slate-800 dark:hover:bg-slate-500">Bulk generate</button>
                         </form>
                     </div>
                 </div>
@@ -339,13 +431,13 @@
     @* ── Tab 3: History ───────────────────────────────────────────── *@
     @if (Model.ActiveTab == "history")
     {
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
-                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">50 bản ghi gần nhất</span>
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Last 50 records</span>
             </div>
             @if (!Model.Redemptions.Any())
             {
-                <div class="p-10 text-center text-slate-400 text-sm">Chưa có lịch sử phát thưởng.</div>
+                <div class="p-10 text-center text-slate-400 text-sm">@(isEn ? "No reward history yet." : "Chưa có lịch sử phần thưởng.")</div>
             }
             else
             {
@@ -353,19 +445,19 @@
                     <table class="w-full text-sm">
                         <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-500 uppercase">
                             <tr>
-                                <th class="px-4 py-3 text-left">Người dùng</th>
-                                <th class="px-4 py-3 text-left">Chiến dịch</th>
-                                <th class="px-4 py-3 text-left">Loại</th>
-                                <th class="px-4 py-3 text-right">Số tiền</th>
-                                <th class="px-4 py-3 text-right">Thời gian</th>
+                                <th class="px-4 py-3 text-left">User</th>
+                                <th class="px-4 py-3 text-left">Campaign</th>
+                                <th class="px-4 py-3 text-left">Type</th>
+                                <th class="px-4 py-3 text-right">Amount</th>
+                                <th class="px-4 py-3 text-right">Time</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @foreach (var r in Model.Redemptions)
                             {
-                                var redeemType = r.PromoCodeID.HasValue ? $"Mã: {r.PromoCode?.Code}"
+                                var redeemType = r.PromoCodeID.HasValue ? $"Code: {r.PromoCode?.Code}"
                                     : r.VoucherID.HasValue ? $"Voucher: {r.Voucher?.Code}"
-                                    : "Auto / Thủ công";
+                                    : "Auto / Manual";
                                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                     <td class="px-4 py-3">
                                         <p class="font-medium text-slate-800 dark:text-slate-200">@(r.User?.FullName ?? $"#{r.UserID}")</p>
@@ -383,6 +475,20 @@
             }
         </div>
     }
+</div>
+
+<!-- Distribute confirm modal (replaces browser confirm) -->
+<div id="distributeConfirmModal" class="hidden fixed inset-0 z-[1200] bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl max-w-sm w-full p-6">
+        <p id="distConfirmMsg" class="font-semibold text-slate-800 dark:text-white text-sm"></p>
+        <p id="distConfirmSub" class="text-xs text-slate-500 mt-1 hidden"></p>
+        <div class="flex gap-3 mt-5 justify-end">
+            <button type="button" onclick="closeDistributeModal()"
+                    class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Cancel</button>
+            <button id="distConfirmBtn" type="button"
+                    class="px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm">Confirm</button>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -404,10 +510,10 @@ async function aiSuggestCodes() {
     var box = document.getElementById('aiCodeSuggestions');
     if (!btn || !box) return;
     var name = CAMPAIGN_NAME.replace(/^"|"$/g, '');
-    if (!name) { alert('Vui lòng chọn chiến dịch trước.'); return; }
+    if (!name) { typeof _showWalletToast !== 'undefined' ? _showWalletToast('Please select a campaign first.', 'rose') : alert('Please select a campaign first.'); return; }
 
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined text-[14px] animate-spin">refresh</span> Đang tạo...';
+    btn.innerHTML = '<span class="material-symbols-outlined text-[14px] animate-spin">refresh</span> Generating...';
     box.classList.add('hidden');
 
     try {
@@ -415,28 +521,70 @@ async function aiSuggestCodes() {
         var d = await res.json();
         var codes = d.codes || [];
         if (codes.length === 0) {
-            box.innerHTML = '<p class="text-xs text-slate-400">AI không tạo được mã. Thử lại hoặc nhập thủ công.</p>';
+            box.innerHTML = '<p class="text-xs text-slate-400">AI could not generate codes. Try again or enter manually.</p>';
         } else {
-            box.innerHTML = '<p class="text-[10px] text-slate-400 mb-1">Click để chọn:</p>' +
+            box.innerHTML = '<p class="text-[10px] text-slate-400 mb-1">Click to select:</p>' +
                 codes.map(function (c) {
                     return '<button type="button" onclick="selectAiCode(\'' + c + '\')" ' +
-                        'class="block w-full text-left px-3 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-400 text-xs font-mono font-bold hover:bg-violet-100 transition-colors">' +
+                        'class="block w-full text-left px-3 py-1.5 rounded-md bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-400 text-xs font-mono font-bold hover:bg-violet-100 transition-colors">' +
                         c + '</button>';
                 }).join('');
         }
         box.classList.remove('hidden');
     } catch {
-        box.innerHTML = '<p class="text-xs text-rose-400">Lỗi kết nối AI.</p>';
+        box.innerHTML = '<p class="text-xs text-rose-400">AI connection error.</p>';
         box.classList.remove('hidden');
     }
     btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-outlined text-[14px]">auto_awesome</span> AI gợi ý mã';
+    btn.innerHTML = '<span class="material-symbols-outlined text-[14px]">auto_awesome</span> AI suggest codes';
 }
 
 function selectAiCode(code) {
     var inp = document.getElementById('singleCodeInput');
     if (inp) inp.value = code;
     document.getElementById('aiCodeSuggestions').classList.add('hidden');
+}
+
+async function previewDistribute(campaignId, amountLabel, campaignName) {
+    try {
+        const res = await fetch('/api/admin-insight/campaign-eligible-count/' + campaignId);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const count = data.count;
+        if (count === 0) {
+            _showDistributeModal('No eligible users for this campaign.', null, null);
+            return;
+        }
+        _showDistributeModal(
+            `Distribute +${amountLabel} to ${count} eligible user(s)?`,
+            'This cannot be undone.',
+            function() { document.getElementById('dist-form-' + campaignId).submit(); }
+        );
+    } catch {
+        _showDistributeModal(
+            `Could not fetch preview count. Distribute to campaign "${campaignName}"?`,
+            null,
+            function() { document.getElementById('dist-form-' + campaignId).submit(); }
+        );
+    }
+}
+
+function _showDistributeModal(msg, sub, onConfirm) {
+    var modal = document.getElementById('distributeConfirmModal');
+    document.getElementById('distConfirmMsg').textContent = msg;
+    document.getElementById('distConfirmSub').textContent = sub || '';
+    document.getElementById('distConfirmSub').classList.toggle('hidden', !sub);
+    var btn = document.getElementById('distConfirmBtn');
+    if (onConfirm) {
+        btn.classList.remove('hidden');
+        btn.onclick = function() { closeDistributeModal(); onConfirm(); };
+    } else {
+        btn.classList.add('hidden');
+    }
+    modal.classList.remove('hidden');
+}
+function closeDistributeModal() {
+    document.getElementById('distributeConfirmModal').classList.add('hidden');
 }
 </script>
 }

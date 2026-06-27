@@ -22,6 +22,7 @@ namespace SportHub.Pages.Admin
 
         public List<MatchReviewHistoryItem> Reviews { get; set; } = new();
         [BindProperty(SupportsGet = true)] public string? FilterType { get; set; }
+        [BindProperty(SupportsGet = true)] public string? Search { get; set; }
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
 
@@ -34,6 +35,10 @@ namespace SportHub.Pages.Admin
             Reviews = await _reviewService.GetAllReviewsAsync();
             if (!string.IsNullOrWhiteSpace(FilterType))
                 Reviews = Reviews.Where(r => r.ReviewType == FilterType).ToList();
+            if (!string.IsNullOrWhiteSpace(Search))
+                Reviews = Reviews.Where(r =>
+                    r.ReviewerName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    r.ReviewedName.Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return Page();
         }

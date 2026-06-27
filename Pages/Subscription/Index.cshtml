@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Subscription.IndexModel
 @{
     ViewData["Title"] = "Gói đăng ký";
@@ -16,27 +16,27 @@
         _      => "border-slate-200 dark:border-slate-700"
     };
     string BtnClass(string planKey, bool isCurrent) {
-        if (isCurrent) return "w-full py-2.5 rounded-lg font-semibold border-2 border-slate-300 text-slate-500 cursor-default";
+        if (isCurrent) return "w-full py-2.5 rounded-md font-semibold border-2 border-slate-300 text-slate-500 cursor-default";
         return planKey switch {
-            "Pro"   => "w-full py-2.5 rounded-lg font-semibold bg-purple-600 hover:bg-purple-700 text-white transition-colors",
-            "Club"  => "w-full py-2.5 rounded-lg font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-colors",
-            "Starter" => "w-full py-2.5 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors",
-            _ => "w-full py-2.5 rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+            "Pro"   => "w-full py-2.5 rounded-md font-semibold bg-purple-600 hover:bg-purple-700 text-white transition-colors",
+            "Club"  => "w-full py-2.5 rounded-md font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-colors",
+            "Starter" => "w-full py-2.5 rounded-md font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors",
+            _ => "w-full py-2.5 rounded-md font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
         };
     }
 
-    string FormatPrice(decimal p) => p == 0 ? "Miễn phí" : p.ToString("N0") + " ₫";
+    string FormatPrice(decimal p) => p == 0 ? "Miễn phí" : p.ToString("N0") + " xu";
 }
 
 <div class="max-w-6xl mx-auto px-4 py-10">
 
     @if (!string.IsNullOrEmpty(Model.SuccessMessage))
     {
-        <div class="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 font-medium">@Model.SuccessMessage</div>
+        <div class="mb-6 p-4 rounded-md bg-green-50 border border-green-200 text-green-700 font-medium">@Model.SuccessMessage</div>
     }
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 font-medium">@Model.ErrorMessage</div>
+        <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-red-700 font-medium">@Model.ErrorMessage</div>
     }
 
     <div class="text-center mb-10">
@@ -46,9 +46,9 @@
 
     @if (Model.CurrentPlan != null)
     {
-        <div class="mb-8 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-wrap gap-4 items-center justify-between">
+        <div class="mb-8 p-4 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-wrap gap-4 items-center justify-between">
             <div class="flex items-center gap-3">
-                <span class="px-3 py-1 rounded-full text-sm font-bold @BadgeClass(Model.CurrentPlan.PlanKey)">@Model.CurrentPlan.Name</span>
+                <span class="px-3 py-1 rounded-md text-sm font-bold @BadgeClass(Model.CurrentPlan.PlanKey)">@Model.CurrentPlan.Name</span>
                 @if (Model.ActiveSub != null)
                 {
                     <span class="text-sm text-slate-500">Hết hạn: @Model.ActiveSub.EndAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
@@ -61,7 +61,7 @@
                 {
                     <span class="text-green-600 font-medium">Credit: @Model.RemainingCredits</span>
                 }
-                <span>Ví: <strong>@Model.WalletBalance.ToString("N0") ₫</strong></span>
+                <span>Ví: <strong>@Model.WalletBalance.ToString("N0") xu</strong></span>
             </div>
         </div>
     }
@@ -71,15 +71,15 @@
         @foreach (var plan in Model.Plans)
         {
             var isCurrent = Model.CurrentPlan?.PlanKey == plan.PlanKey;
-            <div class="relative rounded-2xl border @CardBorder(plan.PlanKey) bg-white dark:bg-slate-900 p-6 flex flex-col gap-4 shadow-sm">
+            <div class="relative rounded-md border @CardBorder(plan.PlanKey) bg-white dark:bg-slate-900 p-6 flex flex-col gap-4 shadow-sm">
                 @if (plan.PlanKey == "Pro")
                 {
-                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">PHỔ BIẾN</div>
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-md">PHỔ BIẾN</div>
                 }
 
                 <!-- Plan Header -->
                 <div>
-                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold @BadgeClass(plan.PlanKey) mb-2">@plan.Name</span>
+                    <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-bold @BadgeClass(plan.PlanKey) mb-2">@plan.Name</span>
                     <p class="text-sm text-slate-500 dark:text-slate-400">@plan.Description</p>
                 </div>
 
@@ -162,14 +162,14 @@
     </div>
 
     <!-- Credit Bundle -->
-    <div class="mt-10 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col sm:flex-row gap-6 items-center justify-between shadow-sm">
+    <div class="mt-10 p-6 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col sm:flex-row gap-6 items-center justify-between shadow-sm">
         <div>
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">Credit trận đấu</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Dành cho người dùng Free muốn tham gia thêm trận ngoài giới hạn tháng. <strong>5 credit = 20.000 ₫</strong>, có hiệu lực 30 ngày.</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Dành cho người dùng Free muốn tham gia thêm trận ngoài giới hạn tháng. <strong>5 credit = 20.000 xu</strong>, có hiệu lực 30 ngày.</p>
         </div>
         <a href="/Subscription/Checkout?planKey=Credit&billing=Bundle"
-           class="shrink-0 px-6 py-2.5 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors text-sm">
-            Mua 5 Credit — 20.000 ₫
+           class="shrink-0 px-6 py-2.5 rounded-md font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors text-sm">
+            Mua 5 Credit — 20.000 xu
         </a>
     </div>
 </div>

@@ -5,18 +5,18 @@
 }
 
 <section class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-4xl font-black tracking-tight">Thông báo</h1>
+    <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-2xl sm:text-4xl font-black tracking-tight">Thông báo</h1>
             <p class="text-slate-500 dark:text-slate-400">Cập nhật về đặt sân, thanh toán và trận đấu.</p>
         </div>
         <span id="notifications-unread-pill"
-              class="px-3 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm @(Model.UnreadCount > 0 ? "" : "hidden")">
+              class="flex-shrink-0 px-3 py-1 bg-primary/10 text-primary font-bold rounded-md text-sm @(Model.UnreadCount > 0 ? "" : "hidden")">
             @Model.UnreadCount chưa đọc
         </span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-sm">
         @if (!Model.Notifications.Any())
         {
             <div id="notifications-empty" class="py-20 text-center text-slate-400">
@@ -44,7 +44,7 @@
                         <span class="material-symbols-outlined @icon.Item2 mt-0.5 flex-shrink-0">@icon.Item1</span>
                         <div class="flex-1 min-w-0">
                             <p class="font-semibold text-slate-900 dark:text-white">@n.Title</p>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5">@n.Message</p>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5 max-w-prose">@n.Message</p>
                             <p class="text-xs text-slate-400 mt-1">@n.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(n.LinkUrl))
@@ -110,7 +110,7 @@
                     <span class="material-symbols-outlined ${icon.cls} mt-0.5 flex-shrink-0">${icon.icon}</span>
                     <div class="flex-1 min-w-0">
                         <p class="font-semibold text-slate-900 dark:text-white">${payload.title || ''}</p>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5">${payload.message || ''}</p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5 max-w-prose">${payload.message || ''}</p>
                         <p class="text-xs text-slate-400 mt-1">${formatDate(payload.createdAt)}</p>
                     </div>
                     ${payload.linkUrl ? `<a href="${payload.linkUrl}" class="shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>` : ''}

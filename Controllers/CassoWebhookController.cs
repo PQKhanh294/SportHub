@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
 using SportHub.Models.Entities;
@@ -94,9 +94,9 @@ namespace SportHub.Controllers
                 var matchTitle = mp.Match.Title ?? mp.Match.MatchType;
                 var (notifType, title, body) = mp.PaymentType switch
                 {
-                    "HostDeposit"   => ("MatchPaymentConfirmed", "Đặt cọc đã được xác nhận tự động", $"Khoản đặt cọc {mp.Amount:N0} VND cho trận \"{matchTitle}\" đã được ghi nhận."),
+                    "HostDeposit"   => ("MatchPaymentConfirmed", "Đặt cọc đã được xác nhận tự động", $"Khoản đặt cọc {mp.Amount:N0} xu cho trận \"{matchTitle}\" đã được ghi nhận."),
                     "PlayerFee"     => ("MatchPaymentConfirmed", "Phí tham gia đã được xác nhận tự động", $"Chỗ của bạn tại trận \"{matchTitle}\" đã được xác nhận!"),
-                    "HostRemaining" => ("MatchPaymentConfirmed", "Phí còn lại đã được xác nhận tự động", $"Phí còn lại {mp.Amount:N0} VND cho trận \"{matchTitle}\" đã được ghi nhận."),
+                    "HostRemaining" => ("MatchPaymentConfirmed", "Phí còn lại đã được xác nhận tự động", $"Phí còn lại {mp.Amount:N0} xu cho trận \"{matchTitle}\" đã được ghi nhận."),
                     _ => ("MatchPaymentConfirmed", "Thanh toán đã được xác nhận", $"Giao dịch cho trận \"{matchTitle}\" đã được xác nhận.")
                 };
 

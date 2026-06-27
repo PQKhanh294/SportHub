@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -27,8 +27,13 @@ namespace SportHub.Pages.Admin
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterRole { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterStatus { get; set; }
+        [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
+        public const int PageSize = 30;
+        public int TotalCount { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -36,11 +41,24 @@ namespace SportHub.Pages.Admin
             ViewData["AdminPage"] = "Users";
             if (!await IsAdminAsync()) return Forbid();
 
-            var all = await _userService.GetAllUsersAsync();
-            Users = string.IsNullOrWhiteSpace(Search)
-                ? all
-                : all.Where(u => u.FullName.Contains(Search, StringComparison.OrdinalIgnoreCase)
-                              || u.Email.Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
+            var query = _context.Users
+                .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+                .OrderByDescending(u => u.CreatedAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(Search))
+                query = query.Where(u => u.FullName.Contains(Search) || u.Email.Contains(Search));
+
+            if (!string.IsNullOrWhiteSpace(FilterRole))
+                query = query.Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == FilterRole));
+
+            if (FilterStatus == "active")
+                query = query.Where(u => u.IsActive);
+            else if (FilterStatus == "banned")
+                query = query.Where(u => !u.IsActive);
+
+            TotalCount = await query.CountAsync();
+            Users = await query.Skip((PageNumber - 1) * PageSize).Take(PageSize).ToListAsync();
 
             return Page();
         }
@@ -73,7 +91,7 @@ namespace SportHub.Pages.Admin
                 return RedirectToPage();
             }
             await _walletService.CreditAsync(userId, amount, string.IsNullOrWhiteSpace(description) ? "Admin hoàn tiền thủ công" : description);
-            SuccessMessage = $"Đã cộng {amount:N0} ₫ vào ví người dùng #{userId}.";
+            SuccessMessage = $"Đã cộng {amount:N0} xu vào ví người dùng #{userId}.";
             return RedirectToPage();
         }
 

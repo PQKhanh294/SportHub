@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using SportHub.Hubs;
 using SportHub.Services;
 using SportHub.Services.Interfaces;
 using SportHub.Data;
@@ -19,6 +21,7 @@ namespace SportHub.Pages.Matchmaking
         private readonly IMatchReviewService _reviewService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IAiChatService _aiChat;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public IndexModel(
             IMatchService matchService,
@@ -27,7 +30,8 @@ namespace SportHub.Pages.Matchmaking
             IGeocodingService geocoding,
             IMatchReviewService reviewService,
             ISubscriptionService subscriptionService,
-            IAiChatService aiChat)
+            IAiChatService aiChat,
+            IHubContext<NotificationHub> hubContext)
         {
             _matchService = matchService;
             _notificationService = notificationService;
@@ -36,6 +40,7 @@ namespace SportHub.Pages.Matchmaking
             _reviewService = reviewService;
             _subscriptionService = subscriptionService;
             _aiChat = aiChat;
+            _hubContext = hubContext;
         }
 
         [TempData]
@@ -43,6 +48,9 @@ namespace SportHub.Pages.Matchmaking
 
         [TempData]
         public string? ErrorMessage { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? Q { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string? Sport { get; set; }
@@ -102,6 +110,8 @@ namespace SportHub.Pages.Matchmaking
         public List<MatchCardItem> Matches { get; set; } = new();
         public List<JoinedMatchItem> UpcomingJoinedMatches { get; set; } = new();
         public List<JoinedMatchItem> JoinedMatchHistory { get; set; } = new();
+        public List<PendingRequestItem> PendingRequestMatches { get; set; } = new();
+        public List<MyHostMatchItem> MyHostedMatches { get; set; } = new();
 
         public string? UserDefaultAddress { get; set; }
         public decimal? UserDefaultLatitude { get; set; }
@@ -143,9 +153,37 @@ namespace SportHub.Pages.Matchmaking
                 ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserID == currentUserId)
                 : null;
 
-            var matches = currentUserId > 0
-                ? await _matchService.GetRecommendedMatchesForUserAsync(currentUserId, 200)
-                : await _matchService.GetRecommendedMatchesAsync(200);
+            List<SportHub.Models.Entities.Match> matches;
+            if (currentUserId > 0 && StatusFilter is "Joined" or "Owned" or "Pending")
+            {
+                var baseQuery = _context.Matches
+                    .Include(m => m.CreatedByUser)
+                    .Include(m => m.Court).ThenInclude(c => c!.Venue)
+                    .Include(m => m.Court).ThenInclude(c => c!.Images)
+                    .Include(m => m.Court).ThenInclude(c => c!.PricingRules)
+                    .Include(m => m.Booking)
+                    .Include(m => m.Sport)
+                    .Include(m => m.Participants).ThenInclude(p => p.User);
+
+                matches = StatusFilter switch
+                {
+                    "Joined" => await baseQuery
+                        .Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Accepted"))
+                        .OrderByDescending(m => m.MatchDate).Take(200).ToListAsync(),
+                    "Owned" => await baseQuery
+                        .Where(m => m.CreatedByUserID == currentUserId)
+                        .OrderByDescending(m => m.MatchDate).Take(200).ToListAsync(),
+                    _ => await baseQuery
+                        .Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Pending"))
+                        .OrderByDescending(m => m.MatchDate).Take(200).ToListAsync()
+                };
+            }
+            else
+            {
+                matches = currentUserId > 0
+                    ? await _matchService.GetRecommendedMatchesForUserAsync(currentUserId, 200)
+                    : await _matchService.GetRecommendedMatchesAsync(200);
+            }
 
             SportOptions = matches
                 .Select(m => NormalizeSportName(m.Sport?.SportName))
@@ -153,6 +191,18 @@ namespace SportHub.Pages.Matchmaking
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(s => s)
                 .ToList();
+
+            if (!string.IsNullOrWhiteSpace(Q))
+            {
+                matches = matches
+                    .Where(m => (m.Title != null && m.Title.Contains(Q, StringComparison.OrdinalIgnoreCase))
+                             || (m.Description != null && m.Description.Contains(Q, StringComparison.OrdinalIgnoreCase))
+                             || (m.CustomCourtAddress != null && m.CustomCourtAddress.Contains(Q, StringComparison.OrdinalIgnoreCase))
+                             || (m.Court?.Venue?.VenueName != null && m.Court.Venue.VenueName.Contains(Q, StringComparison.OrdinalIgnoreCase))
+                             || (m.Sport?.SportName != null && m.Sport.SportName.Contains(Q, StringComparison.OrdinalIgnoreCase))
+                             || (m.MatchType != null && m.MatchType.Contains(Q, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
 
             if (!string.IsNullOrWhiteSpace(Sport))
             {
@@ -186,20 +236,17 @@ namespace SportHub.Pages.Matchmaking
                 matches = matches.Where(m => m.MatchDate.Date == MatchDate.Value.Date).ToList();
             }
 
-            // Apply location filter (basic string matching for now)
-            if (!string.IsNullOrWhiteSpace(Location) || !string.IsNullOrWhiteSpace(District) || !string.IsNullOrWhiteSpace(City))
+            if (!string.IsNullOrWhiteSpace(Location))
             {
-                matches = matches.Where(m => 
+                matches = matches.Where(m =>
                 {
-                    var venue = m.Court?.Venue?.VenueName ?? "";
-                    var matchesLocation = string.IsNullOrWhiteSpace(Location) || 
-                                        venue.Contains(Location, StringComparison.OrdinalIgnoreCase);
-                    var matchesDistrict = string.IsNullOrWhiteSpace(District) || 
-                                        venue.Contains(District, StringComparison.OrdinalIgnoreCase);
-                    var matchesCity = string.IsNullOrWhiteSpace(City) || 
-                                    venue.Contains(City, StringComparison.OrdinalIgnoreCase);
-                    
-                    return matchesLocation && matchesDistrict && matchesCity;
+                    var allText = string.Join(" ", new[] {
+                        m.CustomCourtName,
+                        m.CustomCourtAddress,
+                        m.Court?.Venue?.VenueName,
+                        m.Court?.Venue?.Address
+                    }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return allText.Contains(Location, StringComparison.OrdinalIgnoreCase);
                 }).ToList();
             }
 
@@ -238,11 +285,9 @@ namespace SportHub.Pages.Matchmaking
                     .Where(m =>
                     {
                         var amount = BuildMatchPriceAmount(m);
-                        if (!amount.HasValue) return false;
-
+                        if (!amount.HasValue) return !MinPrice.HasValue || MinPrice.Value <= 0;
                         if (MinPrice.HasValue && amount.Value < MinPrice.Value) return false;
                         if (MaxPrice.HasValue && amount.Value > MaxPrice.Value) return false;
-
                         return true;
                     })
                     .ToList();
@@ -285,7 +330,8 @@ namespace SportHub.Pages.Matchmaking
                     IsPendingByCurrentUser = isPending,
                     IsApprovedByHost = isApproved,
                     IsOwnedByCurrentUser = currentUserId > 0 && m.CreatedByUserID == currentUserId,
-                    CanJoin = currentUserId > 0 && myParticipation == null && m.Status == "Open" && acceptedCount < m.MaxParticipants,
+                    IsLockedByHost = m.IsLockedByHost,
+                    CanJoin = currentUserId > 0 && myParticipation == null && m.Status == "Open" && !m.IsLockedByHost && acceptedCount < m.MaxParticipants,
                     HostImage = !string.IsNullOrEmpty(m.CreatedByUser?.AvatarUrl)
                                 ? m.CreatedByUser.AvatarUrl
                                 : "/images/avatar-default.png",
@@ -345,6 +391,12 @@ namespace SportHub.Pages.Matchmaking
                     "Có người muốn tham gia trận",
                     $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 2 giờ.",
                     $"/Matchmaking/Details?id={id}");
+                await _hubContext.Clients.Group($"user:{match.CreatedByUserID}").SendAsync("match_join_request", new {
+                    matchId = id,
+                    matchTitle = match.Title ?? match.MatchType,
+                    playerName = currentUser,
+                    playerUserId = userId
+                });
             }
             else
             {
@@ -374,9 +426,14 @@ namespace SportHub.Pages.Matchmaking
             {
                 UpcomingJoinedMatches = new();
                 JoinedMatchHistory = new();
+                PendingRequestMatches = new();
+                MyHostedMatches = new();
                 return;
             }
 
+            var today = DateTime.Today;
+
+            // Accepted player matches (existing sections)
             var joined = await _context.MatchParticipants
                 .Where(mp => mp.UserID == userId && mp.JoinStatus == "Accepted")
                 .Include(mp => mp.Match).ThenInclude(m => m.Court).ThenInclude(c => c!.Venue)
@@ -384,24 +441,59 @@ namespace SportHub.Pages.Matchmaking
                 .ThenByDescending(mp => mp.Match.StartTime)
                 .ToListAsync();
 
-            var today = DateTime.Today;
-
             var mapped = joined.Select(mp => new JoinedMatchItem
             {
                 MatchId = mp.MatchID,
                 Title = string.IsNullOrWhiteSpace(mp.Match.Title) ? $"{mp.Match.MatchType} Match" : mp.Match.Title,
                 StartText = $"{mp.Match.MatchDate:ddd, dd MMM} {mp.Match.StartTime:hh\\:mm}",
                 Venue = BuildVenueName(mp.Match),
-                MatchDate = mp.Match.MatchDate
+                MatchDate = mp.Match.MatchDate,
+                MatchStatus = mp.Match.Status
             }).ToList();
 
-            UpcomingJoinedMatches = mapped.Where(m => m.MatchDate >= today)
-                .Take(5)
-                .ToList();
+            UpcomingJoinedMatches = mapped.Where(m => m.MatchDate >= today).Take(5).ToList();
+            JoinedMatchHistory = mapped.Where(m => m.MatchDate < today).Take(5).ToList();
 
-            JoinedMatchHistory = mapped.Where(m => m.MatchDate < today)
-                .Take(5)
-                .ToList();
+            // Pending join requests (player waiting for host approval)
+            var pendingParticipants = await _context.MatchParticipants
+                .Where(mp => mp.UserID == userId && mp.JoinStatus == "Pending")
+                .Include(mp => mp.Match).ThenInclude(m => m.CreatedByUser)
+                .OrderBy(mp => mp.Match.MatchDate)
+                .ToListAsync();
+
+            PendingRequestMatches = pendingParticipants
+                .Where(mp => mp.Match.Status != "Cancelled" && mp.Match.Status != "Completed")
+                .Select(mp => new PendingRequestItem
+                {
+                    MatchId = mp.MatchID,
+                    Title = string.IsNullOrWhiteSpace(mp.Match.Title) ? $"{mp.Match.MatchType} Match" : mp.Match.Title,
+                    StartText = $"{mp.Match.MatchDate:ddd, dd/MM} {mp.Match.StartTime:hh\\:mm}",
+                    HostName = mp.Match.CreatedByUser?.FullName ?? "Host",
+                    MatchDate = mp.Match.MatchDate,
+                    MatchStatus = mp.Match.Status
+                }).ToList();
+
+            // Host's own matches (upcoming + recent 30 days + all cancelled)
+            var cutoff = today.AddDays(-30);
+            var hostedMatches = await _context.Matches
+                .Where(m => m.CreatedByUserID == userId &&
+                            (m.MatchDate >= cutoff || m.Status == "Cancelled"))
+                .Include(m => m.Participants)
+                .OrderBy(m => m.MatchDate)
+                .Take(15)
+                .ToListAsync();
+
+            MyHostedMatches = hostedMatches.Select(m => new MyHostMatchItem
+            {
+                MatchId = m.MatchID,
+                Title = string.IsNullOrWhiteSpace(m.Title) ? $"{m.MatchType} Match" : m.Title,
+                StartText = $"{m.MatchDate:ddd, dd/MM} {m.StartTime:hh\\:mm}",
+                Status = m.Status,
+                PendingCount = m.Participants.Count(p => p.JoinStatus == "Pending"),
+                AcceptedCount = m.Participants.Count(p => p.JoinStatus == "Accepted"),
+                MaxParticipants = m.MaxParticipants,
+                MatchDate = m.MatchDate
+            }).ToList();
         }
 
         private int GetCurrentUserId()
@@ -531,9 +623,9 @@ namespace SportHub.Pages.Matchmaking
             if (amount.HasValue)
             {
                 if (match.Booking?.FinalAmount > 0)
-                    return $"Tổng: {amount.Value:N0} VNĐ";
+                    return $"Tổng: {amount.Value:N0} xu";
 
-                return $"Từ {amount.Value:N0} VNĐ/giờ";
+                return $"Từ {amount.Value:N0} xu/giờ";
             }
 
             return "Chưa có giá";
@@ -567,10 +659,10 @@ namespace SportHub.Pages.Matchmaking
             var lines = description
                 .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-            var line = lines.FirstOrDefault(l => l.StartsWith("Match price VND:", StringComparison.OrdinalIgnoreCase));
+            var line = lines.FirstOrDefault(l => l.StartsWith("Match price xu:", StringComparison.OrdinalIgnoreCase));
             if (line == null) return null;
 
-            var raw = line.Replace("Match price VND:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            var raw = line.Replace("Match price xu:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
             var normalized = Regex.Replace(raw, "[^0-9,.-]", string.Empty);
 
             if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var invariantValue))
@@ -807,6 +899,7 @@ namespace SportHub.Pages.Matchmaking
             public bool IsPendingByCurrentUser { get; set; }
             public bool IsApprovedByHost { get; set; }
             public bool IsOwnedByCurrentUser { get; set; }
+            public bool IsLockedByHost { get; set; }
             public bool CanJoin { get; set; }
             public string HostImage { get; set; } = string.Empty;
             public decimal? Latitude { get; set; }
@@ -824,6 +917,29 @@ namespace SportHub.Pages.Matchmaking
             public string Title { get; set; } = string.Empty;
             public string StartText { get; set; } = string.Empty;
             public string Venue { get; set; } = string.Empty;
+            public DateTime MatchDate { get; set; }
+            public string MatchStatus { get; set; } = string.Empty;
+        }
+
+        public class PendingRequestItem
+        {
+            public int MatchId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string StartText { get; set; } = string.Empty;
+            public string HostName { get; set; } = string.Empty;
+            public DateTime MatchDate { get; set; }
+            public string MatchStatus { get; set; } = string.Empty;
+        }
+
+        public class MyHostMatchItem
+        {
+            public int MatchId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string StartText { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+            public int PendingCount { get; set; }
+            public int AcceptedCount { get; set; }
+            public int MaxParticipants { get; set; }
             public DateTime MatchDate { get; set; }
         }
     }

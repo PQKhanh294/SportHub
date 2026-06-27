@@ -22,6 +22,8 @@ namespace SportHub.Pages.Admin
 
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
+        [BindProperty(SupportsGet = true)] public string? Search { get; set; }
+        [BindProperty(SupportsGet = true)] public string? FilterPlan { get; set; }
 
         public List<UserSubscription> ActiveSubscriptions { get; set; } = new();
         public List<SubscriptionOrder> RecentOrders { get; set; } = new();
@@ -35,6 +37,15 @@ namespace SportHub.Pages.Admin
             ViewData["AdminPage"] = "Subscriptions";
 
             ActiveSubscriptions = await _subscriptionService.GetAllActiveSubscriptionsAsync();
+
+            if (!string.IsNullOrWhiteSpace(Search))
+                ActiveSubscriptions = ActiveSubscriptions.Where(s =>
+                    s.User.FullName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    s.User.Email.Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!string.IsNullOrWhiteSpace(FilterPlan))
+                ActiveSubscriptions = ActiveSubscriptions.Where(s => s.PlanKey == FilterPlan).ToList();
+
             TotalActive = ActiveSubscriptions.Count;
 
             PlanCounts = ActiveSubscriptions

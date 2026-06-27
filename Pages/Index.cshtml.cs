@@ -27,6 +27,10 @@ namespace SportHub.Pages
         public int TotalVenues { get; set; }
         public double? AvgRating { get; set; }
 
+        public record MatchQuickItem(int MatchId, string Title, DateTime Date, TimeSpan Start, string HostName, bool IsHost);
+        public List<MatchQuickItem> PendingRequests { get; set; } = new();
+        public List<MatchQuickItem> UpcomingMyMatches { get; set; } = new();
+
         public IndexModel(
             ILogger<IndexModel> logger,
             IMatchService matchService,
@@ -53,6 +57,64 @@ namespace SportHub.Pages
             await LoadSuggestedPlayersAsync(currentUserId);
             await LoadNearbyCourtsAsync();
             await LoadStatsAsync();
+            if (currentUserId > 0)
+                await LoadPersonalSectionsAsync(currentUserId);
+        }
+
+        private async Task LoadPersonalSectionsAsync(int userId)
+        {
+            var now = DateTime.UtcNow;
+
+            PendingRequests = await _context.MatchParticipants
+                .Where(mp => mp.UserID == userId && mp.JoinStatus == "Pending" && mp.Match.MatchDate >= now)
+                .OrderBy(mp => mp.Match.MatchDate)
+                .Take(5)
+                .Select(mp => new MatchQuickItem(
+                    mp.Match.MatchID,
+                    mp.Match.Title ?? $"Trận #{mp.Match.MatchID}",
+                    mp.Match.MatchDate,
+                    mp.Match.StartTime,
+                    mp.Match.CreatedByUser.FullName,
+                    false
+                ))
+                .ToListAsync();
+
+            var participating = await _context.MatchParticipants
+                .Where(mp => mp.UserID == userId
+                    && (mp.JoinStatus == "Approved" || mp.JoinStatus == "Accepted")
+                    && mp.Match.MatchDate >= now
+                    && mp.Match.Status != "Cancelled")
+                .OrderBy(mp => mp.Match.MatchDate)
+                .Take(5)
+                .Select(mp => new MatchQuickItem(
+                    mp.Match.MatchID,
+                    mp.Match.Title ?? $"Trận #{mp.Match.MatchID}",
+                    mp.Match.MatchDate,
+                    mp.Match.StartTime,
+                    mp.Match.CreatedByUser.FullName,
+                    false
+                ))
+                .ToListAsync();
+
+            var hosted = await _context.Matches
+                .Where(m => m.CreatedByUserID == userId && m.MatchDate >= now && m.Status != "Cancelled")
+                .OrderBy(m => m.MatchDate)
+                .Take(5)
+                .Select(m => new MatchQuickItem(
+                    m.MatchID,
+                    m.Title ?? $"Trận #{m.MatchID}",
+                    m.MatchDate,
+                    m.StartTime,
+                    m.CreatedByUser.FullName,
+                    true
+                ))
+                .ToListAsync();
+
+            UpcomingMyMatches = participating.Concat(hosted)
+                .DistinctBy(m => m.MatchId)
+                .OrderBy(m => m.Date)
+                .Take(5)
+                .ToList();
         }
 
         private async Task LoadStatsAsync()

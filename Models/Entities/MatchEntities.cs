@@ -83,6 +83,11 @@ namespace SportHub.Models.Entities
         public string Status { get; set; } = "PendingDeposit";
         public bool RequiresApproval { get; set; } = false;
 
+        // Host lock & cancel (B1)
+        public bool IsLockedByHost { get; set; } = false;
+        public string? CancelReason { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
         // Phí platform
         public string DepositStatus { get; set; } = "NotPaid";     // NotPaid, Paid
         public string RemainingFeeStatus { get; set; } = "NotDue"; // NotDue, Notified, Paid

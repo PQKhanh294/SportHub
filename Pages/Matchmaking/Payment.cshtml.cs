@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -123,7 +123,7 @@ namespace SportHub.Pages.Matchmaking
             if (!success)
             {
                 var balance = await _walletService.GetBalanceAsync(userId);
-                TempData["ErrorMessage"] = $"Thanh toán từ ví thất bại. Số dư hiện tại: {balance:N0} VND. Vui lòng nạp thêm hoặc thanh toán bằng QR.";
+                TempData["ErrorMessage"] = $"Thanh toán từ ví thất bại. Số dư hiện tại: {balance:N0} xu. Vui lòng nạp thêm hoặc thanh toán bằng QR.";
                 return RedirectToPage(new { matchId, type });
             }
 
@@ -142,6 +142,14 @@ namespace SportHub.Pages.Matchmaking
             };
 
             await _notificationService.CreateAsync(userId, notifType, notifTitle, notifBody, $"/Matchmaking/Details?id={matchId}");
+
+            // Notify host in real-time when player's fee is paid
+            if (paymentType == "PlayerFee" && match != null)
+            {
+                var playerName = User.FindFirstValue(System.Security.Claims.ClaimTypes.Name) ?? "Player";
+                await _hubContext.Clients.Group($"user:{match.CreatedByUserID}")
+                    .SendAsync("match_participant_paid", new { matchId, matchTitle, playerName, userId });
+            }
 
             TempData["SuccessMessage"] = notifBody;
             return RedirectToPage("/Matchmaking/Details", new { id = matchId });

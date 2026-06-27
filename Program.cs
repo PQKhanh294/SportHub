@@ -55,6 +55,21 @@ builder.Services
         options.SignInScheme = "ExternalCookie";
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+        // Fetch profile picture from Google userinfo endpoint and map as claim
+        options.Events.OnCreatingTicket = async ctx =>
+        {
+            using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, ctx.Options.UserInformationEndpoint);
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ctx.AccessToken);
+            req.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            using var resp = await ctx.Backchannel.SendAsync(req, ctx.HttpContext.RequestAborted);
+            if (resp.IsSuccessStatusCode)
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+                ctx.RunClaimActions(doc.RootElement);
+                if (doc.RootElement.TryGetProperty("picture", out var pic) && pic.GetString() is string pictureUrl)
+                    ctx.Identity?.AddClaim(new System.Security.Claims.Claim("picture", pictureUrl));
+            }
+        };
     })
     .AddFacebook(options =>
     {
@@ -68,6 +83,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
+builder.Services.AddResponseCompression(opts => opts.EnableForHttps = true);
 builder.Services.AddSingleton<IGeocodingService, GeocodingService>();
 
 // Đăng ký Business Logic Services (Giai đoạn 5)
@@ -88,6 +105,8 @@ builder.Services.AddScoped<SportHub.Services.Interfaces.IUserBanService, SportHu
 builder.Services.AddScoped<SportHub.Services.Implementations.ChatModerationService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.ISubscriptionService, SportHub.Services.Implementations.SubscriptionService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IPromotionService, SportHub.Services.Implementations.PromotionService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IEmailService, SportHub.Services.Implementations.ResendEmailService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.IDisputeService, SportHub.Services.Implementations.DisputeService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 builder.Services.AddHostedService<SportHub.Services.PromotionSchedulerService>();
 builder.Services.AddControllers();
@@ -118,6 +137,7 @@ var localizationOptions = new RequestLocalizationOptions()
 
 app.UseRequestLocalization(localizationOptions);
 
+app.UseResponseCompression();
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Cho phép load file tĩnh từ wwwroot (CSS, JS)
 app.UseMiddleware<UiLocalizationMiddleware>();

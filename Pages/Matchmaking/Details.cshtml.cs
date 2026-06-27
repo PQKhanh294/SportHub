@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using SportHub.Hubs;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Pages.Matchmaking
@@ -14,19 +16,28 @@ namespace SportHub.Pages.Matchmaking
         private readonly INotificationService _notificationService;
         private readonly IMatchReviewService _reviewService;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IDisputeService _disputeService;
+        private readonly IWebHostEnvironment _env;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public DetailsModel(
             IMatchService matchService,
             IMatchPaymentService matchPaymentService,
             INotificationService notificationService,
             IMatchReviewService reviewService,
-            ISubscriptionService subscriptionService)
+            ISubscriptionService subscriptionService,
+            IDisputeService disputeService,
+            IWebHostEnvironment env,
+            IHubContext<NotificationHub> hubContext)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
             _notificationService = notificationService;
             _reviewService = reviewService;
             _subscriptionService = subscriptionService;
+            _disputeService = disputeService;
+            _env = env;
+            _hubContext = hubContext;
         }
 
         public MatchDetailItem? Item { get; set; }
@@ -130,9 +141,10 @@ namespace SportHub.Pages.Matchmaking
                     ? "/images/avatar-default.png"
                     : match.CreatedByUser!.AvatarUrl,
 
-                IsSplitFee    = match.IsSplitFee,
-                IsRecurring   = match.IsRecurring,
-                RecurringDays = match.RecurringDays,
+                IsSplitFee      = match.IsSplitFee,
+                IsRecurring     = match.IsRecurring,
+                RecurringDays   = match.RecurringDays,
+                IsLockedByHost  = match.IsLockedByHost,
 
                 // Review state
                 MatchStatus            = match.Status,
@@ -231,7 +243,7 @@ namespace SportHub.Pages.Matchmaking
             var approved = await _matchService.ApproveParticipantAsync(id, participantId, userId);
             if (approved)
             {
-                TempData["SuccessMessage"] = "Đã duyệt người chơi. Họ có 1 giờ để thanh toán phí 5,000 VND.";
+                TempData["SuccessMessage"] = "Đã duyệt người chơi. Họ có 1 giờ để thanh toán phí 5,000 xu.";
                 // Reload to get updated participant (JoinStatus = Approved)
                 var updatedMatch = await _matchService.GetMatchDetailsAsync(id);
                 var participant = updatedMatch?.Participants.FirstOrDefault(p => p.ParticipantID == participantId);
@@ -244,8 +256,13 @@ namespace SportHub.Pages.Matchmaking
                         participant.UserID,
                         "MatchPaymentRequired",
                         "Bạn được duyệt — Thanh toán phí tham gia",
-                        $"Host đã duyệt bạn vào trận \"{updatedMatch?.Title ?? updatedMatch?.MatchType}\". Thanh toán 5,000 VND trước {deadlineStr} để giữ chỗ.",
+                        $"Host đã duyệt bạn vào trận \"{updatedMatch?.Title ?? updatedMatch?.MatchType}\". Thanh toán 5,000 xu trước {deadlineStr} để giữ chỗ.",
                         $"/Matchmaking/Payment?matchId={id}&type=playerfee");
+                    await _hubContext.Clients.Group($"user:{participant.UserID}").SendAsync("match_join_approved", new {
+                        matchId = id,
+                        matchTitle = updatedMatch?.Title ?? updatedMatch?.MatchType ?? "Trận đấu",
+                        paymentUrl = $"/Matchmaking/Payment?matchId={id}&type=fee"
+                    });
                 }
             }
             else
@@ -276,6 +293,10 @@ namespace SportHub.Pages.Matchmaking
                         "Yêu cầu tham gia không được chấp thuận",
                         $"Host đã không duyệt yêu cầu của bạn vào trận \"{match?.Title ?? match?.MatchType}\".",
                         $"/Matchmaking/Details?id={id}");
+                    await _hubContext.Clients.Group($"user:{participant.UserID}").SendAsync("match_join_rejected", new {
+                        matchId = id,
+                        matchTitle = match?.Title ?? match?.MatchType ?? "Trận đấu"
+                    });
                 }
             }
             else
@@ -298,32 +319,74 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage(new { id });
             }
 
-            var targetUsers = match.Participants
-                .Where(p => p.UserID != userId && (p.JoinStatus == "Accepted" || p.JoinStatus == "Pending"))
-                .Select(p => p.UserID)
-                .Distinct()
-                .ToList();
-
-            var deleted = await _matchService.DeleteMatchAsync(id, userId);
-            if (!deleted)
+            if (match.Status is "Completed" or "InProgress")
             {
-                TempData["ErrorMessage"] = "Không thể xóa trận đấu.";
+                TempData["ErrorMessage"] = "Không thể xóa trận đang diễn ra hoặc đã hoàn thành.";
                 return RedirectToPage(new { id });
             }
 
-            var matchTitle = match.Title ?? match.MatchType;
-            foreach (var uid in targetUsers)
+            // Soft-delete: cancel + refund players, keep record for history/disputes
+            var (success, message) = await _matchService.CancelMatchByHostAsync(id, userId, "Host đã xóa trận");
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? $"Đã hủy trận. {message}"
+                : message;
+
+            return RedirectToPage("/Matchmaking/Index");
+        }
+
+        public async Task<IActionResult> OnPostLockAsync(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+            var (success, message) = await _matchService.LockMatchByHostAsync(id, userId);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostHostCancelAsync(int id, string cancelReason)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+            if (string.IsNullOrWhiteSpace(cancelReason))
             {
-                await _notificationService.CreateAsync(
-                    uid,
-                    "System",
-                    "Trận đấu đã bị hủy",
-                    $"Host đã xóa trận \"{matchTitle}\". Yêu cầu/tham gia của bạn đã được hủy.",
-                    "/Matchmaking/Index");
+                TempData["ErrorMessage"] = "Vui lòng nhập lý do hủy trận.";
+                return RedirectToPage(new { id });
+            }
+            var (success, message) = await _matchService.CancelMatchByHostAsync(id, userId, cancelReason);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
+            return success ? RedirectToPage("/Matchmaking/Index") : RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostSubmitDisputeAsync(int matchId, string disputeType, string description, IFormFile? evidenceFile)
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+            if (string.IsNullOrWhiteSpace(description) || description.Trim().Length < 50)
+            {
+                TempData["ErrorMessage"] = "Vui lòng mô tả chi tiết khiếu nại (tối thiểu 50 ký tự).";
+                return RedirectToPage(new { id = matchId });
             }
 
-            TempData["SuccessMessage"] = "Đã xóa trận đấu thành công.";
-            return RedirectToPage("/Matchmaking/Index");
+            string? evidenceUrl = null;
+            if (evidenceFile is { Length: > 0 })
+            {
+                var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var ext = Path.GetExtension(evidenceFile.FileName).ToLowerInvariant();
+                if (allowed.Contains(ext) && evidenceFile.Length <= 5 * 1024 * 1024)
+                {
+                    var folder = Path.Combine(_env.WebRootPath, "uploads", "disputes");
+                    Directory.CreateDirectory(folder);
+                    var fileName = $"dispute_{matchId}_{userId}_{Guid.NewGuid():N}{ext}";
+                    var savePath = Path.Combine(folder, fileName);
+                    await using var stream = System.IO.File.Create(savePath);
+                    await evidenceFile.CopyToAsync(stream);
+                    evidenceUrl = $"/uploads/disputes/{fileName}";
+                }
+            }
+
+            await _disputeService.SubmitDisputeAsync(matchId, userId, disputeType, description.Trim(), evidenceUrl);
+            TempData["SuccessMessage"] = "Khiếu nại đã được gửi. Đội ngũ SportHub sẽ xem xét trong 24–48 giờ.";
+            return RedirectToPage(new { id = matchId });
         }
 
         private int GetCurrentUserId()
@@ -392,10 +455,10 @@ namespace SportHub.Pages.Matchmaking
             if (match.IsSplitFee) return "Chia đều cuối buổi";
 
             var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
-            if (customPrice.HasValue) return $"{customPrice.Value:N0} VND";
-            if (match.Booking?.FinalAmount > 0) return $"{match.Booking.FinalAmount:N0} VND";
+            if (customPrice.HasValue) return $"{customPrice.Value:N0} xu";
+            if (match.Booking?.FinalAmount > 0) return $"{match.Booking.FinalAmount:N0} xu";
             if (match.Court?.PricingRules != null && match.Court.PricingRules.Any())
-                return $"Từ {match.Court.PricingRules.Min(p => p.UnitPrice):N0} VND/giờ";
+                return $"Từ {match.Court.PricingRules.Min(p => p.UnitPrice):N0} xu/giờ";
             return "Chưa xác định";
         }
 
@@ -403,9 +466,9 @@ namespace SportHub.Pages.Matchmaking
         {
             if (string.IsNullOrWhiteSpace(description)) return null;
             var lines = description.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var line = lines.FirstOrDefault(l => l.StartsWith("Match price VND:", StringComparison.OrdinalIgnoreCase));
+            var line = lines.FirstOrDefault(l => l.StartsWith("Match price xu:", StringComparison.OrdinalIgnoreCase));
             if (line == null) return null;
-            var raw = line.Replace("Match price VND:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+            var raw = line.Replace("Match price xu:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
             var normalized = Regex.Replace(raw, "[^0-9,.-]", string.Empty);
             if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var v)) return v;
             if (decimal.TryParse(normalized, NumberStyles.Number, new System.Globalization.CultureInfo("vi-VN"), out var vi)) return vi;
@@ -445,6 +508,9 @@ namespace SportHub.Pages.Matchmaking
             public bool IsSplitFee { get; set; }
             public bool IsRecurring { get; set; }
             public string? RecurringDays { get; set; }
+
+            // Host lock & cancel (B1)
+            public bool IsLockedByHost { get; set; }
 
             // Payment state
             public string MatchStatus { get; set; } = string.Empty;

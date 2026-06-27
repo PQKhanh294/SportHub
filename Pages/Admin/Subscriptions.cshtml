@@ -1,8 +1,10 @@
-@page
+﻿@page
 @model SportHub.Pages.Admin.SubscriptionsModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Quản lý gói đăng ký";
+    ViewData["Title"] = "Admin — Subscriptions";
     Layout = "_Layout";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="max-w-7xl mx-auto px-4 py-6">
@@ -10,26 +12,26 @@
 
     @if (!string.IsNullOrEmpty(Model.SuccessMessage))
     {
-        <div class="mb-4 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">@Model.SuccessMessage</div>
+        <div class="mb-4 p-4 rounded-md bg-green-50 border border-green-200 text-green-700">@Model.SuccessMessage</div>
     }
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">@Model.ErrorMessage</div>
+        <div class="mb-4 p-4 rounded-md bg-red-50 border border-red-200 text-red-700">@Model.ErrorMessage</div>
     }
 
     <div class="mb-6">
-        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Gói đăng ký</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">@(isEn ? "Subscriptions" : "Gói dịch vụ")</h1>
     </div>
 
     <!-- Overview -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center">
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center">
             <div class="text-3xl font-extrabold text-slate-900 dark:text-white">@Model.TotalActive</div>
-            <div class="text-sm text-slate-500 mt-1">Gói đang hoạt động</div>
+            <div class="text-sm text-slate-500 mt-1">@(isEn ? "Active subscriptions" : "Gói đang hoạt động")</div>
         </div>
         @foreach (var (key, color) in new[] { ("Starter", "blue"), ("Pro", "purple"), ("Club", "amber") })
         {
-            <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center">
+            <div class="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-center">
                 <div class="text-3xl font-extrabold text-@color-600">@(Model.PlanCounts.GetValueOrDefault(key, 0))</div>
                 <div class="text-sm text-slate-500 mt-1">@key</div>
             </div>
@@ -37,47 +39,76 @@
     </div>
 
     <!-- Grant subscription form -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-8">
-        <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4">Cấp gói thủ công</h3>
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 p-5 mb-8">
+        <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4">@(isEn ? "Grant subscription manually" : "Cấp gói thủ công")</h3>
         <form method="post" asp-page-handler="Grant" class="flex flex-wrap gap-3 items-end">
             <div>
                 <label class="block text-xs text-slate-500 mb-1">User ID</label>
-                <input type="number" name="userId" required class="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm w-28" />
+                <input type="number" name="userId" required class="h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm w-28" />
             </div>
             <div>
-                <label class="block text-xs text-slate-500 mb-1">Gói</label>
-                <select name="planKey" class="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                <label class="block text-xs text-slate-500 mb-1">@(isEn ? "Plan" : "Gói")</label>
+                <select name="planKey" class="h-10 pl-3 pr-8 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
                     <option value="Starter">Starter</option>
                     <option value="Pro">Pro</option>
                     <option value="Club">Club</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-slate-500 mb-1">Chu kỳ</label>
-                <select name="billingCycle" class="h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
-                    <option value="Monthly">1 tháng</option>
-                    <option value="Quarterly">3 tháng</option>
-                    <option value="Annual">1 năm</option>
+                <label class="block text-xs text-slate-500 mb-1">@(isEn ? "Billing cycle" : "Chu kỳ thanh toán")</label>
+                <select name="billingCycle" class="h-10 pl-3 pr-8 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                    <option value="Monthly">@(isEn ? "1 month" : "1 tháng")</option>
+                    <option value="Quarterly">@(isEn ? "3 months" : "3 tháng")</option>
+                    <option value="Annual">@(isEn ? "1 year" : "1 năm")</option>
                 </select>
             </div>
-            <button type="submit" class="h-10 px-4 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors">Cấp gói</button>
+            <button type="submit" class="h-10 px-4 rounded-md bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors">@(isEn ? "Grant" : "Cấp")</button>
         </form>
     </div>
 
+    <!-- Search + plan filter -->
+    <form method="get" class="space-y-2">
+        <input type="hidden" name="filterPlan" value="@Model.FilterPlan" />
+        <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">search</span>
+            <input type="text" name="search" value="@Model.Search"
+                   placeholder="@(isEn ? "Search by name or email…" : "Tìm theo tên hoặc email…")"
+                   class="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a asp-page="/Admin/Subscriptions" asp-route-search="@Model.Search"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterPlan) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                @(isEn ? "All plans" : "Tất cả") (@Model.TotalActive)
+            </a>
+            <a asp-page="/Admin/Subscriptions" asp-route-search="@Model.Search" asp-route-filterPlan="Starter"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(Model.FilterPlan == "Starter" ? "bg-blue-500 text-white border-blue-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                Starter (@Model.PlanCounts.GetValueOrDefault("Starter", 0))
+            </a>
+            <a asp-page="/Admin/Subscriptions" asp-route-search="@Model.Search" asp-route-filterPlan="Pro"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(Model.FilterPlan == "Pro" ? "bg-purple-500 text-white border-purple-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                Pro (@Model.PlanCounts.GetValueOrDefault("Pro", 0))
+            </a>
+            <a asp-page="/Admin/Subscriptions" asp-route-search="@Model.Search" asp-route-filterPlan="Club"
+               class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(Model.FilterPlan == "Club" ? "bg-amber-500 text-white border-amber-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
+                Club (@Model.PlanCounts.GetValueOrDefault("Club", 0))
+            </a>
+        </div>
+    </form>
+
     <!-- Active subscriptions table -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 class="font-semibold text-slate-800 dark:text-slate-200">Gói đang hoạt động (@Model.TotalActive)</h3>
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200">@(isEn ? "Active subscriptions" : "Gói đang hoạt động") (@Model.TotalActive)</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Người dùng</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Gói</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Chu kỳ</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Hết hạn</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Hành động</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">@(isEn ? "User" : "Người dùng")</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">@(isEn ? "Plan" : "Gói")</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">@(isEn ? "Billing cycle" : "Chu kỳ")</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">@(isEn ? "Expires" : "Hết hạn")</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">@(isEn ? "Actions" : "Thao tác")</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -89,7 +120,7 @@
                                 <div class="text-xs text-slate-400">ID: @sub.UserID</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded-full text-xs font-bold @(sub.PlanKey == "Club" ? "bg-amber-100 text-amber-700" : sub.PlanKey == "Pro" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700")">
+                                <span class="px-2 py-1 rounded-md text-xs font-bold @(sub.PlanKey == "Club" ? "bg-amber-100 text-amber-700" : sub.PlanKey == "Pro" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700")">
                                     @sub.PlanKey
                                 </span>
                             </td>
@@ -98,14 +129,14 @@
                             <td class="px-4 py-3 text-center">
                                 <form method="post" asp-page-handler="Cancel" style="display:inline">
                                     <input type="hidden" name="subscriptionId" value="@sub.UserSubscriptionID" />
-                                    <button type="submit" class="text-xs text-red-600 hover:underline" onclick="return confirm('Hủy gói này?')">Hủy</button>
+                                    <button type="submit" class="text-xs text-red-600 hover:underline" onclick="return confirm('Cancel this subscription?')">Cancel</button>
                                 </form>
                             </td>
                         </tr>
                     }
                     @if (!Model.ActiveSubscriptions.Any())
                     {
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Chưa có gói nào đang hoạt động</td></tr>
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No active subscriptions</td></tr>
                     }
                 </tbody>
             </table>
@@ -113,19 +144,19 @@
     </div>
 
     <!-- Recent Orders -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 class="font-semibold text-slate-800 dark:text-slate-200">Đơn hàng gần đây</h3>
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200">Recent orders</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Người dùng</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Gói / Mã GD</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Số tiền</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Trạng thái</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Ngày tạo</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Plan / Transaction ref</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -139,9 +170,9 @@
                                 <div class="font-medium text-slate-700 dark:text-slate-300">@order.PlanKey (@order.BillingCycle)</div>
                                 <div class="text-xs text-slate-400 font-mono">@order.TransactionRef</div>
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">@order.Amount.ToString("N0") ₫</td>
+                            <td class="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">@order.Amount.ToString("N0") xu</td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-bold @(order.Status == "Confirmed" ? "bg-green-100 text-green-700" : order.Status == "Expired" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700")">
+                                <span class="px-2 py-0.5 rounded-md text-xs font-bold @(order.Status == "Confirmed" ? "bg-green-100 text-green-700" : order.Status == "Expired" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700")">
                                     @order.Status
                                 </span>
                             </td>
@@ -150,7 +181,7 @@
                     }
                     @if (!Model.RecentOrders.Any())
                     {
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Chưa có đơn hàng</td></tr>
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No orders yet</td></tr>
                     }
                 </tbody>
             </table>

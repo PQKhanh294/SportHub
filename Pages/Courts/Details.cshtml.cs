@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Services.Interfaces;
@@ -48,7 +48,7 @@ namespace SportHub.Pages.Courts
                 VenueName        = court.Venue.VenueName,
                 Address          = court.Venue.Address,
                 Description      = court.Description ?? "Premium indoor courts with modern lighting and stable playing conditions.",
-                MinPriceDisplay  = $"{minPrice:N0} VND/giờ",
+                MinPriceDisplay  = $"{minPrice:N0} xu/giờ",
                 Images           = images,
                 OpenTime         = court.Venue.OpenTime,
                 CloseTime        = court.Venue.CloseTime,
@@ -213,7 +213,7 @@ namespace SportHub.Pages.Courts
                 VenueName       = court.Venue.VenueName,
                 Address         = court.Venue.Address,
                 Description     = court.Description ?? string.Empty,
-                MinPriceDisplay = $"{minPrice:N0} VND/giờ",
+                MinPriceDisplay = $"{minPrice:N0} xu/giờ",
                 Images          = images,
                 OpenTime        = court.Venue.OpenTime,
                 CloseTime       = court.Venue.CloseTime,

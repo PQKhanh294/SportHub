@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -86,7 +86,7 @@ namespace SportHub.Pages.Subscription
 
             if (balance < price)
             {
-                TempData["ErrorMessage"] = $"Ví không đủ. Cần {price:N0} ₫, hiện có {balance:N0} ₫.";
+                TempData["ErrorMessage"] = $"Ví không đủ. Cần {price:N0} xu, hiện có {balance:N0} xu.";
                 return RedirectToPage(new { planKey = PlanKey, billing = Billing });
             }
 

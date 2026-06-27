@@ -1,7 +1,9 @@
-@page
+﻿@page
 @model SportHub.Pages.Admin.AdminIndexModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Admin — Dashboard";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
     var s = Model.Stats;
     var dr = Model.DailyRevenue;
     var labels = string.Join(",", dr.Select(d => $"\"{d.Date:dd/MM}\""));
@@ -13,110 +15,184 @@
         dr.Sum(d => d.PlayerFeeTotal),
         dr.Sum(d => d.HostRemainingTotal)
     };
+    var userLabels = string.Join(",", Model.DailyNewUsers.Select(x => $"\"{x.Date}\""));
+    var userData = string.Join(",", Model.DailyNewUsers.Select(x => x.Count));
+    var statusLabels = string.Join(",", Model.MatchStatusCounts.Keys.Select(k => $"\"{k}\""));
+    var statusData = string.Join(",", Model.MatchStatusCounts.Values);
+    var days = Model.Days;
 }
 
 <div class="space-y-6">
-    <div>
-        <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Admin Dashboard</h1>
-        <p class="text-sm text-slate-500 mt-1">Tổng quan hệ thống SportHub</p>
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Admin Dashboard</h1>
+            <p class="text-sm text-slate-500 mt-1">@(isEn ? "SportHub system overview" : "Tổng quan hệ thống SportHub")</p>
+        </div>
+        <!-- Time range selector -->
+        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-md p-1">
+            @foreach (var d in new[] { 7, 14, 30 })
+            {
+                <a asp-page="Index" asp-route-days="@d"
+                   class="px-3 py-1.5 rounded-md text-xs font-bold transition-colors @(days == d ? "bg-white dark:bg-slate-700 text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300")">
+                    @d @(isEn ? "days" : "ngày")
+                </a>
+            }
+        </div>
     </div>
 
     @await Html.PartialAsync("_AdminNav")
 
     <!-- Revenue cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
-            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">Tổng DT</p>
-            <p class="text-sm sm:text-2xl font-black text-primary leading-tight">@s.TotalRevenue.ToString("N0") ₫</p>
-            <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">@s.TotalConfirmedPayments GD</p>
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">@(isEn ? "Total revenue" : "Tổng doanh thu")</p>
+            <p class="text-sm sm:text-2xl font-black text-primary leading-tight">@s.TotalRevenue.ToString("N0") xu</p>
+            <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">@s.TotalConfirmedPayments @(isEn ? "payments" : "giao dịch")</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
-            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">Hôm nay</p>
-            <p class="text-sm sm:text-2xl font-black text-emerald-600 leading-tight">@s.TodayRevenue.ToString("N0") ₫</p>
-            <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">Đã xác nhận</p>
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">@(isEn ? "Today" : "Hôm nay")</p>
+            <p class="text-sm sm:text-2xl font-black text-emerald-600 leading-tight">@s.TodayRevenue.ToString("N0") xu</p>
+            <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">@(isEn ? "Confirmed" : "Đã xác nhận")</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
-            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">Tháng này</p>
-            <p class="text-sm sm:text-2xl font-black text-blue-600 leading-tight">@s.ThisMonthRevenue.ToString("N0") ₫</p>
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm">
+            <p class="text-[9px] sm:text-xs text-slate-500 uppercase tracking-wider mb-0.5">@(isEn ? "This month" : "Tháng này")</p>
+            <p class="text-sm sm:text-2xl font-black text-blue-600 leading-tight">@s.ThisMonthRevenue.ToString("N0") xu</p>
             <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">@DateTime.Now.ToString("MM/yyyy")</p>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-amber-200 dark:border-amber-800 p-2 sm:p-5 shadow-sm bg-amber-50 dark:bg-amber-900/10">
-            <p class="text-[9px] sm:text-xs text-amber-600 uppercase tracking-wider mb-0.5">Chờ XN</p>
+        <div class="bg-white dark:bg-slate-900 rounded-md sm:rounded-md border border-amber-200 dark:border-amber-800 p-2 sm:p-5 shadow-sm bg-amber-50 dark:bg-amber-900/10">
+            <p class="text-[9px] sm:text-xs text-amber-600 uppercase tracking-wider mb-0.5">@(isEn ? "Pending" : "Đang chờ")</p>
             <p class="text-sm sm:text-2xl font-black text-amber-600 leading-tight">@s.PendingPaymentsCount</p>
-            <a asp-page="/Admin/MatchPayments" class="text-[10px] sm:text-xs text-amber-500 hover:underline mt-0.5 block">Xem →</a>
+            <a asp-page="/Admin/MatchPayments" class="text-[10px] sm:text-xs text-amber-700 dark:text-amber-400 hover:underline mt-0.5 block">@(isEn ? "View →" : "Xem →")</a>
         </div>
     </div>
 
     <!-- System stats -->
     <div class="grid grid-cols-2 gap-2 sm:gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm flex items-center gap-2 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-md sm:rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm flex items-center gap-2 sm:gap-4">
             <div class="size-8 sm:size-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <span class="material-symbols-outlined text-primary text-[16px] sm:text-[24px]">group</span>
             </div>
             <div>
                 <p class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">@s.TotalUsers</p>
-                <p class="text-[10px] sm:text-sm text-slate-500">Người dùng</p>
+                <p class="text-[10px] sm:text-sm text-slate-500">@(isEn ? "Users" : "Người dùng")</p>
             </div>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm flex items-center gap-2 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-md sm:rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-5 shadow-sm flex items-center gap-2 sm:gap-4">
             <div class="size-8 sm:size-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
                 <span class="material-symbols-outlined text-emerald-600 text-[16px] sm:text-[24px]">sports</span>
             </div>
             <div>
                 <p class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">@s.ActiveMatchesCount</p>
-                <p class="text-[10px] sm:text-sm text-slate-500">Trận đang mở</p>
+                <p class="text-[10px] sm:text-sm text-slate-500">@(isEn ? "Open matches" : "Trận đang mở")</p>
             </div>
         </div>
+    </div>
+
+    <!-- KPI row (new metrics) -->
+    <div class="grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-sky-500 text-[20px] sm:text-[28px] flex-shrink-0">person_add</span>
+            <div>
+                <p class="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">@s.TodayNewUsers</p>
+                <p class="text-[9px] sm:text-xs text-slate-400">@(isEn ? "Registered today" : "Đăng ký hôm nay")</p>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-2 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-violet-500 text-[20px] sm:text-[28px] flex-shrink-0">workspace_premium</span>
+            <div>
+                <p class="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">@s.ActiveSubscriptions</p>
+                <p class="text-[9px] sm:text-xs text-slate-400">@(isEn ? "Active subscriptions" : "Gói đang hoạt động")</p>
+            </div>
+        </div>
+        <a asp-page="/Admin/Disputes" class="bg-white dark:bg-slate-900 rounded-md border @(s.PendingDisputeCount > 0 ? "border-amber-200 dark:border-amber-800" : "border-slate-200 dark:border-slate-800") p-2 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
+            <span class="material-symbols-outlined @(s.PendingDisputeCount > 0 ? "text-amber-500" : "text-slate-400") text-[20px] sm:text-[28px] flex-shrink-0">gavel</span>
+            <div>
+                <p class="text-xs sm:text-sm font-black @(s.PendingDisputeCount > 0 ? "text-amber-600" : "text-slate-900 dark:text-white") leading-tight">@s.PendingDisputeCount</p>
+                <p class="text-[9px] sm:text-xs text-slate-400">@(isEn ? "Pending disputes" : "Khiếu nại chờ duyệt")</p>
+            </div>
+        </a>
     </div>
 
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h2 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h2 class="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2 cursor-pointer" onclick="toggleChart('revenueChart','iconRevenue')">
                 <span class="material-symbols-outlined text-primary">show_chart</span>
-                Doanh thu 7 ngày gần nhất
+                @(isEn ? $"Revenue last {days} days" : $"Doanh thu {days} ngày qua")
+                <button type="button" class="ml-auto text-slate-400 hover:text-primary transition-colors focus:outline-none">
+                    <span class="material-symbols-outlined text-sm" id="iconRevenue">expand_less</span>
+                </button>
             </h2>
-            <canvas id="revenueChart" height="150"></canvas>
+            <div id="revenueChart-wrap" style="position:relative;height:180px;"><canvas id="revenueChart"></canvas></div>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h2 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h2 class="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2 cursor-pointer" onclick="toggleChart('typeChart','iconType')">
                 <span class="material-symbols-outlined text-primary">donut_large</span>
-                Cơ cấu giao dịch
+                @(isEn ? "Transaction breakdown" : "Phân tích giao dịch")
+                <button type="button" class="ml-auto text-slate-400 hover:text-primary transition-colors focus:outline-none">
+                    <span class="material-symbols-outlined text-sm" id="iconType">expand_less</span>
+                </button>
             </h2>
-            <canvas id="typeChart" height="180"></canvas>
-            <div class="mt-3 space-y-1 text-xs text-slate-600 dark:text-slate-400">
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>Đặt cọc host: <b>@typeTotal[0].ToString("N0") ₫</b></div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>Phí player: <b>@typeTotal[1].ToString("N0") ₫</b></div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>Phí còn lại: <b>@typeTotal[2].ToString("N0") ₫</b></div>
+            <div id="typeChart-wrap" style="position:relative;height:150px;">
+                <canvas id="typeChart"></canvas>
+            </div>
+            <div class="mt-2 space-y-1 text-xs text-slate-600 dark:text-slate-400">
+                <div class="flex items-center gap-2 min-w-0"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></span><span class="truncate">@(isEn ? "Host deposit" : "Đặt cọc chủ trận"):</span><b class="ml-auto flex-shrink-0">@typeTotal[0].ToString("N0") xu</b></div>
+                <div class="flex items-center gap-2 min-w-0"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span><span class="truncate">@(isEn ? "Player fee" : "Phí người chơi"):</span><b class="ml-auto flex-shrink-0">@typeTotal[1].ToString("N0") xu</b></div>
+                <div class="flex items-center gap-2 min-w-0"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0"></span><span class="truncate">@(isEn ? "Host remainder" : "Phí còn lại"):</span><b class="ml-auto flex-shrink-0">@typeTotal[2].ToString("N0") xu</b></div>
             </div>
         </div>
     </div>
 
+    <!-- New user trend + Match status charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h2 class="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm cursor-pointer" onclick="toggleChart('newUsersChart','iconUsers')">
+                <span class="material-symbols-outlined text-sky-500">person_add</span>
+                @(isEn ? $"New users — last {days} days" : $"Người dùng mới — {days} ngày qua")
+                <button type="button" class="ml-auto text-slate-400 hover:text-primary transition-colors focus:outline-none">
+                    <span class="material-symbols-outlined text-sm" id="iconUsers">expand_less</span>
+                </button>
+            </h2>
+            <div id="newUsersChart-wrap" style="position:relative;height:160px;"><canvas id="newUsersChart"></canvas></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+            <h2 class="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm cursor-pointer" onclick="toggleChart('matchStatusChart','iconMatch')">
+                <span class="material-symbols-outlined text-emerald-500">sports</span>
+                @(isEn ? "Match status breakdown" : "Phân tích trạng thái trận")
+                <button type="button" class="ml-auto text-slate-400 hover:text-primary transition-colors focus:outline-none">
+                    <span class="material-symbols-outlined text-sm" id="iconMatch">expand_less</span>
+                </button>
+            </h2>
+            <div id="matchStatusChart-wrap" style="position:relative;height:160px;"><canvas id="matchStatusChart"></canvas></div>
+        </div>
+    </div>
+
     <!-- AI Growth Suggestions -->
-    <div class="bg-gradient-to-br from-primary/5 to-sky-50 dark:from-primary/10 dark:to-slate-900 rounded-xl border border-primary/20 p-5">
+    <div class="bg-gradient-to-br from-primary/5 to-sky-50 dark:from-primary/10 dark:to-slate-900 rounded-md border border-primary/20 p-5">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">auto_awesome</span>
-                <h2 class="font-bold text-slate-900 dark:text-white text-sm">Gợi ý tăng trưởng AI</h2>
+                <h2 class="font-bold text-slate-900 dark:text-white text-sm">@(isEn ? "AI Growth Suggestions" : "Gợi ý tăng trưởng AI")</h2>
             </div>
-            <button onclick="loadAiInsight('dashboard', '@s.TotalUsers', '@s.ActiveMatchesCount', '@s.TotalConfirmedPayments', '')" class="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                <span class="material-symbols-outlined text-[14px]">refresh</span>
-                Phân tích
+            <button onclick="loadAiInsight('dashboard', '@s.TotalUsers', '@s.ActiveMatchesCount', '@s.TotalConfirmedPayments', '')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/5 hover:bg-primary/10 rounded-md transition-colors">
+                <span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+                @(isEn ? "Analyze" : "Phân tích AI")
             </button>
         </div>
-        <div id="ai-insight-dashboard" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            <span class="text-slate-400 italic">Nhấn "Phân tích" để AI đưa ra gợi ý tăng trưởng cho SportHub.</span>
+        <div id="ai-insight-dashboard" class="mt-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            <span class="text-slate-400 italic">@(isEn ? "Click \"Analyze\" for AI growth suggestions for SportHub." : "Nhấn \"Phân tích AI\" để nhận gợi ý tăng trưởng từ AI.")</span>
         </div>
     </div>
 
     <!-- Unpaid remaining fees (debt tracking) -->
     @if (Model.UnpaidFees.Any())
     {
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-800 shadow-sm">
-        <div class="flex items-center justify-between p-5 border-b border-rose-100 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/10 rounded-t-xl">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-rose-200 dark:border-rose-800 shadow-sm">
+        <div class="flex items-center justify-between p-5 border-b border-rose-100 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/10 rounded-t-md">
             <h2 class="font-bold text-rose-700 dark:text-rose-400 flex items-center gap-2">
                 <span class="material-symbols-outlined">warning</span>
-                Nợ chưa thu — Phí còn lại
+                @(isEn ? "Unpaid — Host remainder fees" : "Chưa thanh toán — Phí còn lại chủ trận")
                 <span class="ml-1 min-w-[22px] h-[22px] px-1.5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center">@Model.UnpaidFees.Count</span>
             </h2>
         </div>
@@ -126,21 +202,21 @@
                 <div class="flex items-center gap-3 px-5 py-3">
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">@debt.MatchTitle</p>
-                        <p class="text-xs text-slate-500">Host: @debt.HostName · Ngày trận: @debt.MatchDate.ToString("dd/MM/yyyy")</p>
+                        <p class="text-xs text-slate-500">@(isEn ? "Host" : "Chủ trận"): @debt.HostName · @(isEn ? "Match date" : "Ngày trận"): @debt.MatchDate.ToString("dd/MM/yyyy")</p>
                     </div>
                     <div class="text-right flex-shrink-0">
-                        <p class="text-sm font-bold text-rose-600">@debt.Amount.ToString("N0") ₫</p>
+                        <p class="text-sm font-bold text-rose-600">@debt.Amount.ToString("N0") xu</p>
                         @if (debt.IsOverdue)
                         {
-                            <span class="text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-2 py-0.5 rounded-full">Quá hạn 48h</span>
+                            <span class="text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-2 py-0.5 rounded-md">@(isEn ? "Overdue 48h" : "Quá hạn 48h")</span>
                         }
                         else if (debt.PaymentCreatedAt.HasValue)
                         {
                             var hoursAgo = (int)(DateTime.UtcNow - debt.PaymentCreatedAt.Value).TotalHours;
-                            <p class="text-xs text-slate-400">Đã nhắc @hoursAgo h trước</p>
+                            <p class="text-xs text-slate-400">@(isEn ? $"Notified {hoursAgo}h ago" : $"Đã thông báo {hoursAgo}h trước")</p>
                         }
                     </div>
-                    <a asp-page="/Matchmaking/Details" asp-route-id="@debt.MatchId" class="ml-2 text-xs text-primary hover:underline flex-shrink-0">Chi tiết →</a>
+                    <a asp-page="/Matchmaking/Details" asp-route-id="@debt.MatchId" class="ml-2 text-xs text-primary hover:underline flex-shrink-0">@(isEn ? "Details →" : "Chi tiết →")</a>
                 </div>
             }
         </div>
@@ -148,17 +224,17 @@
     }
 
     <!-- Recent transactions -->
-    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm">
         <div class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
             <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">receipt_long</span>
-                Giao dịch gần đây
+                @(isEn ? "Recent transactions" : "Giao dịch gần đây")
             </h2>
-            <a asp-page="/Admin/Transactions" class="text-sm text-primary hover:underline font-medium">Xem tất cả →</a>
+            <a asp-page="/Admin/Transactions" class="text-sm text-primary hover:underline font-medium">@(isEn ? "View all →" : "Xem tất cả →")</a>
         </div>
         @if (!s.RecentTransactions.Any())
         {
-            <div class="p-10 text-center text-slate-400 text-sm">Chưa có giao dịch nào.</div>
+            <div class="p-10 text-center text-slate-400 text-sm">@(isEn ? "No transactions yet." : "Chưa có giao dịch.")</div>
         }
         else
         {
@@ -172,13 +248,13 @@
                         _               => "bg-slate-50 dark:bg-slate-800 text-slate-600"
                     };
                     <div class="flex items-center gap-3 px-5 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-bold @typeColor flex-shrink-0">@tx.TypeLabel</span>
+                        <span class="px-2 py-0.5 rounded-md text-xs font-bold @typeColor flex-shrink-0">@tx.TypeLabel</span>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">@tx.MatchTitle</p>
                             <p class="text-xs text-slate-500">@tx.PayerName</p>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <p class="text-sm font-bold text-primary">+@tx.Amount.ToString("N0") ₫</p>
+                            <p class="text-sm font-bold text-primary">+@tx.Amount.ToString("N0") xu</p>
                             <p class="text-xs text-slate-400">@tx.ConfirmedAt.ToLocalTime().ToString("HH:mm dd/MM")</p>
                         </div>
                     </div>
@@ -202,19 +278,55 @@
         data: {
             labels: [@Html.Raw(labels)],
             datasets: [
-                { label: 'Đặt cọc host', data: [@depositData], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
-                { label: 'Phí player',    data: [@feeData],     borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
-                { label: 'Phí còn lại',  data: [@remainData],  borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)',  fill: true, tension: 0.4, pointRadius: 4 }
+                { label: 'Host deposit', data: [@depositData], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
+                { label: 'Player fee',   data: [@feeData],     borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
+                { label: 'Host remainder', data: [@remainData], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4, pointRadius: 4 }
             ]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { labels: { color: textColor, boxWidth: 12 } } },
             scales: {
                 x: { grid: { color: gridColor }, ticks: { color: textColor } },
-                y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => v.toLocaleString('vi-VN') + ' ₫' }, beginAtZero: true }
+                y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => v.toLocaleString('vi-VN') + ' xu' }, beginAtZero: true }
             }
+        }
+    });
+
+    // Bar chart — new users per day
+    new Chart(document.getElementById('newUsersChart'), {
+        type: 'bar',
+        data: {
+            labels: [@Html.Raw(userLabels)],
+            datasets: [{ label: 'New users', data: [@userData], backgroundColor: 'rgba(14,165,233,0.7)', borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4 }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                y: { grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 }, beginAtZero: true }
+            }
+        }
+    });
+
+    // Doughnut chart — match status breakdown
+    new Chart(document.getElementById('matchStatusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [@Html.Raw(statusLabels)],
+            datasets: [{ data: [@statusData],
+                backgroundColor: ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#64748b'],
+                borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: { legend: { labels: { color: textColor, boxWidth: 12, font: { size: 11 } } } }
         }
     });
 
@@ -222,15 +334,25 @@
     new Chart(document.getElementById('typeChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Đặt cọc host', 'Phí player', 'Phí còn lại'],
+            labels: ['Host deposit', 'Player fee', 'Host remainder'],
             datasets: [{ data: [@typeTotal[0], @typeTotal[1], @typeTotal[2]], backgroundColor: ['#3b82f6','#10b981','#f59e0b'], borderWidth: 0, hoverOffset: 6 }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             cutout: '70%',
             plugins: { legend: { display: false } }
         }
     });
 })();
+
+function toggleChart(chartId, iconId) {
+    var wrap = document.getElementById(chartId + '-wrap');
+    var icon = document.getElementById(iconId);
+    if (!wrap) return;
+    var isHidden = wrap.style.display === 'none';
+    wrap.style.display = isHidden ? '' : 'none';
+    if (icon) icon.textContent = isHidden ? 'expand_less' : 'expand_more';
+}
 </script>
 }

@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Subscription.CheckoutModel
 @{
     ViewData["Title"] = "Thanh toán gói";
@@ -12,32 +12,32 @@
 
     @if (!string.IsNullOrEmpty(Model.SuccessMessage))
     {
-        <div class="mb-4 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 font-medium">@Model.SuccessMessage</div>
+        <div class="mb-4 p-4 rounded-md bg-green-50 border border-green-200 text-green-700 font-medium">@Model.SuccessMessage</div>
     }
     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
-        <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 font-medium">@Model.ErrorMessage</div>
+        <div class="mb-4 p-4 rounded-md bg-red-50 border border-red-200 text-red-700 font-medium">@Model.ErrorMessage</div>
     }
 
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800">
             <h2 class="text-xl font-bold text-slate-900 dark:text-white">Xác nhận đơn hàng</h2>
             <div class="mt-3 flex justify-between items-center">
                 <span class="text-slate-600 dark:text-slate-400">@Model.PlanName</span>
-                <span class="text-xl font-bold text-slate-900 dark:text-white">@Model.Amount.ToString("N0") ₫</span>
+                <span class="text-xl font-bold text-slate-900 dark:text-white">@Model.Amount.ToString("N0") xu</span>
             </div>
         </div>
 
         <div class="p-6 space-y-6">
             <!-- Wallet payment -->
-            <div class="rounded-xl border @(Model.WalletBalance >= Model.Amount ? "border-green-200 bg-green-50" : "border-slate-200 bg-slate-50") dark:bg-slate-800 dark:border-slate-700 p-4">
+            <div class="rounded-md border @(Model.WalletBalance >= Model.Amount ? "border-green-200 bg-green-50" : "border-slate-200 bg-slate-50") dark:bg-slate-800 dark:border-slate-700 p-4">
                 <div class="flex justify-between items-center mb-3">
                     <div class="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
                         Thanh toán bằng ví
                     </div>
                     <span class="text-sm font-medium @(Model.WalletBalance >= Model.Amount ? "text-green-600" : "text-slate-500")">
-                        Số dư: @Model.WalletBalance.ToString("N0") ₫
+                        Số dư: @Model.WalletBalance.ToString("N0") xu
                     </span>
                 </div>
                 @if (Model.WalletBalance >= Model.Amount)
@@ -45,15 +45,15 @@
                     <form method="post" asp-page-handler="PayWallet">
                         <input type="hidden" name="PlanKey" value="@Model.PlanKey" />
                         <input type="hidden" name="Billing" value="@Model.Billing" />
-                        <button type="submit" class="w-full py-2.5 rounded-lg font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors">
-                            Thanh toán ngay — @Model.Amount.ToString("N0") ₫
+                        <button type="submit" class="w-full py-2.5 rounded-md font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors">
+                            Thanh toán ngay — @Model.Amount.ToString("N0") xu
                         </button>
                     </form>
                 }
                 else
                 {
-                    <p class="text-sm text-slate-500 mb-2">Ví không đủ số dư. Cần nạp thêm <strong>@((Model.Amount - Model.WalletBalance).ToString("N0")) ₫</strong></p>
-                    <a href="/Wallet/TopUp" class="block text-center py-2 rounded-lg border border-slate-300 text-slate-600 text-sm hover:bg-slate-100 transition-colors">Nạp tiền vào ví</a>
+                    <p class="text-sm text-slate-500 mb-2">Ví không đủ số dư. Cần nạp thêm <strong>@((Model.Amount - Model.WalletBalance).ToString("N0")) xu</strong></p>
+                    <a href="/Wallet/TopUp" class="block text-center py-2 rounded-md border border-slate-300 text-slate-600 text-sm hover:bg-slate-100 transition-colors">Nạp tiền vào ví</a>
                 }
             </div>
 
@@ -72,9 +72,9 @@
                 @if (Model.QrUrl != null && Model.TransactionRef != null)
                 {
                     <div class="text-center space-y-3">
-                        <img src="@Model.QrUrl" alt="QR thanh toán" class="mx-auto w-52 h-52 rounded-xl border" />
+                        <img src="@Model.QrUrl" alt="QR thanh toán" class="mx-auto w-52 h-52 rounded-md border" />
                         <p class="text-xs text-slate-500">Nội dung chuyển khoản:</p>
-                        <code class="block bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 text-sm font-mono select-all">@Model.TransactionRef</code>
+                        <code class="block bg-slate-100 dark:bg-slate-800 rounded-md px-3 py-2 text-sm font-mono select-all">@Model.TransactionRef</code>
                         <p class="text-xs text-slate-400">SePay sẽ tự động kích hoạt gói sau khi nhận được giao dịch.</p>
                     </div>
                 }
@@ -83,7 +83,7 @@
                     <form method="post" asp-page-handler="CreateOrder">
                         <input type="hidden" name="PlanKey" value="@Model.PlanKey" />
                         <input type="hidden" name="Billing" value="@Model.Billing" />
-                        <button type="submit" class="w-full py-2.5 rounded-lg font-semibold border border-slate-300 text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <button type="submit" class="w-full py-2.5 rounded-md font-semibold border border-slate-300 text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                             Tạo mã QR chuyển khoản
                         </button>
                     </form>
@@ -95,7 +95,7 @@
     <!-- Billing cycle selector (only for subscription plans) -->
     @if (!Model.IsCreditBundle && Model.QrUrl == null)
     {
-        <div class="mt-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div class="mt-4 p-4 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700">
             <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Chu kỳ thanh toán</p>
             <div class="flex gap-2 flex-wrap">
                 @foreach (var (label, cycle) in new[] { ("1 tháng", "Monthly"), ("3 tháng", "Quarterly"), ("1 năm", "Annual") })
@@ -103,8 +103,8 @@
                     var price = Model.IsCreditBundle ? 0 : SportHub.Services.Implementations.SubscriptionService.GetPriceStatic(Model.PlanKey, cycle);
                     if (price <= 0 && cycle != "Monthly") continue;
                     <a href="/Subscription/Checkout?planKey=@Model.PlanKey&billing=@cycle"
-                       class="px-4 py-2 rounded-lg text-sm border @(Model.Billing == cycle ? "bg-primary text-white border-primary" : "border-slate-300 text-slate-600 hover:bg-slate-50") transition-colors">
-                        @label — @price.ToString("N0") ₫
+                       class="px-4 py-2 rounded-md text-sm border @(Model.Billing == cycle ? "bg-primary text-white border-primary" : "border-slate-300 text-slate-600 hover:bg-slate-50") transition-colors">
+                        @label — @price.ToString("N0") xu
                     </a>
                 }
             </div>

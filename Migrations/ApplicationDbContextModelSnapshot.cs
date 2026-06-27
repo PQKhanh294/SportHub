@@ -212,6 +212,9 @@ namespace SportHub.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ReceiverID")
                         .HasColumnType("int");
 
@@ -464,6 +467,12 @@ namespace SportHub.Migrations
                     b.Property<int?>("BookingID")
                         .HasColumnType("int");
 
+                    b.Property<string>("CancelReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("CourtID")
                         .HasColumnType("int");
 
@@ -500,6 +509,9 @@ namespace SportHub.Migrations
 
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
+
+                    b.Property<bool>("IsLockedByHost")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRecurring")
                         .HasColumnType("bit");
@@ -571,6 +583,59 @@ namespace SportHub.Migrations
 
                             t.HasCheckConstraint("CK_Matches_Status", "Status IN ('Open','Full','InProgress','Completed','Cancelled','PendingDeposit')");
                         });
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.MatchDispute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvidenceUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisputeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ReporterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Resolution")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("ReporterId");
+
+                    b.ToTable("MatchDisputes");
                 });
 
             modelBuilder.Entity("SportHub.Models.Entities.MatchInteraction", b =>
@@ -1623,6 +1688,9 @@ namespace SportHub.Migrations
                     b.Property<int>("LoginCount")
                         .HasColumnType("int");
 
+                    b.Property<bool>("NotifyByEmail")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2258,6 +2326,25 @@ namespace SportHub.Migrations
                     b.Navigation("ParentMatch");
 
                     b.Navigation("Sport");
+                });
+
+            modelBuilder.Entity("SportHub.Models.Entities.MatchDispute", b =>
+                {
+                    b.HasOne("SportHub.Models.Entities.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SportHub.Models.Entities.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Reporter");
                 });
 
             modelBuilder.Entity("SportHub.Models.Entities.MatchInteraction", b =>

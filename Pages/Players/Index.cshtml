@@ -13,16 +13,16 @@
             <h1 class="text-3xl font-black tracking-tight">@(isEn ? "Player Community" : "Cộng đồng người chơi")</h1>
             <p class="text-slate-500 dark:text-slate-400">@(isEn ? "Find compatible players to connect and join matches." : "Tìm người chơi phù hợp để kết nối và tham gia trận.")</p>
         </div>
-        <a asp-page="/Matchmaking/Index" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">@(isEn ? "Find Matches" : "Tìm trận đấu")</a>
+        <a asp-page="/Matchmaking/Index" class="px-4 py-2 rounded-md bg-primary text-white text-sm font-bold hover:bg-primary/90">@(isEn ? "Find Matches" : "Tìm trận đấu")</a>
     </div>
 
     <!-- Filter bar -->
-    <form method="get" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+    <form method="get" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
         <input type="hidden" name="PageNumber" value="1" />
         <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
                 <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">@(isEn ? "Sport" : "Môn thể thao")</label>
-                <select name="SportFilter" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm py-2 focus:border-primary focus:ring-1 focus:ring-primary">
+                <select name="SportFilter" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm py-2 focus:border-primary focus:ring-1 focus:ring-primary">
                     <option value="">@(isEn ? "All sports" : "Tất cả môn")</option>
                     @foreach (var sport in Model.SportOptions)
                     {
@@ -34,13 +34,13 @@
                 <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">@(isEn ? "Location" : "Địa chỉ khu vực")</label>
                 <input type="text" name="LocationFilter" value="@Model.LocationFilter"
                        placeholder="@(isEn ? "District, ward, city..." : "Quận, phường, tỉnh thành...")"
-                       class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm py-2 focus:border-primary focus:ring-1 focus:ring-primary" />
+                       class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm py-2 focus:border-primary focus:ring-1 focus:ring-primary" />
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">@(isEn ? "Filter" : "Lọc")</button>
+                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors">@(isEn ? "Filter" : "Lọc")</button>
                 @if (!string.IsNullOrWhiteSpace(Model.SportFilter) || !string.IsNullOrWhiteSpace(Model.LocationFilter))
                 {
-                    <a asp-page="/Players/Index" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">@(isEn ? "Clear filters" : "Xóa lọc")</a>
+                    <a asp-page="/Players/Index" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">@(isEn ? "Clear filters" : "Xóa lọc")</a>
                 }
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             @foreach (var player in Model.Players)
             {
-                <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <article class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex items-center gap-4 mb-3">
                         <img class="size-16 rounded-full object-cover flex-shrink-0" src="@player.AvatarUrl" alt="@player.FullName" />
                         <div class="min-w-0">
@@ -71,7 +71,7 @@
                             <p class="text-sm text-slate-500 dark:text-slate-400">@player.SkillLevel</p>
                             @if (!string.IsNullOrWhiteSpace(player.FavoriteSport))
                             {
-                                <span class="inline-block mt-0.5 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-full">@player.FavoriteSport</span>
+                                <span class="inline-block mt-0.5 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-md">@player.FavoriteSport</span>
                             }
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                                 </div>
                             }
                         </div>
-                        <a asp-page="/Profile/Index" asp-route-id="@player.UserId" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-xs font-bold transition-colors">
+                        <a asp-page="/Profile/Index" asp-route-id="@player.UserId" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-md text-xs font-bold transition-colors">
                             @(isEn ? "View profile" : "Xem hồ sơ")
                         </a>
                     </div>
@@ -111,7 +111,7 @@
                 {
                     <a asp-page="/Players/Index" asp-route-PageNumber="@(Model.PageNumber - 1)"
                        asp-route-SportFilter="@Model.SportFilter" asp-route-LocationFilter="@Model.LocationFilter"
-                       class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                       class="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         @(isEn ? "← Prev" : "← Trước")
                     </a>
                 }
@@ -119,13 +119,13 @@
                 {
                     if (p == Model.PageNumber)
                     {
-                        <span class="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-bold">@p</span>
+                        <span class="px-3 py-1.5 rounded-md bg-primary text-white text-sm font-bold">@p</span>
                     }
                     else
                     {
                         <a asp-page="/Players/Index" asp-route-PageNumber="@p"
                            asp-route-SportFilter="@Model.SportFilter" asp-route-LocationFilter="@Model.LocationFilter"
-                           class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                           class="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                             @p
                         </a>
                     }
@@ -134,7 +134,7 @@
                 {
                     <a asp-page="/Players/Index" asp-route-PageNumber="@(Model.PageNumber + 1)"
                        asp-route-SportFilter="@Model.SportFilter" asp-route-LocationFilter="@Model.LocationFilter"
-                       class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                       class="px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         @(isEn ? "Next →" : "Tiếp →")
                     </a>
                 }

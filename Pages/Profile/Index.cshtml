@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Profile.IndexModel
 @{
     ViewData["Title"] = "Cá nhân";
@@ -11,12 +11,12 @@
 <section class="space-y-6">
 
     <!-- Hero Card — Cover banner + Avatar overlap -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
         <!-- Teal cover banner -->
         <div class="h-28 bg-gradient-to-br from-primary/80 via-primary to-navy/90 relative">
             <!-- Edit button top-right -->
             <a asp-page="/Profile/Edit"
-               class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all">
+               class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all">
                 <span class="material-symbols-outlined text-sm">edit</span>
                 Chỉnh sửa
             </a>
@@ -33,15 +33,15 @@
                          alt="@p.FullName" />
                     @if (Model.CurrentPlanKey == "Pro")
                     {
-                        <span class="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">PRO</span>
+                        <span class="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow">PRO</span>
                     }
                     else if (Model.CurrentPlanKey == "Club")
                     {
-                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">CLUB</span>
+                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow">CLUB</span>
                     }
                     else if (Model.CurrentPlanKey == "Starter")
                     {
-                        <span class="absolute -bottom-1 -right-1 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">S+</span>
+                        <span class="absolute -bottom-1 -right-1 bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow">S+</span>
                     }
                 </div>
 
@@ -69,7 +69,7 @@
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">@p.FullName</h1>
                 <p class="text-sm text-slate-400 mt-0.5">Thành viên từ @p.JoinedText</p>
                 <div class="flex flex-wrap gap-2 mt-3">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-md">
                         <span class="material-symbols-outlined text-xs">verified</span>
                         Người chơi xác thực
                     </span>
@@ -80,7 +80,7 @@
                             "Pro"     => ("bg-purple-100 text-purple-700","Pro"),
                             _         => ("bg-primary/10 text-primary",   "Starter"),
                         };
-                        <a href="/Subscription" class="inline-flex items-center gap-1 px-3 py-1 @subBg text-xs font-bold rounded-full hover:opacity-80 transition-opacity">
+                        <a href="/Subscription" class="inline-flex items-center gap-1 px-3 py-1 @subBg text-xs font-bold rounded-md hover:opacity-80 transition-opacity">
                             <span class="material-symbols-outlined text-xs">workspace_premium</span>
                             @subText
                         </a>
@@ -113,7 +113,7 @@
         <div class="lg:col-span-4 space-y-4">
 
             <!-- Thông tin cá nhân -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">person</span>
                     Thông tin cá nhân
@@ -151,13 +151,13 @@
             </div>
 
             <!-- Ví SportHub -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <span class="material-symbols-outlined text-primary text-lg">account_balance_wallet</span>
                         Ví SportHub
                     </h3>
-                    <span class="text-lg font-black @(Model.WalletBalance > 0 ? "text-primary" : "text-slate-400")">@Model.WalletBalance.ToString("N0") ₫</span>
+                    <span class="text-lg font-black @(Model.WalletBalance > 0 ? "text-primary" : "text-slate-400")">@Model.WalletBalance.ToString("N0") xu</span>
                 </div>
                 @if (Model.WalletHistory.Any())
                 {
@@ -178,7 +178,7 @@
                                     <p class="text-xs text-slate-700 dark:text-slate-300 truncate">@tx.Description</p>
                                     <p class="text-[10px] text-slate-400">@tx.CreatedAt.ToLocalTime().ToString("dd/MM/yy HH:mm")</p>
                                 </div>
-                                <span class="text-xs font-bold @txColor">@txSign@tx.Amount.ToString("N0") ₫</span>
+                                <span class="text-xs font-bold @txColor">@txSign@tx.Amount.ToString("N0") xu</span>
                             </div>
                         }
                     </div>
@@ -194,7 +194,7 @@
             </div>
 
             <!-- Môn thể thao & Trình độ -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">sports</span>
                     Môn thể thao & Trình độ
@@ -218,12 +218,12 @@
                                         || n.Contains("Swimming", StringComparison.OrdinalIgnoreCase) => "🏊",
                                 _ => "🎯"
                             };
-                            <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <div class="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-md">
                                 <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-1.5">
                                     <span>@sportEmoji</span>
                                     @sp.SportName
                                 </span>
-                                <span class="text-xs px-2.5 py-1 bg-primary/10 text-primary font-bold rounded-full">@sp.SkillLevel</span>
+                                <span class="text-xs px-2.5 py-1 bg-primary/10 text-primary font-bold rounded-md">@sp.SkillLevel</span>
                             </div>
                         }
                     }
@@ -243,7 +243,7 @@
                 var totalCodes = Model.SavedCodes.Count + Model.MyVouchers.Count;
                 var validCodes = Model.SavedCodes.Count(c => c.IsValid) + Model.MyVouchers.Count(v => !v.IsUsed && (v.ExpiresAt == null || v.ExpiresAt > DateTime.UtcNow));
             }
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <span class="material-symbols-outlined text-primary text-lg">local_offer</span>
@@ -251,7 +251,7 @@
                     </h3>
                     @if (validCodes > 0)
                     {
-                        <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">@validCodes khả dụng</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md">@validCodes khả dụng</span>
                     }
                 </div>
 
@@ -271,7 +271,7 @@
                             var isValid = c.IsValid;
                             var borderCls = isValid ? "border-primary/20 bg-primary/3" : "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 opacity-60";
                             var expiryText = c.ExpiresAt.HasValue ? c.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "Không hết hạn";
-                            <div class="rounded-xl border @borderCls p-3">
+                            <div class="rounded-md border @borderCls p-3.5">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-1.5 mb-0.5">
@@ -305,7 +305,7 @@
                                     <div class="flex flex-col items-end gap-1.5 shrink-0">
                                         @if (isValid)
                                         {
-                                            <a href="/Wallet?code=@c.Code" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">
+                                            <a href="/Wallet?code=@c.Code" class="text-[10px] font-bold px-2 py-1 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors">
                                                 Dùng ngay
                                             </a>
                                         }
@@ -326,7 +326,7 @@
                             var vBorder = vValid ? "border-violet-200 bg-violet-50/50 dark:bg-violet-900/10" : "border-slate-100 dark:border-slate-800 opacity-60";
                             var vStatus = isUsed ? "Đã dùng" : isExpired ? "Hết hạn" : null;
                             var vExpiry = v.ExpiresAt.HasValue ? v.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "Không hết hạn";
-                            <div class="rounded-xl border @vBorder p-3">
+                            <div class="rounded-md border @vBorder p-3.5">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-1.5 mb-0.5">
@@ -355,7 +355,7 @@
                                     </div>
                                     @if (vValid)
                                     {
-                                        <a href="/Wallet?voucher=@v.Code" class="shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors">
+                                        <a href="/Wallet?voucher=@v.Code" class="shrink-0 text-[10px] font-bold px-2 py-1 rounded-md bg-violet-600 text-white hover:bg-violet-700 transition-colors">
                                             Dùng ngay
                                         </a>
                                     }
@@ -371,7 +371,7 @@
             </div>
 
             <!-- Huy hiệu -->
-            <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">military_tech</span>
                     Huy hiệu SportHub
@@ -379,13 +379,13 @@
                 <div class="space-y-2">
                     @foreach (var badge in Model.Badges)
                     {
-                        <div class="p-3 rounded-xl border @(badge.IsEarned ? "border-primary/25 bg-primary/5" : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30")">
+                        <div class="p-3.5 rounded-md border @(badge.IsEarned ? "border-primary/25 bg-primary/5" : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30")">
                             <div class="flex items-start gap-2.5">
                                 <span class="material-symbols-outlined text-lg @(badge.IsEarned ? "text-primary" : "text-slate-300 dark:text-slate-600")">@badge.Icon</span>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-2">
                                         <p class="font-bold text-xs text-slate-800 dark:text-slate-200">@badge.Name</p>
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
                                     </div>
                                     <p class="text-[10px] text-slate-400 mt-0.5">@badge.Description</p>
                                     <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -406,7 +406,7 @@
             <!-- Rating Summary -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- As Host -->
-                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                     <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 text-sm">
                         <span class="material-symbols-outlined text-primary text-base">diversity_3</span>
                         Khi là Host
@@ -415,13 +415,13 @@
                     {
                         <div class="text-center py-4">
                             <span class="material-symbols-outlined text-slate-300 text-2xl">star_border</span>
-                            <p class="text-xs text-slate-400 mt-1">Chưa đủ đánh giá (cần ≥ 3)</p>
+                            <p class="text-xs text-slate-400 mt-1">Chưa có đánh giá nào</p>
                         </div>
                     }
                     else
                     {
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl font-black text-amber-500">@Model.HostRatingSummary.OverallAverage.ToString("F1")</span>
+                            <span class="text-3xl font-black text-amber-600 dark:text-amber-400">@Model.HostRatingSummary.OverallAverage.ToString("F1")</span>
                             <div>
                                 <div class="flex items-center gap-0.5">
                                     @for (int i = 1; i <= 5; i++)
@@ -447,7 +447,7 @@
                 </div>
 
                 <!-- As Player -->
-                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                     <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 text-sm">
                         <span class="material-symbols-outlined text-primary text-base">sports_tennis</span>
                         Khi là Người chơi
@@ -456,13 +456,13 @@
                     {
                         <div class="text-center py-4">
                             <span class="material-symbols-outlined text-slate-300 text-2xl">star_border</span>
-                            <p class="text-xs text-slate-400 mt-1">Chưa đủ đánh giá (cần ≥ 3)</p>
+                            <p class="text-xs text-slate-400 mt-1">Chưa có đánh giá nào</p>
                         </div>
                     }
                     else
                     {
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl font-black text-amber-500">@Model.PlayerRatingSummary.OverallAverage.ToString("F1")</span>
+                            <span class="text-3xl font-black text-amber-600 dark:text-amber-400">@Model.PlayerRatingSummary.OverallAverage.ToString("F1")</span>
                             <div>
                                 <div class="flex items-center gap-0.5">
                                     @for (int i = 1; i <= 5; i++)
@@ -489,7 +489,7 @@
             <!-- Review History -->
             @if (Model.ReceivedReviews.Any())
             {
-                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                     <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary text-base">rate_review</span>
                         Đánh giá nhận được
@@ -508,7 +508,7 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 mb-1 flex-wrap">
                                         <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
-                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full @typeBg">@typeLabel</span>
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-md @typeBg">@typeLabel</span>
                                         <span class="text-xs text-slate-400 ml-auto">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span>
                                     </div>
                                     <p class="text-[11px] text-slate-400 mb-1">@review.MatchTitle • @review.MatchDate.ToString("dd/MM/yyyy")</p>
@@ -518,7 +518,7 @@
                                             <span class="material-symbols-outlined text-sm @(i <= (int)Math.Round(review.AverageScore) ? "text-amber-400" : "text-slate-200 dark:text-slate-700")"
                                                   style="font-variation-settings:'FILL' 1">star</span>
                                         }
-                                        <span class="text-xs font-bold text-amber-500 ml-1">@review.AverageScore.ToString("F1")</span>
+                                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400 ml-1">@review.AverageScore.ToString("F1")</span>
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(review.Comment))
                                     {
@@ -532,7 +532,7 @@
             }
             else
             {
-                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm text-center">
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-8 shadow-sm text-center">
                     <span class="material-symbols-outlined text-slate-300 text-4xl">rate_review</span>
                     <p class="text-sm text-slate-400 mt-3">Chưa có đánh giá nào.</p>
                     <p class="text-xs text-slate-300 mt-1">Tham gia trận đấu để nhận đánh giá từ người chơi khác.</p>
@@ -559,7 +559,7 @@ async function removeSavedCode(code, btn) {
     btn.disabled = true;
     try {
         await fetch('/api/wallet/unsave-code/' + encodeURIComponent(code), { method: 'DELETE' });
-        var card = btn.closest('.rounded-xl');
+        var card = btn.closest('.rounded-md');
         if (card) card.remove();
         showToast('Đã bỏ lưu mã ' + code);
     } catch {
@@ -582,6 +582,55 @@ function showToast(msg) {
     if (code) {
         window.location.href = '/Wallet?prefill=' + encodeURIComponent(code);
     }
+})();
+
+// Collapsible sections — on mobile, sections can be toggled to save vertical space
+(function () {
+    var STORAGE_KEY = 'sporthub_profile_collapsed';
+    var collapsed = {};
+    try { collapsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch {}
+
+    var COLLAPSIBLE_LABELS = ['Ví SportHub', 'Môn thể thao', 'Mã', 'Huy hiệu', 'Khi là Host', 'Khi là Người chơi', 'Đánh giá nhận được'];
+
+    document.querySelectorAll('.bg-white.rounded-md, .dark\\:bg-slate-900.rounded-md').forEach(function (card) {
+        var h3 = card.querySelector('h3');
+        if (!h3) return;
+        var text = h3.textContent.trim();
+        var match = COLLAPSIBLE_LABELS.find(function (l) { return text.indexOf(l) !== -1; });
+        if (!match) return;
+
+        var key = match;
+        // h3 may be inside a flex wrapper div — detect body correctly
+        var body = h3.parentElement === card ? h3.nextElementSibling : h3.parentElement.nextElementSibling;
+        if (!body) return;
+
+        // Add toggle button into h3
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ml-auto text-slate-400 hover:text-primary transition-colors focus:outline-none';
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm" id="icon-' + key + '">' +
+            (collapsed[key] ? 'expand_more' : 'expand_less') + '</span>';
+        btn.setAttribute('aria-label', 'Thu gọn / Mở rộng');
+        h3.style.cursor = 'pointer';
+        h3.classList.add('flex', 'items-center', 'w-full');
+        h3.appendChild(btn);
+
+        // Apply initial state
+        if (collapsed[key]) {
+            body.style.display = 'none';
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var isCollapsed = body.style.display === 'none';
+            body.style.display = isCollapsed ? '' : 'none';
+            document.getElementById('icon-' + key).textContent = isCollapsed ? 'expand_less' : 'expand_more';
+            collapsed[key] = !isCollapsed;
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed)); } catch {}
+        });
+
+        h3.addEventListener('click', function () { btn.click(); });
+    });
 })();
 </script>
 }

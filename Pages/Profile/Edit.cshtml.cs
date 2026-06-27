@@ -53,6 +53,8 @@ namespace SportHub.Pages.Profile
             public string? Gender { get; set; }
             public DateTime? DateOfBirth { get; set; }
 
+            public bool NotifyByEmail { get; set; } = true;
+
             public List<SportSkillInput> SportSkills { get; set; } = new();
         }
 
@@ -88,6 +90,7 @@ namespace SportHub.Pages.Profile
                 DefaultLongitude = user.DefaultLongitude,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,
+                NotifyByEmail = user.NotifyByEmail,
                 SportSkills = await _context.UserSportProfiles
                     .Where(usp => usp.UserID == userId)
                     .Select(usp => new SportSkillInput
@@ -154,6 +157,7 @@ namespace SportHub.Pages.Profile
             user.DefaultLongitude = Input.DefaultLongitude;
             user.Gender = string.IsNullOrWhiteSpace(Input.Gender) ? null : Input.Gender.Trim();
             user.DateOfBirth = Input.DateOfBirth;
+            user.NotifyByEmail = Input.NotifyByEmail;
 
             // Filter out empty or duplicate sport selections
             var submittedSkills = Input.SportSkills

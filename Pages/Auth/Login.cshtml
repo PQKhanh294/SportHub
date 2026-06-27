@@ -54,7 +54,7 @@
 
 <div class="w-full max-w-[420px] mx-auto relative z-10 card-enter">
     <!-- Dark glass card -->
-    <div class="bg-slate-900/75 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+    <div class="bg-slate-900/75 backdrop-blur-xl rounded-md shadow-2xl overflow-hidden border border-white/10">
         <!-- Teal accent top bar -->
         <div class="h-1 bg-gradient-to-r from-primary to-accent"></div>
 
@@ -64,12 +64,12 @@
         </div>
 
         <form method="post" class="px-8 pb-8 pt-4 space-y-4">
-            <div asp-validation-summary="ModelOnly" class="text-sm text-red-400 bg-red-950/40 border border-red-500/30 rounded-lg px-3 py-2 empty:hidden"></div>
+            <div asp-validation-summary="ModelOnly" class="text-sm text-red-400 bg-red-950/40 border border-red-500/30 rounded-md px-3 py-2 empty:hidden"></div>
 
             <div class="field-2">
                 <label class="block text-sm font-semibold text-white/80 mb-1.5">Địa chỉ Email</label>
                 <input asp-for="Input.Email" type="email"
-                       class="w-full h-11 px-4 rounded-xl border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                       class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
                        placeholder="email@example.com" />
                 <span asp-validation-for="Input.Email" class="text-xs text-red-400"></span>
             </div>
@@ -78,7 +78,7 @@
                 <label class="block text-sm font-semibold text-white/80 mb-1.5">Mật khẩu</label>
                 <div class="relative">
                     <input asp-for="Input.Password" id="passwordInput" type="password"
-                           class="w-full h-11 px-4 pr-11 rounded-xl border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                           class="w-full h-11 px-4 pr-11 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
                            placeholder="••••••••" />
                     <button type="button" onclick="togglePassword()"
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
@@ -90,7 +90,7 @@
 
             <div class="field-4">
                 <button type="submit"
-                        class="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-md shadow-primary/30 transition-all active:scale-[.98] hover:-translate-y-0.5">
+                        class="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-md shadow-md shadow-primary/30 transition-all active:scale-[.98] hover:-translate-y-0.5">
                     Đăng nhập
                 </button>
             </div>
@@ -108,7 +108,7 @@
             <!-- Google -->
             <div class="field-5">
                 <a href="/Auth/Login?handler=ExternalLogin&provider=Google"
-                   class="w-full h-11 flex items-center justify-center gap-2.5 border border-white/20 bg-white/8 rounded-xl font-semibold text-sm text-white hover:bg-white/15 transition-colors">
+                   class="w-full h-11 flex items-center justify-center gap-2.5 border border-white/20 bg-white/8 rounded-md font-semibold text-sm text-white hover:bg-white/15 transition-colors">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M47.532 24.552c0-1.636-.132-3.199-.388-4.698H24.48v9.01h12.984c-.568 2.952-2.24 5.452-4.76 7.132v5.916h7.696c4.508-4.152 7.132-10.268 7.132-17.36z" fill="#4285F4"/>
                         <path d="M24.48 48c6.48 0 11.916-2.148 15.888-5.832l-7.696-5.916c-2.14 1.436-4.876 2.288-8.192 2.288-6.3 0-11.636-4.252-13.54-9.972H3.012v6.108C6.972 42.86 15.148 48 24.48 48z" fill="#34A853"/>
@@ -122,7 +122,7 @@
             <!-- Facebook -->
             <div class="field-5">
                 <a href="/Auth/Login?handler=ExternalLogin&provider=Facebook"
-                   class="w-full h-11 flex items-center justify-center gap-2.5 bg-[#1877F2] hover:bg-[#166FE5] rounded-xl font-semibold text-sm text-white transition-colors">
+                   class="w-full h-11 flex items-center justify-center gap-2.5 bg-[#1877F2] hover:bg-[#166FE5] rounded-md font-semibold text-sm text-white transition-colors">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
                     </svg>

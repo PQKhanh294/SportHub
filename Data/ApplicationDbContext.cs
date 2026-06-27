@@ -33,6 +33,7 @@ namespace SportHub.Data
         public DbSet<MatchInteraction> MatchInteractions { get; set; } = null!;
         public DbSet<MatchPayment> MatchPayments { get; set; } = null!;
         public DbSet<MatchReview> MatchReviews { get; set; } = null!;
+        public DbSet<MatchDispute> MatchDisputes { get; set; } = null!;
 
         // Nhóm 5: Misc
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
