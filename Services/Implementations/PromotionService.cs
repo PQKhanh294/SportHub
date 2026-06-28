@@ -376,11 +376,11 @@ namespace SportHub.Services.Implementations
                 userId,
                 "Promotion",
                 "Mã khuyến mãi được áp dụng!",
-                $"+{promo.Campaign.Amount:N0}đ — {promo.Campaign.Name} (Mã: {promo.Code})",
+                $"+{promo.Campaign.Amount:N0} xu — {promo.Campaign.Name} (Mã: {promo.Code})",
                 "/Wallet"
             );
 
-            return new RedeemResult(true, $"Áp dụng thành công! Ví đã nhận +{promo.Campaign.Amount:N0}đ.", promo.Campaign.Amount);
+            return new RedeemResult(true, $"Áp dụng thành công! Ví đã nhận +{promo.Campaign.Amount:N0} xu.", promo.Campaign.Amount);
         }
 
         // ─── User: Personal Vouchers ──────────────────────────────────────────
