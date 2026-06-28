@@ -126,7 +126,7 @@
                             </div>
                             <!-- Amount + note -->
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-bold text-base text-emerald-600 dark:text-emerald-400">+@v.Amount.ToString("N0")đ</span>
+                                <span class="font-bold text-base text-emerald-600 dark:text-emerald-400">+@v.Amount.ToString("N0") xu</span>
                                 @if (!string.IsNullOrEmpty(v.Note))
                                 {
                                     <span class="text-xs text-slate-400 truncate max-w-[160px]">@v.Note</span>
@@ -212,7 +212,7 @@
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-slate-600 dark:text-slate-400 truncate">@label</span>
                             <div class="flex items-center gap-2 shrink-0 ml-2">
-                                <span class="font-bold text-emerald-600 dark:text-emerald-400">+@r.AmountCredited.ToString("N0")đ</span>
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">+@r.AmountCredited.ToString("N0") xu</span>
                                 <span class="text-xs text-slate-400">@r.RedeemedAt.ToLocalTime().ToString("dd/MM")</span>
                             </div>
                         </div>
@@ -365,11 +365,11 @@
                     resultBox.innerHTML = '<strong>Không tìm thấy mã.</strong> ' + (d.blockReason || '');
                 } else if (!d.eligible) {
                     resultBox.className = 'mb-3 p-3 rounded-md border text-sm bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400';
-                    resultBox.innerHTML = '<strong>' + d.campaignName + '</strong>: +' + Number(d.amount).toLocaleString('vi-VN') + 'đ — ' + (d.blockReason || 'Không đủ điều kiện.');
+                    resultBox.innerHTML = '<strong>' + d.campaignName + '</strong>: +' + Number(d.amount).toLocaleString('vi-VN') + ' xu — ' + (d.blockReason || 'Không đủ điều kiện.');
                     // Still allow saving even if not eligible now
                     if (actionRow) actionRow.classList.remove('hidden');
                 } else {
-                    var info = '<strong>' + d.campaignName + '</strong>: <span class="font-bold text-emerald-700">+' + Number(d.amount).toLocaleString('vi-VN') + 'đ</span>';
+                    var info = '<strong>' + d.campaignName + '</strong>: <span class="font-bold text-emerald-700">+' + Number(d.amount).toLocaleString('vi-VN') + ' xu</span>';
                     if (d.remainingUses !== null && d.remainingUses !== undefined) info += ' · Còn ' + d.remainingUses + ' lượt';
                     if (d.expiresAt) info += ' · HSD ' + new Date(d.expiresAt).toLocaleDateString('vi-VN');
                     resultBox.className = 'mb-3 p-3 rounded-md border text-sm bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400';
