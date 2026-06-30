@@ -326,6 +326,15 @@ namespace SportHub.Services.Implementations
                 match.Status = "Full";
 
             await _context.SaveChangesAsync();
+
+            if (participant.User?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(participant.User.Email))
+            {
+                var baseUrl = (_config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn").TrimEnd('/');
+                await _emailService.SendMatchApprovedAsync(participant.User.Email, participant.User.FullName,
+                    match.Title ?? "Trận đấu", match.MatchDate.ToString("dd/MM/yyyy"),
+                    $"{baseUrl}/Matchmaking/Details/{matchId}");
+            }
+
             return true;
         }
 
