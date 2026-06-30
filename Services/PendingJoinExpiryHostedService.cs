@@ -11,6 +11,7 @@ namespace SportHub.Services
     /// 2. Hủy chỗ Approved quá hạn 1 giờ chưa thanh toán phí 5K
     /// 3. Thông báo host hoàn thành 50% phí còn lại khi trận bắt đầu
     /// 4. Tự động chuyển trận sang Completed khi đã qua giờ kết thúc + gửi nhắc đánh giá
+    /// 5. Gửi email nhắc nhở người chơi ~2h trước giờ trận bắt đầu
     /// </summary>
     public class PendingJoinExpiryHostedService : BackgroundService
     {
@@ -177,6 +178,59 @@ namespace SportHub.Services
             }
         }
 
+        private async Task SendMatchRemindersAsync(IServiceScope scope, CancellationToken ct)
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            var nowLocal = DateTime.UtcNow.AddHours(7);
+            var windowStart = nowLocal.AddHours(2);
+            var windowEnd = windowStart.Add(CheckInterval);
+
+            var candidateMatches = await db.Matches
+                .Include(m => m.Participants).ThenInclude(p => p.User)
+                .Include(m => m.Court).ThenInclude(c => c!.Venue)
+                .Where(m => (m.Status == "Open" || m.Status == "Full")
+                    && m.MatchDate >= nowLocal.Date && m.MatchDate <= windowEnd.Date)
+                .ToListAsync(ct);
+
+            var upcomingMatches = candidateMatches
+                .Where(m => m.MatchDate.Date + m.StartTime >= windowStart && m.MatchDate.Date + m.StartTime < windowEnd)
+                .ToList();
+
+            if (upcomingMatches.Count == 0) return;
+
+            var matchIds = upcomingMatches.Select(m => m.MatchID).ToList();
+            var alreadyReminded = await db.MatchInteractions
+                .Where(i => matchIds.Contains(i.MatchID) && i.Action == "MatchReminder")
+                .Select(i => new { i.MatchID, i.UserID })
+                .ToListAsync(ct);
+            var remindedSet = alreadyReminded.Select(x => (x.MatchID, x.UserID)).ToHashSet();
+
+            var sentCount = 0;
+            foreach (var match in upcomingMatches)
+            {
+                var matchTitle = match.Title ?? match.MatchType;
+                var matchDateStr = $"{match.MatchDate:dd/MM/yyyy} {match.StartTime:hh\\:mm}";
+                var venue = match.CustomCourtName ?? match.Court?.Venue?.VenueName ?? "Chưa xác định";
+
+                foreach (var p in match.Participants.Where(p => p.JoinStatus == "Accepted"))
+                {
+                    if (remindedSet.Contains((match.MatchID, p.UserID))) continue;
+
+                    if (p.User?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.User.Email))
+                    {
+                        await emailService.SendMatchReminderAsync(p.User.Email, p.User.FullName, matchTitle, matchDateStr, venue);
+                        sentCount++;
+                    }
+                    db.MatchInteractions.Add(new MatchInteraction { MatchID = match.MatchID, UserID = p.UserID, Action = "MatchReminder", CreatedAt = DateTime.UtcNow });
+                }
+            }
+
+            await db.SaveChangesAsync(ct);
+            if (sentCount > 0)
+                _logger.LogInformation("Sent {Count} match reminder email(s).", sentCount);
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
@@ -238,6 +292,9 @@ namespace SportHub.Services
 
                     // 5. Auto-complete matches that have ended + send review reminders
                     await AutoCompleteMatchesAsync(scope, notificationService, stoppingToken);
+
+                    // 6. Send match reminder emails ~2h before start
+                    await SendMatchRemindersAsync(scope, stoppingToken);
                 }
                 catch (Exception ex)
                 {

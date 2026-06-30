@@ -10,12 +10,14 @@ namespace SportHub.Services.Implementations
         private readonly ApplicationDbContext _context;
         private readonly IWalletService _walletService;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
-        public PromotionService(ApplicationDbContext context, IWalletService walletService, INotificationService notificationService)
+        public PromotionService(ApplicationDbContext context, IWalletService walletService, INotificationService notificationService, IEmailService emailService)
         {
             _context = context;
             _walletService = walletService;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         // ─── Campaign Management ──────────────────────────────────────────────
@@ -216,7 +218,7 @@ namespace SportHub.Services.Implementations
                 userId,
                 "AdminCredit",
                 "Ví ảo được cộng tiền",
-                $"+{amount:N0}đ — {note}",
+                $"+{amount:N0} xu — {note}",
                 "/Wallet"
             );
         }
@@ -242,9 +244,18 @@ namespace SportHub.Services.Implementations
                 userId,
                 "Voucher",
                 "Bạn nhận được voucher mới!",
-                $"Voucher {code} — {amount:N0}đ{(expiresAt.HasValue ? $", hết hạn {expiresAt.Value.ToLocalTime():dd/MM/yyyy}" : "")}",
+                $"Voucher {code} — {amount:N0} xu{(expiresAt.HasValue ? $", hết hạn {expiresAt.Value.ToLocalTime():dd/MM/yyyy}" : "")}",
                 "/Wallet"
             );
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                var campaignName = campaignId.HasValue
+                    ? (await _context.PromotionCampaigns.FindAsync(campaignId.Value))?.Name ?? "Voucher"
+                    : "Voucher cá nhân";
+                await _emailService.SendPromoCodeAsync(user.Email, user.FullName, code, amount, campaignName, expiresAt);
+            }
 
             return voucher;
         }
@@ -436,11 +447,11 @@ namespace SportHub.Services.Implementations
                 userId,
                 "Voucher",
                 "Voucher đã được kích hoạt!",
-                $"+{voucher.Amount:N0}đ — {(voucher.Note ?? voucher.Code)}",
+                $"+{voucher.Amount:N0} xu — {(voucher.Note ?? voucher.Code)}",
                 "/Wallet"
             );
 
-            return new RedeemResult(true, $"Kích hoạt thành công! Ví đã nhận +{voucher.Amount:N0}đ.", voucher.Amount);
+            return new RedeemResult(true, $"Kích hoạt thành công! Ví đã nhận +{voucher.Amount:N0} xu.", voucher.Amount);
         }
 
         // ─── Auto Triggers ────────────────────────────────────────────────────
@@ -644,7 +655,7 @@ namespace SportHub.Services.Implementations
                 userId,
                 "Promotion",
                 description,
-                $"+{campaign.Amount:N0}đ — {campaign.Name}",
+                $"+{campaign.Amount:N0} xu — {campaign.Name}",
                 "/Wallet"
             );
         }

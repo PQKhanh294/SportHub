@@ -12,12 +12,14 @@ namespace SportHub.Services.Implementations
         private readonly ApplicationDbContext _context;
         private readonly IMatchPaymentService _matchPaymentService;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IEmailService _emailService;
 
-        public WalletService(ApplicationDbContext context, IMatchPaymentService matchPaymentService, IHubContext<NotificationHub> hubContext)
+        public WalletService(ApplicationDbContext context, IMatchPaymentService matchPaymentService, IHubContext<NotificationHub> hubContext, IEmailService emailService)
         {
             _context = context;
             _matchPaymentService = matchPaymentService;
             _hubContext = hubContext;
+            _emailService = emailService;
         }
 
         public async Task<decimal> GetBalanceAsync(int userId)
@@ -50,6 +52,9 @@ namespace SportHub.Services.Implementations
                 description,
                 newBalance = user.WalletBalance
             });
+
+            if (user.NotifyByEmail && !string.IsNullOrWhiteSpace(user.Email))
+                await _emailService.SendWalletCreditedAsync(user.Email, user.FullName, amount, description);
         }
 
         public async Task<bool> DeductAsync(int userId, decimal amount, string description, int? matchId = null, string type = "Deduction")
