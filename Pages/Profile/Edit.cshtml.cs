@@ -42,6 +42,9 @@ namespace SportHub.Pages.Profile
             [StringLength(20)]
             public string? PhoneNumber { get; set; }
 
+            [StringLength(50)]
+            public string? ZaloContact { get; set; }
+
             public string? AvatarUrl { get; set; }
 
             [StringLength(300)]
@@ -84,6 +87,7 @@ namespace SportHub.Pages.Profile
             {
                 FullName = user.FullName,
                 PhoneNumber = user.PhoneNumber,
+                ZaloContact = user.ZaloContact,
                 AvatarUrl = user.AvatarUrl,
                 DefaultAddress = user.DefaultAddress,
                 DefaultLatitude = user.DefaultLatitude,
@@ -148,6 +152,7 @@ namespace SportHub.Pages.Profile
             // Update user properties
             user.FullName = Input.FullName.Trim();
             user.PhoneNumber = string.IsNullOrWhiteSpace(Input.PhoneNumber) ? null : Input.PhoneNumber.Trim();
+            user.ZaloContact = string.IsNullOrWhiteSpace(Input.ZaloContact) ? null : Input.ZaloContact.Trim();
             if (!string.IsNullOrWhiteSpace(Input.AvatarUrl))
             {
                 user.AvatarUrl = Input.AvatarUrl.Trim();

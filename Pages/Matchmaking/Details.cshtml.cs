@@ -120,11 +120,14 @@ namespace SportHub.Pages.Matchmaking
                     .Where(p => p.JoinStatus == "Accepted")
                     .Select(p => new ParticipantItem
                     {
+                        UserId    = p.UserID,
                         FullName  = p.User.FullName,
                         AvatarUrl = string.IsNullOrWhiteSpace(p.User.AvatarUrl)
                             ? "/images/avatar-default.png"
                             : p.User.AvatarUrl,
-                        SkillLevel = p.User.SkillLevel ?? "Unknown"
+                        SkillLevel   = p.User.SkillLevel ?? "Unknown",
+                        PhoneNumber  = p.User.PhoneNumber,
+                        ZaloContact  = p.User.ZaloContact
                     }).ToList(),
                 PendingParticipants = pendingParticipants,
                 MaxParticipants    = match.MaxParticipants,
@@ -528,6 +531,8 @@ namespace SportHub.Pages.Matchmaking
             public string FullName { get; set; } = string.Empty;
             public string AvatarUrl { get; set; } = string.Empty;
             public string SkillLevel { get; set; } = string.Empty;
+            public string? PhoneNumber { get; set; }
+            public string? ZaloContact { get; set; }
         }
 
         public class PendingParticipantItem

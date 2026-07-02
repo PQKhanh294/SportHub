@@ -1,0 +1,185 @@
+@page
+@model SportHub.Pages.Onboarding.IndexModel
+@{
+    ViewData["Title"] = "Thiết lập hồ sơ";
+    Layout = "_AuthLayout";
+}
+
+<style>
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .step { display: none; animation: slideUp 0.3s ease both; }
+    .step.active { display: block; }
+</style>
+
+<div class="w-full max-w-[560px] mx-auto relative z-10">
+    <div class="bg-slate-900/80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 overflow-hidden">
+        <div class="h-1 bg-gradient-to-r from-primary to-accent" id="progressBar" style="width:33%"></div>
+
+        <div class="px-8 pt-7 pb-2">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-semibold text-primary uppercase tracking-wider">Bước <span id="stepNum">1</span>/3</span>
+                <a href="/Matchmaking" class="text-xs text-white/40 hover:text-white/70 transition-colors">Bỏ qua →</a>
+            </div>
+            <h1 id="stepTitle" class="text-xl font-extrabold text-white mt-1">Bạn chơi môn gì?</h1>
+            <p id="stepDesc" class="text-sm text-white/50 mt-0.5">Chọn các môn thể thao bạn hay chơi.</p>
+        </div>
+
+        <form method="post" id="onboardForm" class="px-8 pb-8 pt-4">
+            <!-- Step 1: Chọn môn -->
+            <div class="step active" id="step1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                    @foreach (var sport in Model.Sports)
+                    {
+                        <label class="sport-card cursor-pointer flex flex-col items-center gap-2 p-3 rounded-lg border border-white/10 hover:border-primary/60 transition-all select-none"
+                               data-sport-id="@sport.SportID" data-sport-name="@sport.SportName">
+                            <span class="text-2xl">@GetSportEmoji(sport.SportName)</span>
+                            <span class="text-sm font-semibold text-white">@sport.SportName</span>
+                        </label>
+                    }
+                </div>
+                <p class="text-xs text-white/30 mt-3 text-center">Chọn ít nhất 1 môn để tiếp tục</p>
+            </div>
+
+            <!-- Step 2: Trình độ -->
+            <div class="step" id="step2">
+                <div id="skillContainer" class="space-y-4 mt-2"></div>
+            </div>
+
+            <!-- Step 3: Khu vực -->
+            <div class="step" id="step3">
+                <div class="mt-2 space-y-3">
+                    <input type="text" id="onboardAddress" name="defaultAddress"
+                           class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                           placeholder="Ví dụ: Quận Ngũ Hành Sơn, Đà Nẵng" />
+                    <p class="text-xs text-white/40">Dùng để hiển thị các trận đấu gần bạn trước.</p>
+                </div>
+            </div>
+
+            <!-- Hidden inputs được populate bởi JS khi submit -->
+            <div id="hiddenInputs"></div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="button" id="btnBack" onclick="prevStep()" class="hidden px-5 py-2.5 rounded-md border border-white/20 text-white/70 font-semibold hover:bg-white/10 transition-colors text-sm">
+                    ← Quay lại
+                </button>
+                <button type="button" id="btnNext" onclick="nextStep()"
+                        class="flex-1 h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-md shadow-md shadow-primary/30 transition-all active:scale-[.98]">
+                    Tiếp theo →
+                </button>
+                <button type="submit" id="btnFinish" class="hidden flex-1 h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-md shadow-md shadow-primary/30 transition-all active:scale-[.98]">
+                    Bắt đầu khám phá!
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const skillsBySport = {
+    'Cầu lông': ['Newbie','Yếu','Yếu+','TBY/TB-','Trung Bình','TB+/Khá'],
+    'Pickleball': ['2.0 — Mới','2.5','3.0','3.5','4.0','4.5+'],
+    'Tennis': ['1.0-2.0','2.5-3.0','3.5','4.0','4.5','5.0+'],
+    'Bóng đá': ['Phong trào','Trung bình','Khá','Tốt','Chuyên nghiệp'],
+    'Bóng bàn': ['Mới bắt đầu','Cơ bản','Trung bình','Khá','Nâng cao'],
+    'default': ['Mới bắt đầu','Trung bình','Khá','Nâng cao']
+};
+
+let currentStep = 1;
+let selectedSports = []; // [{id, name}]
+
+// Sport card selection
+document.querySelectorAll('.sport-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const id   = parseInt(card.dataset.sportId);
+        const name = card.dataset.sportName;
+        const idx  = selectedSports.findIndex(s => s.id === id);
+        if (idx >= 0) {
+            selectedSports.splice(idx, 1);
+            card.classList.remove('border-primary', 'bg-primary/10');
+            card.classList.add('border-white/10');
+        } else {
+            selectedSports.push({ id, name });
+            card.classList.add('border-primary', 'bg-primary/10');
+            card.classList.remove('border-white/10');
+        }
+    });
+});
+
+function nextStep() {
+    if (currentStep === 1) {
+        if (!selectedSports.length) { alert('Chọn ít nhất 1 môn để tiếp tục.'); return; }
+        buildSkillStep();
+    }
+    goToStep(currentStep + 1);
+}
+
+function prevStep() { goToStep(currentStep - 1); }
+
+function goToStep(n) {
+    document.getElementById('step' + currentStep).classList.remove('active');
+    currentStep = n;
+    document.getElementById('step' + currentStep).classList.add('active');
+    document.getElementById('stepNum').textContent = currentStep;
+    document.getElementById('progressBar').style.width = (currentStep / 3 * 100) + '%';
+
+    const titles = ['Bạn chơi môn gì?', 'Trình độ của bạn?', 'Khu vực hoạt động?'];
+    const descs  = ['Chọn các môn thể thao bạn hay chơi.', 'Điền trình độ để ghép trận phù hợp.', 'Gần đâu bạn thường chơi? (tùy chọn)'];
+    document.getElementById('stepTitle').textContent = titles[currentStep - 1];
+    document.getElementById('stepDesc').textContent  = descs[currentStep - 1];
+
+    document.getElementById('btnBack').classList.toggle('hidden', currentStep === 1);
+    document.getElementById('btnNext').classList.toggle('hidden', currentStep === 3);
+    document.getElementById('btnFinish').classList.toggle('hidden', currentStep !== 3);
+}
+
+function buildSkillStep() {
+    const container = document.getElementById('skillContainer');
+    container.innerHTML = '';
+    selectedSports.forEach(s => {
+        const skills = skillsBySport[s.name] || skillsBySport['default'];
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <label class="block text-sm font-semibold text-white/80 mb-1.5">${s.name}</label>
+            <select class="skill-select w-full h-10 px-3 rounded-md border border-white/15 bg-white/10 text-white focus:outline-none focus:border-primary"
+                    data-sport-id="${s.id}">
+                <option value="Any">Mọi trình độ</option>
+                ${skills.map(sk => `<option value="${sk}">${sk}</option>`).join('')}
+            </select>`;
+        container.appendChild(div);
+    });
+}
+
+// On final submit, populate hidden inputs
+document.getElementById('onboardForm').addEventListener('submit', function() {
+    const container = document.getElementById('hiddenInputs');
+    container.innerHTML = '';
+    selectedSports.forEach((s, i) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'sportIds'; inp.value = s.id;
+        container.appendChild(inp);
+    });
+    document.querySelectorAll('.skill-select').forEach(sel => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'skillLevels'; inp.value = sel.value;
+        container.appendChild(inp);
+    });
+});
+</script>
+}
+
+@functions {
+    string GetSportEmoji(string name) => name switch {
+        "Cầu lông"   => "🏸",
+        "Bóng đá"    => "⚽",
+        "Tennis"     => "🎾",
+        "Bóng bàn"   => "🏓",
+        "Pickleball" => "🏓",
+        "Bơi lội"    => "🏊",
+        "Bóng rổ"    => "🏀",
+        _            => "🏅"
+    };
+}

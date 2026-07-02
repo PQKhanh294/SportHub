@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Models.Entities;
@@ -64,9 +67,10 @@ namespace SportHub.Pages.Auth
                 UpdatedAt = DateTime.UtcNow
             };
 
+            User createdUser;
             try
             {
-                await _userService.CreateUserAsync(user);
+                createdUser = await _userService.CreateUserAsync(user);
             }
             catch
             {
@@ -74,8 +78,18 @@ namespace SportHub.Pages.Auth
                 return Page();
             }
 
-            TempData["SuccessMessage"] = "Registration successful. You can now log in.";
-            return RedirectToPage("/Auth/Login");
+            // Auto-login after registration
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, createdUser.UserID.ToString()),
+                new(ClaimTypes.Name, createdUser.FullName),
+                new(ClaimTypes.Email, createdUser.Email)
+            };
+            var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            return RedirectToPage("/Onboarding/Index");
         }
     }
 }
