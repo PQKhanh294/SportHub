@@ -19,10 +19,18 @@
             <span asp-validation-for="Input.FullName" class="text-xs text-red-500"></span>
         </div>
 
-        <div>
-            <label class="block text-sm font-semibold mb-2">Số điện thoại</label>
-            <input asp-for="Input.PhoneNumber" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary" />
-            <span asp-validation-for="Input.PhoneNumber" class="text-xs text-red-500"></span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold mb-2">Số điện thoại</label>
+                <input asp-for="Input.PhoneNumber" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary" placeholder="0901234567" />
+                <span asp-validation-for="Input.PhoneNumber" class="text-xs text-red-500"></span>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2">Zalo <span class="font-normal text-slate-400">(SĐT đăng ký Zalo)</span></label>
+                <input asp-for="Input.ZaloContact" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary" placeholder="0901234567" />
+                <span asp-validation-for="Input.ZaloContact" class="text-xs text-red-500"></span>
+                <p class="text-xs text-slate-400 mt-1">Hiển thị cho người chơi cùng trận để liên hệ.</p>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
