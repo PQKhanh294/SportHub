@@ -15,7 +15,7 @@
         <!-- Teal cover banner -->
         <div class="h-28 bg-gradient-to-br from-primary/80 via-primary to-navy/90 relative">
             <!-- Edit button top-right -->
-            <a asp-page="/Profile/Edit"
+            <a asp-page="/Profile/Edit" id="pfEditBtn"
                class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all">
                 <span class="material-symbols-outlined text-sm">edit</span>
                 Chỉnh sửa
@@ -194,7 +194,7 @@
             </div>
 
             <!-- Môn thể thao & Trình độ -->
-            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div id="pfSkills" class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">sports</span>
                     Môn thể thao & Trình độ
@@ -371,7 +371,7 @@
             </div>
 
             <!-- Huy hiệu -->
-            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div id="pfBadges" class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">military_tech</span>
                     Huy hiệu SportHub
@@ -404,7 +404,7 @@
         <div class="lg:col-span-8 space-y-4">
 
             <!-- Rating Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="pfReviews" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- As Host -->
                 <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                     <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 text-sm">

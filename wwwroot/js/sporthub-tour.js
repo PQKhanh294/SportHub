@@ -1,17 +1,84 @@
 /**
- * SportHub onboarding tour — spotlight overlay tự viết, không dependency.
- * Chạy tự động ở lần đăng nhập đầu (window.__spFirstLogin), có thể chạy lại qua SportHubTour.restart().
+ * SportHub tour — spotlight overlay tự viết, không dependency.
+ * - Tour navbar: chạy 1 lần ở lần đăng nhập đầu (window.__spFirstLogin).
+ * - Tour theo trang: mỗi trang cốt lõi có bộ bước riêng, tự chạy lần đầu user vào trang.
+ * - Nút "?" nổi (góc trái-dưới) trên trang có tour để xem lại bất kỳ lúc nào.
  */
 window.SportHubTour = (function () {
-    var steps = [
-        { sel: '#nav-create-match',       title: 'Tạo trận đấu',   text: 'Đăng kèo tìm người chơi cùng — chế độ Nhanh chỉ cần 3 trường.' },
-        { sel: '#nav-matchmaking-desktop', title: 'Ghép trận',      text: 'Tìm và tham gia các trận đấu quanh bạn.' },
-        { sel: '#nav-wallet-btn',         title: 'Ví xu',           text: 'Nạp xu để đặt cọc khi tạo trận và thanh toán phí tham gia.' },
-        { sel: '#nav-notif-btn',          title: 'Thông báo',       text: 'Theo dõi duyệt trận, nhắc lịch thi đấu và khuyến mãi tại đây.' },
-        { sel: '#nav-avatar',             title: 'Hồ sơ của bạn',   text: 'Cập nhật môn thể thao & trình độ để ghép trận chuẩn hơn.' }
+
+    var navSteps = [
+        { sel: '#nav-create-match',        title: 'Tạo trận đấu', text: 'Đăng kèo tìm người chơi cùng — chế độ Nhanh chỉ cần vài trường.' },
+        { sel: '#nav-matchmaking-desktop', title: 'Ghép trận',    text: 'Tìm và tham gia các trận đấu quanh bạn.' },
+        { sel: '#nav-wallet-btn',          title: 'Ví xu',        text: 'Nạp xu để đặt cọc khi tạo trận và thanh toán phí tham gia.' },
+        { sel: '#nav-notif-btn',           title: 'Thông báo',    text: 'Theo dõi duyệt trận, nhắc lịch thi đấu và khuyến mãi tại đây.' },
+        { sel: '#nav-avatar',              title: 'Hồ sơ của bạn', text: 'Cập nhật môn thể thao & trình độ để ghép trận chuẩn hơn.' }
     ];
 
-    var idx = 0, overlay = null, tip = null, spot = null;
+    var pageTours = {
+        matchmaking: {
+            match: function (p) { return p === '/matchmaking' || p === '/matchmaking/index'; },
+            steps: [
+                { sel: '#mmStatusFilter',        title: 'Trạng thái kèo',  text: 'Chuyển giữa trận Đang mở, Đã tham gia, Đang chờ duyệt hoặc Trận của tôi.' },
+                { sel: '#filterSidebar',         title: 'Bộ lọc',          text: 'Lọc theo môn, trình độ (nhấn (i) xem thang điểm từng môn), khu vực, giờ và chi phí.' },
+                { sel: '.draggable-match-card',  title: 'Card trận đấu',   text: 'Mỗi card hiển thị điểm phù hợp, khoảng cách, giá mỗi người và số chỗ còn trống.' },
+                { sel: '.mm-join-btn',           title: 'Gửi yêu cầu',     text: 'Gửi yêu cầu tham gia — host duyệt trong 2 giờ, sau đó bạn thanh toán 5.000 xu để giữ chỗ.' },
+                { sel: '#nav-create-match',      title: 'Tạo trận',        text: 'Không thấy kèo phù hợp? Tự tạo trận của bạn chỉ trong 30 giây.' }
+            ]
+        },
+        create: {
+            match: function (p) { return p === '/matchmaking/create'; },
+            steps: [
+                { sel: '#tabQuick',          title: 'Chế độ Nhanh / Đầy đủ', text: 'Nhanh: điền vài trường cơ bản là đăng được kèo. Đầy đủ: tùy chỉnh chi tiết loại trận, trình độ, phí.' },
+                { sel: '#quickSportSelect',  title: 'Môn thể thao',          text: 'Chọn môn — loại trận và thang trình độ tự thay đổi theo từng môn.' },
+                { sel: '#quickAddress',      title: 'Địa chỉ sân',           text: 'Gõ tên sân hoặc địa chỉ — có gợi ý tự động kèm bản đồ ghim vị trí.' },
+                { sel: '#courtSearchInput',  title: 'Tìm sân có sẵn',        text: 'Gõ tên để tìm sân trong hệ thống — tự điền địa chỉ, không cần nhớ ID.' },
+                { sel: '#splitFeeSection',   title: 'Chia đều tiền sân',     text: 'Bật để hệ thống tự tính xu mỗi người phải góp (tổng chi phí / số người).' },
+                { sel: '#aiDescBtn',         title: 'AI viết mô tả',         text: 'Để AI viết mô tả trận hấp dẫn dựa trên thông tin bạn đã điền.' }
+            ]
+        },
+        details: {
+            match: function (p) { return p.indexOf('/matchmaking/details') === 0; },
+            steps: [
+                { sel: '#mdInfoCard',      title: 'Thông tin trận',      text: 'Ngày giờ, địa điểm, sân số, trình độ yêu cầu và chi phí tham gia.' },
+                { sel: '#mdJoinBtn',       title: 'Tham gia trận',       text: 'Gửi yêu cầu → host duyệt (tối đa 1 giờ) → thanh toán 5.000 xu để giữ chỗ.' },
+                { sel: '#mdParticipants',  title: 'Người tham gia',      text: 'Sau khi được duyệt, bạn thấy Zalo/SĐT người cùng trận để liên hệ trước giờ đấu.' },
+                { sel: '.md-report-btn',   title: 'Khiếu nại',           text: 'Có vấn đề sau trận? Gửi khiếu nại kèm tối đa 3 ảnh — người trong trận sẽ được mời xác minh.' },
+                { sel: '#mdMap',           title: 'Bản đồ',              text: 'Vị trí sân trên bản đồ — mở toàn màn hình để xem chỉ đường.' }
+            ]
+        },
+        wallet: {
+            match: function (p) { return p === '/wallet' || p === '/wallet/index'; },
+            steps: [
+                { sel: '#wlBalance',       title: 'Số dư xu',        text: 'Xu dùng để đặt cọc khi tạo trận và thanh toán phí tham gia — không cần chờ admin duyệt.' },
+                { sel: '#wlTopUp',         title: 'Nạp xu',          text: 'Nạp qua chuyển khoản QR — tiền vào ví tự động trong vài giây.' },
+                { sel: '#promoCodeInput',  title: 'Mã khuyến mãi',   text: 'Nhập mã để nhận xu miễn phí. Nhấn Xem để kiểm tra trước khi áp dụng.' },
+                { sel: '#wlVouchers',      title: 'Voucher của tôi', text: 'Voucher được tặng từ sự kiện, sinh nhật... nằm ở đây — nhấn Dùng để cộng xu.' },
+                { sel: '#wlHistory',       title: 'Lịch sử giao dịch', text: 'Mọi biến động xu (nạp, trừ phí, hoàn, khuyến mãi) đều ghi lại minh bạch.' }
+            ]
+        },
+        profile: {
+            match: function (p) { return p === '/profile' || p === '/profile/index'; },
+            steps: [
+                { sel: '#pfEditBtn',  title: 'Chỉnh sửa hồ sơ',    text: 'Cập nhật SĐT, Zalo, khu vực và ảnh đại diện tại đây.' },
+                { sel: '#pfSkills',   title: 'Môn & Trình độ',     text: 'Trình độ từng môn quyết định bạn được ghép trận nào — điền chính xác để không bị từ chối oan.' },
+                { sel: '#pfBadges',   title: 'Huy hiệu',           text: 'Chơi càng nhiều huy hiệu càng nhiều — tăng uy tín khi host duyệt bạn vào trận.' },
+                { sel: '#pfReviews',  title: 'Đánh giá',           text: 'Điểm đánh giá từ các trận đã chơi — cả vai trò người chơi lẫn host.' }
+            ]
+        }
+    };
+
+    var idx = 0, overlay = null, tip = null, spot = null, currentKey = null;
+
+    function pathname() {
+        return location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+    }
+
+    function detectPage() {
+        var p = pathname();
+        for (var key in pageTours)
+            if (pageTours[key].match(p)) return key;
+        return null;
+    }
 
     function visible(el) {
         if (!el) return false;
@@ -19,8 +86,13 @@ window.SportHubTour = (function () {
         return r.width > 0 && r.height > 0;
     }
 
-    function activeSteps() {
-        return steps.filter(function (s) { return visible(document.querySelector(s.sel)); });
+    function stepsFor(key) {
+        var defs = key === 'nav' ? navSteps : (pageTours[key] ? pageTours[key].steps : []);
+        return defs.filter(function (s) { return visible(document.querySelector(s.sel)); });
+    }
+
+    function storageKey(key) {
+        return key === 'nav' ? 'spTourDone' : 'spTour:' + key;
     }
 
     function build() {
@@ -33,42 +105,48 @@ window.SportHubTour = (function () {
         overlay.appendChild(spot);
         overlay.appendChild(tip);
         document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
     }
 
     function show(list) {
         var step = list[idx];
         var el = document.querySelector(step.sel);
         if (!el) { next(list); return; }
-        var r = el.getBoundingClientRect();
-        var pad = 6;
-        spot.style.left = (r.left - pad) + 'px';
-        spot.style.top = (r.top - pad) + 'px';
-        spot.style.width = (r.width + pad * 2) + 'px';
-        spot.style.height = (r.height + pad * 2) + 'px';
 
-        tip.innerHTML =
-            '<p style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:4px;">' + step.title + '</p>' +
-            '<p style="font-size:12.5px;color:#475569;line-height:1.5;">' + step.text + '</p>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">' +
-                '<span style="font-size:11px;color:#94a3b8;font-weight:600;">' + (idx + 1) + '/' + list.length + '</span>' +
-                '<span style="display:flex;gap:8px;">' +
-                    '<button id="spTourSkip" style="font-size:12px;color:#64748b;font-weight:600;padding:5px 10px;">Bỏ qua</button>' +
-                    '<button id="spTourNext" style="font-size:12px;color:#fff;font-weight:700;background:#50A5B1;border-radius:8px;padding:5px 14px;">' +
-                        (idx === list.length - 1 ? 'Hoàn tất' : 'Tiếp theo →') + '</button>' +
-                '</span>' +
-            '</div>';
+        // Cuộn element vào giữa màn hình trước khi spotlight (trang dài: Wallet/Profile/Details)
+        document.body.style.overflow = '';
+        el.scrollIntoView({ behavior: 'auto', block: 'center' });
+        document.body.style.overflow = 'hidden';
 
-        // Đặt tooltip dưới element; tràn màn hình thì đặt lên trên / kẹp mép
-        var tw = 290, th = 130;
-        var left = Math.min(Math.max(r.left, 12), window.innerWidth - tw - 12);
-        var top = r.bottom + 14;
-        if (top + th > window.innerHeight) top = Math.max(r.top - th - 14, 12);
-        tip.style.left = left + 'px';
-        tip.style.top = top + 'px';
+        requestAnimationFrame(function () {
+            var r = el.getBoundingClientRect();
+            var pad = 6;
+            spot.style.left = (r.left - pad) + 'px';
+            spot.style.top = (r.top - pad) + 'px';
+            spot.style.width = (r.width + pad * 2) + 'px';
+            spot.style.height = (r.height + pad * 2) + 'px';
 
-        document.getElementById('spTourSkip').onclick = end;
-        document.getElementById('spTourNext').onclick = function () { next(list); };
+            tip.innerHTML =
+                '<p style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:4px;">' + step.title + '</p>' +
+                '<p style="font-size:12.5px;color:#475569;line-height:1.5;">' + step.text + '</p>' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">' +
+                    '<span style="font-size:11px;color:#94a3b8;font-weight:600;">' + (idx + 1) + '/' + list.length + '</span>' +
+                    '<span style="display:flex;gap:8px;">' +
+                        '<button id="spTourSkip" style="font-size:12px;color:#64748b;font-weight:600;padding:5px 10px;">Bỏ qua</button>' +
+                        '<button id="spTourNext" style="font-size:12px;color:#fff;font-weight:700;background:#50A5B1;border-radius:8px;padding:5px 14px;">' +
+                            (idx === list.length - 1 ? 'Hoàn tất' : 'Tiếp theo →') + '</button>' +
+                    '</span>' +
+                '</div>';
+
+            var tw = 290, th = 140;
+            var left = Math.min(Math.max(r.left, 12), window.innerWidth - tw - 12);
+            var top = r.bottom + 14;
+            if (top + th > window.innerHeight) top = Math.max(r.top - th - 14, 12);
+            tip.style.left = left + 'px';
+            tip.style.top = top + 'px';
+
+            document.getElementById('spTourSkip').onclick = end;
+            document.getElementById('spTourNext').onclick = function () { next(list); };
+        });
     }
 
     function next(list) {
@@ -78,29 +156,72 @@ window.SportHubTour = (function () {
     }
 
     function end() {
-        localStorage.setItem('spTourDone', '1');
+        if (currentKey) localStorage.setItem(storageKey(currentKey), '1');
         if (overlay) overlay.remove();
         overlay = null;
+        currentKey = null;
         document.body.style.overflow = '';
     }
 
-    function start() {
+    function runTour(key) {
         if (overlay) return;
-        var list = activeSteps();
+        var list = stepsFor(key);
         if (list.length === 0) return;
+        currentKey = key;
         idx = 0;
         build();
         show(list);
     }
 
-    // Tự chạy ở lần đăng nhập đầu
+    // Nút "?" nổi góc trái-dưới — chỉ hiện trên trang có tour
+    function mountHelpButton(key) {
+        var btn = document.createElement('button');
+        btn.id = 'spTourHelpBtn';
+        btn.title = 'Xem hướng dẫn trang này';
+        btn.textContent = '?';
+        btn.style.cssText =
+            'position:fixed;left:16px;bottom:80px;z-index:9000;width:38px;height:38px;border-radius:50%;' +
+            'background:#fff;color:#50A5B1;font-weight:800;font-size:17px;border:1.5px solid #50A5B1;' +
+            'box-shadow:0 3px 12px rgba(0,0,0,.15);cursor:pointer;transition:transform .15s;';
+        btn.onmouseenter = function () { btn.style.transform = 'scale(1.1)'; };
+        btn.onmouseleave = function () { btn.style.transform = ''; };
+        btn.onclick = function () {
+            localStorage.removeItem(storageKey(key));
+            runTour(key);
+        };
+        document.body.appendChild(btn);
+    }
+
+    // Chờ popup hoàn thiện hồ sơ đóng rồi mới chạy tour (popup mở sau ~600ms)
+    function waitProfileModalThen(fn) {
+        var tries = 0;
+        var timer = setInterval(function () {
+            var pcm = document.getElementById('pcmOverlay');
+            var open = pcm && !pcm.classList.contains('hidden');
+            tries++;
+            if (!open) {
+                clearInterval(timer);
+                setTimeout(fn, 400);
+            } else if (tries > 240) {
+                clearInterval(timer); // ~2 phút vẫn mở → thôi, lần sau chạy
+            }
+        }, 500);
+    }
+
     function autoStart() {
-        if (!window.__spFirstLogin) return;
-        if (localStorage.getItem('spTourDone')) return;
-        // Nhường popup hoàn thiện hồ sơ nếu đang mở
-        var pcm = document.getElementById('pcmOverlay');
-        if (pcm && !pcm.classList.contains('hidden')) return;
-        setTimeout(start, 1200);
+        var pageKey = detectPage();
+        if (pageKey) mountHelpButton(pageKey);
+
+        setTimeout(function () {
+            // Ưu tiên tour navbar cho lần đăng nhập đầu
+            if (window.__spFirstLogin && !localStorage.getItem('spTourDone')) {
+                waitProfileModalThen(function () { runTour('nav'); });
+                return;
+            }
+            if (pageKey && !localStorage.getItem(storageKey(pageKey))) {
+                waitProfileModalThen(function () { runTour(pageKey); });
+            }
+        }, 1200);
     }
 
     if (document.readyState === 'loading') {
@@ -110,7 +231,12 @@ window.SportHubTour = (function () {
     }
 
     return {
-        start: start,
-        restart: function () { localStorage.removeItem('spTourDone'); start(); }
+        start: runTour,
+        // Menu avatar "Xem lại hướng dẫn": chạy lại tour trang hiện tại nếu có, không thì tour navbar
+        restart: function () {
+            var key = detectPage() || 'nav';
+            localStorage.removeItem(storageKey(key));
+            runTour(key);
+        }
     };
 })();

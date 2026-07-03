@@ -21,7 +21,7 @@
     }
 
     <!-- Balance card -->
-    <div class="bg-gradient-to-br from-primary to-blue-700 rounded-md p-6 text-white shadow-lg">
+    <div id="wlBalance" class="bg-gradient-to-br from-primary to-blue-700 rounded-md p-6 text-white shadow-lg">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-white/80">account_balance_wallet</span>
@@ -40,7 +40,7 @@
 
     <!-- Quick actions -->
     <div class="grid grid-cols-2 gap-3">
-        <a href="/Wallet/TopUp"
+        <a href="/Wallet/TopUp" id="wlTopUp"
            class="flex flex-col items-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md hover:border-primary hover:shadow-sm transition-all">
             <span class="material-symbols-outlined text-2xl text-primary">add_card</span>
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Nạp tiền</span>
@@ -80,7 +80,7 @@
     <!-- My Vouchers -->
     @if (Model.MyVouchers.Any())
     {
-        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div id="wlVouchers" class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
                 <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span class="material-symbols-outlined text-purple-500 text-sm">redeem</span>
@@ -223,7 +223,7 @@
     </div>
 
     <!-- Transaction history -->
-    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div id="wlHistory" class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-sm">receipt_long</span>

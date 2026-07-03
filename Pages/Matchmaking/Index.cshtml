@@ -356,7 +356,7 @@
                         <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Cơ bản</summary>
                         <div class="mt-4 space-y-5">
                     <!-- Status Filter -->
-                    <div>
+                    <div id="mmStatusFilter">
                         <label class="block text-sm font-semibold mb-2 uppercase text-slate-600 dark:text-slate-400">Trạng thái kèo</label>
                         <select asp-for="StatusFilter" class="w-full rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium p-2.5 focus:border-primary focus:ring-1 focus:ring-primary">
                             <option value="All">Tất cả trạng thái</option>
@@ -747,7 +747,7 @@
                                         @if (match.CanJoin)
                                         {
                                             <form method="post" asp-page-handler="Join" asp-route-id="@match.MatchId" class="flex-none">
-                                                <button type="submit" class="px-2 sm:px-6 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold bg-primary text-white rounded-md sm:rounded-md shadow-md shadow-primary/25 hover:bg-primary/90 transition-all flex items-center justify-center gap-1">
+                                                <button type="submit" class="mm-join-btn px-2 sm:px-6 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold bg-primary text-white rounded-md sm:rounded-md shadow-md shadow-primary/25 hover:bg-primary/90 transition-all flex items-center justify-center gap-1">
                                                     <span class="material-symbols-outlined text-[14px] sm:text-[18px]">send</span>
                                                     <span class="hidden sm:inline">Gửi yêu cầu</span>
                                                     <span class="sm:hidden">Gửi</span>
