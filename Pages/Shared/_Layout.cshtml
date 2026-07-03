@@ -2205,7 +2205,7 @@ window.updateRightSidebarState = function () {
 @if (User?.Identity?.IsAuthenticated == true)
 {
     <script>window.__spFirstLogin = @(isFirstLogin ? "true" : "false");</script>
-    <script src="~/js/sporthub-tour.js"></script>
+    <script src="~/js/sporthub-tour.js" asp-append-version="true"></script>
 }
 <script>
 (function() {
