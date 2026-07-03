@@ -637,6 +637,32 @@ namespace SportHub.Pages.Matchmaking
             return "Chưa có giá";
         }
 
+        // Màu nhận diện riêng từng môn — dùng cho dải màu card + chip môn (sports identity)
+        public static string GetSportColor(string? sportName)
+        {
+            var s = (sportName ?? "").ToLowerInvariant();
+            if (s.Contains("cầu lông") || s.Contains("badminton")) return "#059669";
+            if (s.Contains("bóng bàn") || s.Contains("table tennis") || s.Contains("ping")) return "#2563eb";
+            if (s.Contains("bóng đá") || s.Contains("football") || s.Contains("soccer")) return "#16a34a";
+            if (s.Contains("tennis")) return "#d97706";
+            if (s.Contains("pickleball")) return "#7c3aed";
+            if (s.Contains("bóng rổ") || s.Contains("basketball")) return "#ea580c";
+            return "#50A5B1";
+        }
+
+        public static string GetSportEmoji(string? sportName)
+        {
+            var s = (sportName ?? "").ToLowerInvariant();
+            if (s.Contains("cầu lông") || s.Contains("badminton")) return "🏸";
+            if (s.Contains("bóng bàn") || s.Contains("table tennis") || s.Contains("ping")) return "🏓";
+            if (s.Contains("bóng đá") || s.Contains("football") || s.Contains("soccer")) return "⚽";
+            if (s.Contains("tennis")) return "🎾";
+            if (s.Contains("pickleball")) return "🥒";
+            if (s.Contains("bóng rổ") || s.Contains("basketball")) return "🏀";
+            if (s.Contains("bơi") || s.Contains("swim")) return "🏊";
+            return "🏅";
+        }
+
         // Trận cầu lông lưu SkillRequired composite "Nam:Yếu,Trung Bình|Nữ:Yếu" — so exact string sẽ không bao giờ khớp.
         private static bool MatchesSkillFilter(string? skillRequired, string filter)
         {

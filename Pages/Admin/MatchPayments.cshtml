@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Admin — Pending Payments";
     ViewData["AdminPage"] = "Payments";
-    var isEn = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var hostDepositCount = Model.Payments.Count(p => p.PaymentType == "HostDeposit");
     var playerFeeCount   = Model.Payments.Count(p => p.PaymentType == "PlayerFee");
     var hostRemainCount  = Model.Payments.Count(p => p.PaymentType == "HostRemaining");

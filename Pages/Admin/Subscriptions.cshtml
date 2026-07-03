@@ -4,7 +4,7 @@
 @{
     ViewData["Title"] = "Admin — Subscriptions";
     Layout = "_Layout";
-    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
 }
 
 <div class="max-w-7xl mx-auto px-4 py-6">
@@ -43,7 +43,7 @@
         <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-4">@(isEn ? "Grant subscription manually" : "Cấp gói thủ công")</h3>
         <form method="post" asp-page-handler="Grant" class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-xs text-slate-500 mb-1">User ID</label>
+                <label class="block text-xs text-slate-500 mb-1">ID người dùng</label>
                 <input type="number" name="userId" required class="h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm w-28" />
             </div>
             <div>
@@ -129,14 +129,14 @@
                             <td class="px-4 py-3 text-center">
                                 <form method="post" asp-page-handler="Cancel" style="display:inline">
                                     <input type="hidden" name="subscriptionId" value="@sub.UserSubscriptionID" />
-                                    <button type="submit" class="text-xs text-red-600 hover:underline" onclick="return confirm('Cancel this subscription?')">Cancel</button>
+                                    <button type="submit" class="text-xs text-red-600 hover:underline" onclick="return confirm('Cancel this subscription?')">Hủy</button>
                                 </form>
                             </td>
                         </tr>
                     }
                     @if (!Model.ActiveSubscriptions.Any())
                     {
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No active subscriptions</td></tr>
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Không có gói nào đang hoạt động</td></tr>
                     }
                 </tbody>
             </table>
@@ -146,17 +146,17 @@
     <!-- Recent Orders -->
     <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 class="font-semibold text-slate-800 dark:text-slate-200">Recent orders</h3>
+            <h3 class="font-semibold text-slate-800 dark:text-slate-200">Đơn hàng gần đây</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Người dùng</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Plan / Transaction ref</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Số tiền</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Trạng thái</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Ngày tạo</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -181,7 +181,7 @@
                     }
                     @if (!Model.RecentOrders.Any())
                     {
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No orders yet</td></tr>
+                        <tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Chưa có đơn hàng</td></tr>
                     }
                 </tbody>
             </table>

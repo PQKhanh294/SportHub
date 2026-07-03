@@ -2274,7 +2274,7 @@ window.updateRightSidebarState = function () {
             <span class="text-[10px] font-semibold">@navHome</span>
         </a>
         <!-- Matchmaking -->
-        <a asp-page="/Matchmaking/Index" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Matchmaking" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
+        <a asp-page="/Matchmaking/Index" id="bn-matchmaking" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] @(bnActivePage == "Matchmaking" ? "text-primary" : "text-slate-400 dark:text-slate-500")">
             <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' @(bnActivePage == "Matchmaking" ? "1" : "0")">sports</span>
             <span class="text-[10px] font-semibold">@navMatchmaking</span>
         </a>
@@ -2293,7 +2293,7 @@ window.updateRightSidebarState = function () {
             </a>
         }
         <!-- More -->
-        <button onclick="openMoreSheet()" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] text-slate-400 dark:text-slate-500 bg-transparent border-none cursor-pointer">
+        <button onclick="openMoreSheet()" id="bn-more" class="flex flex-col items-center gap-0.5 px-4 min-w-[52px] text-slate-400 dark:text-slate-500 bg-transparent border-none cursor-pointer">
             <span class="material-symbols-outlined text-[24px]">more_horiz</span>
             <span class="text-[10px] font-semibold">@navMore</span>
         </button>

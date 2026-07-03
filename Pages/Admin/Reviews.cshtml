@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Admin — Reviews";
     ViewData["AdminPage"] = "Reviews";
-    var isEn = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var starCounts = new int[5];
     foreach (var r in Model.Reviews) {
         int s = (int)Math.Round((double)r.AverageScore);
@@ -52,7 +52,7 @@
         <button onclick="toggleReviewChart(this)" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
             <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 <span class="material-symbols-outlined text-amber-500 text-[18px]">star</span>
-                Rating distribution — Avg: <strong class="text-amber-700 dark:text-amber-400">@avgAll.ToString("F1") ★</strong>
+                Phân bố đánh giá — Trung bình: <strong class="text-amber-700 dark:text-amber-400">@avgAll.ToString("F1") ★</strong>
             </div>
             <span class="material-symbols-outlined text-slate-400 text-[18px] chart-chevron">expand_more</span>
         </button>
@@ -153,7 +153,7 @@
         </div>
 
         @* ── DESKTOP: table ── *@
-        <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                     <tr>

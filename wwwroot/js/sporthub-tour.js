@@ -6,12 +6,15 @@
  */
 window.SportHubTour = (function () {
 
+    // Anchor desktop và mobile khai báo song song — visible() tự lọc theo màn hình
     var navSteps = [
         { sel: '#nav-create-match',        title: 'Tạo trận đấu', text: 'Đăng kèo tìm người chơi cùng — chế độ Nhanh chỉ cần vài trường.' },
         { sel: '#nav-matchmaking-desktop', title: 'Ghép trận',    text: 'Tìm và tham gia các trận đấu quanh bạn.' },
+        { sel: '#bn-matchmaking',          title: 'Ghép trận',    text: 'Tìm và tham gia các trận đấu quanh bạn — kèm nút Tạo trận ngay trong trang.' },
         { sel: '#nav-wallet-btn',          title: 'Ví xu',        text: 'Nạp xu để đặt cọc khi tạo trận và thanh toán phí tham gia.' },
         { sel: '#nav-notif-btn',           title: 'Thông báo',    text: 'Theo dõi duyệt trận, nhắc lịch thi đấu và khuyến mãi tại đây.' },
-        { sel: '#nav-avatar',              title: 'Hồ sơ của bạn', text: 'Cập nhật môn thể thao & trình độ để ghép trận chuẩn hơn.' }
+        { sel: '#nav-avatar',              title: 'Hồ sơ của bạn', text: 'Cập nhật môn thể thao & trình độ để ghép trận chuẩn hơn.' },
+        { sel: '#bn-more',                 title: 'Menu Thêm',    text: 'Ví xu, bạn bè, cài đặt và các mục khác nằm trong đây.' }
     ];
 
     var pageTours = {
@@ -95,13 +98,18 @@ window.SportHubTour = (function () {
         return key === 'nav' ? 'spTourDone' : 'spTour:' + key;
     }
 
+    function isDark() {
+        return document.documentElement.classList.contains('dark');
+    }
+
     function build() {
         overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;z-index:10500;';
         spot = document.createElement('div');
         spot.style.cssText = 'position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.62);transition:all .3s ease;pointer-events:none;';
         tip = document.createElement('div');
-        tip.style.cssText = 'position:absolute;max-width:290px;background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3);transition:all .3s ease;';
+        tip.style.cssText = 'position:absolute;max-width:290px;border-radius:12px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.3);transition:all .3s ease;'
+            + (isDark() ? 'background:#0f172a;border:1px solid #334155;' : 'background:#fff;');
         overlay.appendChild(spot);
         overlay.appendChild(tip);
         document.body.appendChild(overlay);
@@ -125,13 +133,16 @@ window.SportHubTour = (function () {
             spot.style.width = (r.width + pad * 2) + 'px';
             spot.style.height = (r.height + pad * 2) + 'px';
 
+            var titleColor = isDark() ? '#f1f5f9' : '#0f172a';
+            var textColor  = isDark() ? '#94a3b8' : '#475569';
+            var skipColor  = isDark() ? '#94a3b8' : '#64748b';
             tip.innerHTML =
-                '<p style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:4px;">' + step.title + '</p>' +
-                '<p style="font-size:12.5px;color:#475569;line-height:1.5;">' + step.text + '</p>' +
+                '<p style="font-weight:800;font-size:14px;color:' + titleColor + ';margin-bottom:4px;">' + step.title + '</p>' +
+                '<p style="font-size:12.5px;color:' + textColor + ';line-height:1.5;">' + step.text + '</p>' +
                 '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">' +
                     '<span style="font-size:11px;color:#94a3b8;font-weight:600;">' + (idx + 1) + '/' + list.length + '</span>' +
                     '<span style="display:flex;gap:8px;">' +
-                        '<button id="spTourSkip" style="font-size:12px;color:#64748b;font-weight:600;padding:5px 10px;">Bỏ qua</button>' +
+                        '<button id="spTourSkip" style="font-size:12px;color:' + skipColor + ';font-weight:600;padding:5px 10px;">Bỏ qua</button>' +
                         '<button id="spTourNext" style="font-size:12px;color:#fff;font-weight:700;background:#50A5B1;border-radius:8px;padding:5px 14px;">' +
                             (idx === list.length - 1 ? 'Hoàn tất' : 'Tiếp theo →') + '</button>' +
                     '</span>' +

@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Reported Messages";
     ViewData["AdminPage"] = "ReportedMessages";
-    var isEn = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
 }
 
 <div class="space-y-6">
@@ -48,7 +48,7 @@
                     </div>
                     <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-md p-3 text-center">
                         <p class="text-xl font-black text-emerald-600">@Model.TotalProcessed</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Reviewed</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Đã xử lý</p>
                     </div>
                     <div class="bg-slate-50 dark:bg-slate-800 rounded-md p-3 text-center">
                         <p class="text-xl font-black text-slate-600 dark:text-slate-300">@Model.DismissedCount</p>
@@ -159,10 +159,10 @@
                             <!-- Message content -->
                             <div class="bg-slate-50 dark:bg-slate-800 rounded-md p-4">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <p class="text-xs text-slate-400 font-medium">Message content (from @report.Message?.Sender?.FullName → @report.Message?.Receiver?.FullName):</p>
+                                    <p class="text-xs text-slate-400 font-medium">Nội dung tin nhắn (từ @report.Message?.Sender?.FullName → @report.Message?.Receiver?.FullName):</p>
                                     @if (report.Message?.IsDeleted == true)
                                     {
-                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-200 dark:bg-slate-700 text-slate-500">Deleted by user — content retained</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-200 dark:bg-slate-700 text-slate-500">Người dùng đã xóa — nội dung được lưu lại</span>
                                     }
                                 </div>
                                 @if (report.Message?.MessageType == "Image")
@@ -179,7 +179,7 @@
                             @if (!string.IsNullOrWhiteSpace(report.Reason))
                             {
                                 <div>
-                                    <p class="text-xs text-slate-400 mb-1">Report reason:</p>
+                                    <p class="text-xs text-slate-400 mb-1">Lý do báo cáo:</p>
                                     <p class="text-sm text-slate-700 dark:text-slate-300">@report.Reason</p>
                                 </div>
                             }
@@ -237,7 +237,7 @@
                                 <!-- Kết quả xử lý — tab Đã xử lý -->
                                 <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                                     <span class="px-2.5 py-1 rounded-md text-xs font-bold flex-shrink-0 @(report.Status == "Reviewed" ? "bg-orange-100 text-orange-700 border border-orange-200" : "bg-slate-100 text-slate-600 border border-slate-200")">
-                                        @(report.Status == "Reviewed" ? "Banned" : "Dismissed")
+                                        @(report.Status == "Reviewed" ? "Đã xử phạt" : "Đã bỏ qua")
                                     </span>
                                     <span class="text-xs text-slate-400">
                                         Admin: <span class="font-semibold text-slate-600 dark:text-slate-300">@(report.ReviewedByAdmin?.FullName ?? "—")</span>
