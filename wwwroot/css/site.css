@@ -121,3 +121,48 @@ body {
 .safe-bottom-nav {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* =============================================
+   SPORTS IDENTITY PASS (P2 — 2026-07-03)
+   ============================================= */
+
+/* Display font athletic cho heading cấp trang — Barlow Condensed hỗ trợ tiếng Việt */
+h1 {
+    font-family: 'Barlow Condensed', 'Inter', sans-serif;
+    letter-spacing: .015em;
+}
+
+/* Số liệu lớn kiểu bảng điểm (số dư ví, stats...) */
+.sport-number {
+    font-family: 'Barlow Condensed', 'Inter', sans-serif;
+    font-weight: 800;
+    letter-spacing: -.01em;
+}
+
+/* Nâng cỡ stat-number cho chất scoreboard */
+.stat-number {
+    font-size: 2.25rem;
+    letter-spacing: 0;
+}
+
+/* Texture nét kẻ sân đấu — dùng cho các band/section lớn */
+.court-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='170' viewBox='0 0 280 170'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='2'%3E%3Crect x='10' y='10' width='260' height='150' rx='4'/%3E%3Cline x1='140' y1='10' x2='140' y2='160'/%3E%3Ccircle cx='140' cy='85' r='28'/%3E%3Cline x1='10' y1='50' x2='70' y2='50'/%3E%3Cline x1='70' y1='50' x2='70' y2='120'/%3E%3Cline x1='10' y1='120' x2='70' y2='120'/%3E%3Cline x1='210' y1='50' x2='270' y2='50'/%3E%3Cline x1='210' y1='50' x2='210' y2='120'/%3E%3Cline x1='210' y1='120' x2='270' y2='120'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 280px 170px;
+}
+
+/* Nhịp đập nhẹ cho CTA Tạo trận — thể thao là chuyển động */
+@keyframes sp-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(241, 96, 13, 0.4); }
+    50%      { box-shadow: 0 0 0 7px rgba(241, 96, 13, 0); }
+}
+#nav-create-match { animation: sp-glow 2.6s ease-in-out infinite; }
+
+/* Chấm live nhấp nháy cho trận đang mở */
+@keyframes sp-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.live-dot {
+    display: inline-block;
+    width: 7px; height: 7px; border-radius: 9999px;
+    background: #22c55e;
+    animation: sp-blink 1.6s ease-in-out infinite;
+}

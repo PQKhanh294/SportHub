@@ -3,7 +3,7 @@
 @using System.Globalization
 @{
     ViewData["Title"] = "Admin — Wallets";
-    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
 }
 
 <div class="space-y-5">
@@ -51,7 +51,7 @@
         {
             <div class="p-10 text-center">
                 <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">manage_search</span>
-                <p class="text-slate-400 text-sm">No users found.</p>
+                <p class="text-slate-400 text-sm">Không tìm thấy người dùng.</p>
             </div>
         }
         else
@@ -85,7 +85,7 @@
                                         onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
                                         class="px-2 sm:px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-md text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors flex items-center gap-1">
                                     <span class="material-symbols-outlined text-sm">add_circle</span>
-                                    <span class="hidden sm:inline">Credit</span>
+                                    <span class="hidden sm:inline">Cộng xu</span>
                                 </button>
                                 <button type="button"
                                         onclick="openVoucherModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
@@ -137,15 +137,15 @@
                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Notification message <span class="text-rose-500">*</span></label>
                     <input type="text" name="note" maxlength="200" placeholder="e.g. Trial reward June"
                            class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" required />
-                    <p class="text-xs text-slate-400 mt-1">The user will receive a notification with this message.</p>
+                    <p class="text-xs text-slate-400 mt-1">Người dùng sẽ nhận được thông báo kèm nội dung này.</p>
                 </div>
             </div>
 
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" onclick="closeCreditModal()"
-                        class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Cancel</button>
+                        class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Hủy</button>
                 <button type="submit"
-                        class="px-5 py-2 rounded-md bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700">Add credit</button>
+                        class="px-5 py-2 rounded-md bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700">Cộng xu</button>
             </div>
         </form>
     </div>
@@ -163,17 +163,17 @@
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Voucher value (xu)</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Giá trị voucher (xu)</label>
                     <input type="number" name="voucherAmount" min="1000" step="1000" placeholder="30000"
                            class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" required />
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Expiry date (leave blank = no limit)</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Ngày hết hạn (trống = không giới hạn)</label>
                     <input type="date" name="voucherExpiry"
                            class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Note</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Ghi chú</label>
                     <input type="text" name="voucherNote" maxlength="200" placeholder="e.g. VIP reward June"
                            class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" />
                 </div>
@@ -181,9 +181,9 @@
 
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" onclick="closeVoucherModal()"
-                        class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Cancel</button>
+                        class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm">Hủy</button>
                 <button type="submit"
-                        class="px-5 py-2 rounded-md bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">Issue voucher</button>
+                        class="px-5 py-2 rounded-md bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">Phát voucher</button>
             </div>
         </form>
     </div>

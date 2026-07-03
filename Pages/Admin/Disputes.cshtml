@@ -4,7 +4,7 @@
 @{
     ViewData["Title"] = "Admin — Disputes";
     ViewData["AdminPage"] = "Disputes";
-    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     string StatusBadge(string s) => s switch {
         "Pending"       => "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
         "UnderReview"   => "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -14,20 +14,20 @@
         _ => ""
     };
     string StatusLabel(string s) => s switch {
-        "Pending"       => "Pending",
-        "UnderReview"   => "Under Review",
-        "AdminResolved" => "Resolved",
-        "AutoResolved"  => "Auto-closed",
-        "Dismissed"     => "Dismissed",
+        "Pending"       => "Đang chờ",
+        "UnderReview"   => "Đang xem xét",
+        "AdminResolved" => "Đã giải quyết",
+        "AutoResolved"  => "Tự động đóng",
+        "Dismissed"     => "Đã bác",
         _ => s
     };
     string TypeLabel(string t) => t switch {
-        "HostNoShow"      => "Host No-show",
-        "PlayerNoShow"    => "Player No-show",
-        "WrongVenue"      => "Wrong Venue",
-        "QualityIssue"    => "Quality Issue",
-        "PaymentDispute"  => "Payment Dispute",
-        "PlayerMisconduct"=> "Player Misconduct",
+        "HostNoShow"      => "Host vắng mặt",
+        "PlayerNoShow"    => "Người chơi vắng mặt",
+        "WrongVenue"      => "Sai địa điểm",
+        "QualityIssue"    => "Vấn đề chất lượng",
+        "PaymentDispute"  => "Tranh chấp thanh toán",
+        "PlayerMisconduct"=> "Người chơi vi phạm",
         _ => t
     };
     // EvidenceUrl: record mới là JSON array, record cũ là URL đơn
@@ -259,12 +259,12 @@
                 @if (Model.P > 1)
                 {
                     <a asp-page="Disputes" asp-route-tab="all" asp-route-p="@(Model.P - 1)"
-                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">← Prev</a>
+                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">← Trước</a>
                 }
                 @if (Model.Disputes.Count == 20)
                 {
                     <a asp-page="Disputes" asp-route-tab="all" asp-route-p="@(Model.P + 1)"
-                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Next →</a>
+                       class="px-4 py-2 rounded-md bg-slate-100 dark:bg-slate-800 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Sau →</a>
                 }
             </div>
         }
@@ -274,41 +274,41 @@
 @* Resolve Modal *@
 <div id="resolveModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 px-4">
     <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-md p-6">
-        <h2 class="text-lg font-black text-slate-800 dark:text-white mb-4">Resolve dispute</h2>
+        <h2 class="text-lg font-black text-slate-800 dark:text-white mb-4">Xử lý khiếu nại</h2>
         <form id="resolveForm" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" id="rDisputeId" name="disputeId" />
             <div class="mb-4">
-                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Note to user</label>
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Ghi chú gửi người dùng</label>
                 <textarea name="adminNote" rows="3" required
                           class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"></textarea>
             </div>
             <div class="mb-4">
-                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Outcome</label>
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Kết quả xử lý</label>
                 <select name="resolution" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm">
-                    <option value="FullRefund">Full refund</option>
-                    <option value="PartialRefund">Partial refund</option>
-                    <option value="NoRefund">No refund</option>
-                    <option value="Warning">Warn user</option>
+                    <option value="FullRefund">Hoàn tiền toàn bộ</option>
+                    <option value="PartialRefund">Hoàn tiền một phần</option>
+                    <option value="NoRefund">Không hoàn tiền</option>
+                    <option value="Warning">Cảnh cáo người dùng</option>
                 </select>
             </div>
             <div class="mb-5">
-                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Refund amount (if any)</label>
+                <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Số xu hoàn (nếu có)</label>
                 <input type="number" name="refundAmount" min="0" step="1000"
                        class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm" placeholder="0" />
             </div>
             <div class="flex gap-3">
                 <button type="submit" formaction="/Admin/Disputes?handler=Resolve"
                         class="flex-1 py-2.5 bg-primary text-white rounded-md font-bold text-sm hover:bg-primary/90 transition-colors">
-                    Resolve
+                    Giải quyết
                 </button>
                 <button type="submit" formaction="/Admin/Disputes?handler=Dismiss"
                         class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    Dismiss
+                    Bác khiếu nại
                 </button>
                 <button type="button" onclick="closeResolveModal()"
                         class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    Cancel
+                    Hủy
                 </button>
             </div>
         </form>

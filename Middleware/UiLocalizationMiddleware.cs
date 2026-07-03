@@ -91,13 +91,22 @@ namespace SportHub.Middleware
             return result.ToString();
         }
 
+        // Sort 1 lần lúc dùng đầu tiên thay vì mỗi text node của mỗi request.
+        // Lazy để tránh phụ thuộc thứ tự khởi tạo static field (Entries khai báo phía dưới).
+        private static readonly Lazy<IReadOnlyList<TextEntry>> _sortedEntries =
+            new(() => Entries.OrderByDescending(e => Math.Max(e.Vi.Length, e.En.Length)).ToList());
+        private static IReadOnlyList<TextEntry> SortedEntries => _sortedEntries.Value;
+
         private static string TranslateText(string text, bool isEnglish)
         {
             var result = text;
 
-            foreach (var entry in Entries.OrderByDescending(e => Math.Max(e.Vi.Length, e.En.Length)))
+            if (isEnglish)
             {
-                if (isEnglish)
+                // Chỉ dịch 1 chiều VI→EN. KHÔNG dịch EN→VI ở mode tiếng Việt:
+                // nguồn code đã là tiếng Việt, chiều ngược lại từng dịch đè cả nội dung
+                // người dùng nhập ("Sport Hub" → "Môn thể thao Hub").
+                foreach (var entry in SortedEntries)
                 {
                     result = result.Replace(entry.Vi, entry.En, StringComparison.Ordinal);
                     foreach (var legacy in entry.LegacyVi)
@@ -105,9 +114,16 @@ namespace SportHub.Middleware
                         result = result.Replace(legacy, entry.En, StringComparison.Ordinal);
                     }
                 }
-                else
+
+                result = result.Replace("Môn thể thao Hub", "Sport Hub", StringComparison.Ordinal);
+                result = result.Replace("Môn thể thaoHub", "SportHub", StringComparison.Ordinal);
+            }
+            else
+            {
+                // Mode VI: chỉ sửa mojibake (text tiếng Việt bị hỏng encoding từ trước)
+                foreach (var entry in SortedEntries)
                 {
-                    result = result.Replace(entry.En, entry.Vi, StringComparison.Ordinal);
+                    if (entry.LegacyVi.Length == 0) continue;
                     foreach (var legacy in entry.LegacyVi)
                     {
                         result = result.Replace(legacy, entry.Vi, StringComparison.Ordinal);
@@ -115,8 +131,6 @@ namespace SportHub.Middleware
                 }
             }
 
-            result = result.Replace("Môn thể thao Hub", "Sport Hub", StringComparison.Ordinal);
-            result = result.Replace("Môn thể thaoHub", "SportHub", StringComparison.Ordinal);
             return result;
         }
 
@@ -314,6 +328,30 @@ namespace SportHub.Middleware
             new("Tôi thanh toán", "I will pay"),
             new("Đồng ý", "Agree"),
             new("Không đồng ý", "Disagree"),
+
+            // Popup hoàn thiện hồ sơ
+            new("Hoàn thiện hồ sơ của bạn", "Complete your profile"),
+            new("môn thể thao & trình độ", "sport & skill level"),
+            new("để tham gia trận đấu. Chỉ mất 30 giây!", "to join matches. Takes 30 seconds!"),
+            new("Khu vực hoạt động", "Preferred area"),
+            new("Môn thể thao bạn chơi", "Sports you play"),
+            new("Lưu thông tin", "Save info"),
+            new("Chưa rõ trình độ? Để AI đánh giá giúp bạn", "Not sure about your level? Let AI assess it"),
+            new("Đánh giá trình độ", "Assess skill level"),
+
+            // Tạo trận: quick mode + sân số + tìm sân
+            new("Tìm sân (tùy chọn)", "Find court (optional)"),
+            new("Gõ tên sân để tìm kiếm...", "Type court name to search..."),
+            new("Sân số (tùy chọn)", "Court number (optional)"),
+            new("Điền thông tin cơ bản, phần còn lại sẽ tự động. Có thể chỉnh sau.", "Fill in the basics, the rest is automatic. You can edit later."),
+
+            // Khiếu nại: xác minh nhân chứng
+            new("Xác minh khiếu nại", "Verify dispute"),
+            new("Gửi xác minh", "Submit verification"),
+            new("Nội dung khiếu nại trên có đúng không?", "Is the dispute above accurate?"),
+            new("Bạn thấy gì trong trận đó?", "What did you witness in that match?"),
+            new("Ảnh kèm theo", "Attached photo"),
+            new("Để sau", "Later"),
         };
     }
 }

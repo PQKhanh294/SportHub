@@ -3,7 +3,7 @@
 @using System.Globalization
 @{
     ViewData["Title"] = "Admin — Dashboard";
-    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var s = Model.Stats;
     var dr = Model.DailyRevenue;
     var labels = string.Join(",", dr.Select(d => $"\"{d.Date:dd/MM}\""));
