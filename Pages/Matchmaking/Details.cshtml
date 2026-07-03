@@ -78,7 +78,7 @@ else
                     </div>
                     <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                         <span class="material-symbols-outlined text-base text-primary">location_on</span>
-                        <span><b>Địa điểm:</b> @item.CourtName — @item.CourtAddress</span>
+                        <span><b>Địa điểm:</b> @item.CourtName@(string.IsNullOrEmpty(item.CourtNumber) ? "" : $" · {item.CourtNumber}") — @item.CourtAddress</span>
                     </div>
                     <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                         <span class="material-symbols-outlined text-base text-primary">military_tech</span>
@@ -715,15 +715,15 @@ else
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                        Ảnh bằng chứng <span class="text-slate-400 font-normal">(tùy chọn)</span>
+                        Ảnh bằng chứng <span class="text-slate-400 font-normal">(tùy chọn, tối đa 3 ảnh)</span>
                     </label>
-                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-md p-4 text-center hover:border-amber-400 transition-colors cursor-pointer" onclick="document.getElementById('evidenceFile').click()">
+                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-md p-4 text-center hover:border-amber-400 transition-colors cursor-pointer" onclick="document.getElementById('evidenceFiles').click()">
                         <span class="material-symbols-outlined text-slate-400 text-2xl block">add_photo_alternate</span>
-                        <p class="text-xs text-slate-500 mt-1">Nhấn để chọn ảnh (JPG, PNG, tối đa 5MB)</p>
+                        <p class="text-xs text-slate-500 mt-1">Nhấn để chọn tối đa 3 ảnh (JPG, PNG, mỗi ảnh tối đa 5MB)</p>
                         <p id="evidenceFileName" class="text-xs text-amber-600 font-medium mt-1 hidden"></p>
                     </div>
-                    <input type="file" id="evidenceFile" name="evidenceFile" accept="image/jpeg,image/png,image/webp" class="hidden"
-                           onchange="document.getElementById('evidenceFileName').textContent = this.files[0]?.name || ''; document.getElementById('evidenceFileName').classList.toggle('hidden', !this.files[0])" />
+                    <input type="file" id="evidenceFiles" name="evidenceFiles" accept="image/jpeg,image/png,image/webp" multiple class="hidden"
+                           onchange="var n=[...this.files].slice(0,3).map(f=>f.name).join(', '); document.getElementById('evidenceFileName').textContent = n; document.getElementById('evidenceFileName').classList.toggle('hidden', !n)" />
                 </div>
                 <div class="flex gap-3">
                     <button type="button" onclick="document.getElementById('disputeModal').classList.add('hidden')"

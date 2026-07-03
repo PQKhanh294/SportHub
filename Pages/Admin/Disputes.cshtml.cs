@@ -76,5 +76,13 @@ namespace SportHub.Pages.Admin
             TempData["Msg"] = "Đã bác khiếu nại.";
             return RedirectToPage(new { tab = "pending" });
         }
+
+        public async Task<IActionResult> OnPostRunAiAsync(int disputeId)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            await _disputeService.RunAiAnalysisAsync(disputeId);
+            TempData["Msg"] = "Đã chạy phân tích AI cho khiếu nại #" + disputeId + ".";
+            return RedirectToPage(new { tab = ActiveTab });
+        }
     }
 }

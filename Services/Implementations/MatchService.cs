@@ -12,7 +12,7 @@ namespace SportHub.Services.Interfaces
         Task<List<Match>> GetRecommendedMatchesAsync(int limit = 5);
         Task<List<Match>> GetRecommendedMatchesForUserAsync(int userId, int limit = 5);
         Task<Match?> GetMatchDetailsAsync(int matchId);
-        Task<bool> JoinMatchAsync(int matchId, int userId);
+        Task<JoinMatchResult> JoinMatchAsync(int matchId, int userId);
         Task<bool> SkipMatchAsync(int matchId, int userId);
         Task<int> CreateMatchAsync(Match match, int createdByUserId, bool hostJoins = false);
         Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
@@ -26,6 +26,39 @@ namespace SportHub.Services.Interfaces
     }
 
     public record ExpiredPendingJoin(int UserId, int MatchId, string MatchTitle);
+
+    public enum JoinMatchReason
+    {
+        Success,
+        NotFound,
+        Closed,
+        Locked,
+        AlreadyRequested,
+        MatchFull,
+        ProfileIncomplete,
+        SkillTooLow
+    }
+
+    public record JoinMatchResult(bool Success, JoinMatchReason Reason)
+    {
+        public static readonly JoinMatchResult Ok = new(true, JoinMatchReason.Success);
+        public static JoinMatchResult Fail(JoinMatchReason reason) => new(false, reason);
+    }
+
+    public static class JoinMatchReasonExtensions
+    {
+        public static string ToUserMessage(this JoinMatchReason reason) => reason switch
+        {
+            JoinMatchReason.ProfileIncomplete => "Bạn chưa cập nhật môn thể thao & trình độ. Hãy hoàn thiện hồ sơ để tham gia trận.",
+            JoinMatchReason.SkillTooLow => "Trình độ của bạn chưa phù hợp với yêu cầu của trận này.",
+            JoinMatchReason.MatchFull => "Trận đã đủ người.",
+            JoinMatchReason.Locked => "Trận đã bị host khóa đăng ký.",
+            JoinMatchReason.Closed => "Trận đã đóng đăng ký.",
+            JoinMatchReason.AlreadyRequested => "Bạn đã gửi yêu cầu tham gia trận này rồi.",
+            JoinMatchReason.NotFound => "Trận đấu không tồn tại.",
+            _ => "Không thể tham gia trận đấu."
+        };
+    }
 }
 
 namespace SportHub.Services.Implementations
@@ -48,50 +81,106 @@ namespace SportHub.Services.Implementations
             _config = config;
         }
 
-        /// <summary>
-        /// Validates if user skill level meets the required skill level for a match
-        /// Skill hierarchy: Beginner (1) < Intermediate (2) < Advanced (3) < Expert (4)
-        /// </summary>
-        private bool ValidateUserSkillLevel(string? userSkill, string? requiredSkill)
-        {
-            // If no skill required or "Any", any user can join
-            if (string.IsNullOrWhiteSpace(requiredSkill) || string.Equals(requiredSkill, "Any", StringComparison.OrdinalIgnoreCase))
-                return true;
+        private enum SkillCheck { Pass, ProfileIncomplete, TooLow }
 
-            // If user has no skill defined, cannot join matches with skill requirements
-            if (string.IsNullOrWhiteSpace(userSkill))
-                return false;
-
-            // Normalize skill levels for comparison
-            var skillMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        // Thang trình độ riêng từng môn — đồng bộ với skillsBySport ở Create.cshtml và skillGuideData ở Matchmaking/Index.
+        // Không gộp 1 map chung vì các mức trùng tên khác hạng giữa các môn (VD "Trung Bình" cầu lông = 5, bóng đá = 2).
+        private static readonly Dictionary<string, Dictionary<string, int>> SkillRanksBySport =
+            new(StringComparer.OrdinalIgnoreCase)
             {
-                // English levels
-                { "Beginner", 1 },
-                { "Intermediate", 2 },
-                { "Advanced", 3 },
-                { "Expert", 4 },
-                { "Professional", 5 },
-                
-                // Vietnamese / Badminton specific levels
-                { "Newbie", 1 },
-                { "Yếu", 2 },
-                { "Yếu+", 3 },
-                { "TBY/TB-", 4 },
-                { "Trung Bình", 5 },
-                { "TB+/Khá", 6 }
+                ["Cầu lông"] = new(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Newbie"] = 1, ["Yếu"] = 2, ["Yếu+"] = 3, ["TBY/TB-"] = 4, ["Trung Bình"] = 5, ["TB+/Khá"] = 6
+                },
+                ["Pickleball"] = new(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["2.0"] = 1, ["2.5"] = 2, ["3.0"] = 3, ["3.5"] = 4, ["4.0"] = 5, ["4.5+"] = 6
+                },
+                ["Tennis"] = new(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["1.0-2.0"] = 1, ["2.5-3.0"] = 2, ["3.5"] = 3, ["4.0"] = 4, ["4.5"] = 5, ["5.0+"] = 6
+                },
+                ["Bóng đá"] = new(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Phong trào"] = 1, ["Trung bình"] = 2, ["Khá"] = 3, ["Tốt"] = 4, ["Chuyên nghiệp"] = 5
+                },
+                ["Bóng bàn"] = new(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Mới"] = 1, ["Mới bắt đầu"] = 1, ["Cơ bản"] = 2, ["Trung bình"] = 3, ["Khá"] = 4, ["Nâng cao"] = 5
+                }
             };
 
-            // If required skill unknown, default to true or handle gracefully
-            if (!skillMap.TryGetValue(requiredSkill, out var requiredSkillValue))
-                return true;
+        private static readonly Dictionary<string, int> GenericSkillRanks = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Beginner"] = 1, ["Newbie"] = 1, ["Mới"] = 1, ["Mới bắt đầu"] = 1,
+            ["Intermediate"] = 2, ["Trung bình"] = 2,
+            ["Khá"] = 3,
+            ["Advanced"] = 4, ["Nâng cao"] = 4,
+            ["Expert"] = 5, ["Professional"] = 5, ["Chuyên nghiệp"] = 5
+        };
 
-            // If user skill unknown, they can't join specific requirements
-            if (!skillMap.TryGetValue(userSkill, out var userSkillValue))
-                return false;
+        private static int? GetSkillRank(string sportName, string level)
+        {
+            level = level.Trim();
+            if (SkillRanksBySport.TryGetValue(sportName, out var map) && map.TryGetValue(level, out var rank))
+                return rank;
+            return GenericSkillRanks.TryGetValue(level, out var generic) ? generic : null;
+        }
 
-            // User skill must be >= required skill (or just allow if it matches the spirit of the game)
-            // For now, let's keep the >= logic
-            return userSkillValue >= (requiredSkillValue - 1); // Give some buffer or strictness as needed
+        // Trả về hạng tối thiểu trận yêu cầu; null = không có yêu cầu xác định (không chặn).
+        // Hỗ trợ composite cầu lông "Nam:Yếu,Trung Bình|Nữ:Yếu" — so theo giới tính user.
+        private static int? GetRequiredRank(string sportName, string required, string? gender)
+        {
+            required = required.Trim();
+            if (!required.Contains(':'))
+                return required.Equals("Any", StringComparison.OrdinalIgnoreCase) ? null : GetSkillRank(sportName, required);
+
+            var wantedSide = gender == "M" ? "Nam" : gender == "F" ? "Nữ" : null;
+            int? best = null;
+            foreach (var part in required.Split('|', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var idx = part.IndexOf(':');
+                if (idx <= 0) continue;
+                var side = part[..idx].Trim();
+                if (wantedSide != null && !side.Equals(wantedSide, StringComparison.OrdinalIgnoreCase)) continue;
+                foreach (var levelRaw in part[(idx + 1)..].Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var level = levelRaw.Trim();
+                    if (level.Equals("Any", StringComparison.OrdinalIgnoreCase)) return null;
+                    var rank = GetSkillRank(sportName, level);
+                    if (rank.HasValue && (best == null || rank < best)) best = rank;
+                }
+            }
+            return best;
+        }
+
+        private async Task<SkillCheck> CheckSkillAsync(Match match, User user)
+        {
+            var required = match.SkillRequired;
+            if (string.IsNullOrWhiteSpace(required) || required.Trim().Equals("Any", StringComparison.OrdinalIgnoreCase))
+                return SkillCheck.Pass;
+
+            var sportName = match.Sport?.SportName
+                ?? await _context.Sports.Where(s => s.SportID == match.SportID).Select(s => s.SportName).FirstOrDefaultAsync()
+                ?? string.Empty;
+
+            // Ưu tiên trình độ đúng môn từ UserSportProfiles, fallback trường legacy SkillLevel
+            var userSkill = await _context.UserSportProfiles
+                .Where(p => p.UserID == user.UserID && p.SportID == match.SportID)
+                .Select(p => p.SkillLevel)
+                .FirstOrDefaultAsync() ?? user.SkillLevel;
+
+            if (string.IsNullOrWhiteSpace(userSkill))
+                return SkillCheck.ProfileIncomplete;
+
+            var requiredRank = GetRequiredRank(sportName, required, user.Gender);
+            if (requiredRank == null) return SkillCheck.Pass;
+
+            var userRank = GetSkillRank(sportName, userSkill);
+            if (userRank == null) return SkillCheck.ProfileIncomplete; // trình độ đã set thuộc thang môn khác
+
+            // Buffer -1 giữ nguyên từ logic cũ: cho phép thấp hơn yêu cầu 1 bậc
+            return userRank.Value >= requiredRank.Value - 1 ? SkillCheck.Pass : SkillCheck.TooLow;
         }
 
         public async Task<List<Match>> GetRecommendedMatchesAsync(int limit = 5)
@@ -148,29 +237,32 @@ namespace SportHub.Services.Implementations
                 .FirstOrDefaultAsync(m => m.MatchID == matchId);
         }
 
-        public async Task<bool> JoinMatchAsync(int matchId, int userId)
+        public async Task<JoinMatchResult> JoinMatchAsync(int matchId, int userId)
         {
             var match = await _context.Matches
                 .Include(m => m.Participants)
+                .Include(m => m.Sport)
                 .FirstOrDefaultAsync(m => m.MatchID == matchId);
 
-            if (match == null || match.Status != "Open" || match.IsLockedByHost) return false;
+            if (match == null) return JoinMatchResult.Fail(JoinMatchReason.NotFound);
+            if (match.IsLockedByHost) return JoinMatchResult.Fail(JoinMatchReason.Locked);
+            if (match.Status != "Open") return JoinMatchResult.Fail(JoinMatchReason.Closed);
 
             // Đã có yêu cầu đang chờ hoặc đã được duyệt/chấp nhận
             if (match.Participants.Any(p => p.UserID == userId &&
                 (p.JoinStatus == "Pending" || p.JoinStatus == "Approved" || p.JoinStatus == "Accepted")))
-                return false;
+                return JoinMatchResult.Fail(JoinMatchReason.AlreadyRequested);
 
-            // ✅ NEW: Validate user skill level
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
-            if (user == null) return false;
+            if (user == null) return JoinMatchResult.Fail(JoinMatchReason.NotFound);
 
-            if (!ValidateUserSkillLevel(user.SkillLevel, match.SkillRequired))
-                return false;
+            var skillCheck = await CheckSkillAsync(match, user);
+            if (skillCheck == SkillCheck.ProfileIncomplete) return JoinMatchResult.Fail(JoinMatchReason.ProfileIncomplete);
+            if (skillCheck == SkillCheck.TooLow) return JoinMatchResult.Fail(JoinMatchReason.SkillTooLow);
 
             // Đếm Accepted + Approved để kiểm tra chỗ còn trống
             var acceptedCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");
-            if (acceptedCount >= match.MaxParticipants) return false;
+            if (acceptedCount >= match.MaxParticipants) return JoinMatchResult.Fail(JoinMatchReason.MatchFull);
 
             // Ghép vãng lai: luôn chờ host duyệt (không vào thẳng)
             match.Participants.Add(new MatchParticipant
@@ -191,7 +283,7 @@ namespace SportHub.Services.Implementations
             });
 
             await _context.SaveChangesAsync();
-            return true;
+            return JoinMatchResult.Ok;
         }
 
         public async Task<bool> SkipMatchAsync(int matchId, int userId)
@@ -295,8 +387,8 @@ namespace SportHub.Services.Implementations
             var participant = match.Participants.FirstOrDefault(p => p.ParticipantID == participantId && p.JoinStatus == "Pending");
             if (participant == null) return false;
 
-            // ✅ NEW: Validate participant skill level before approving
-            if (!ValidateUserSkillLevel(participant.User.SkillLevel, match.SkillRequired))
+            // Chặn duyệt khi trình độ thấp hơn yêu cầu; hồ sơ thiếu thì host tự quyết (đã thấy profile)
+            if (await CheckSkillAsync(match, participant.User) == SkillCheck.TooLow)
                 return false;
 
             var filledCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");

@@ -214,8 +214,7 @@ namespace SportHub.Pages.Matchmaking
             if (!string.IsNullOrWhiteSpace(Skill) && !string.Equals(Skill, "Any", StringComparison.OrdinalIgnoreCase))
             {
                 matches = matches
-                    .Where(m => string.Equals(m.SkillRequired ?? "Any", Skill, StringComparison.OrdinalIgnoreCase)
-                             || string.Equals(m.SkillRequired ?? string.Empty, "Any", StringComparison.OrdinalIgnoreCase))
+                    .Where(m => MatchesSkillFilter(m.SkillRequired, Skill))
                     .ToList();
             }
 
@@ -258,7 +257,8 @@ namespace SportHub.Pages.Matchmaking
                 {
                     var lat = (double?)m.CustomLatitude ?? (double?)m.Court?.Venue?.Latitude;
                     var lon = (double?)m.CustomLongitude ?? (double?)m.Court?.Venue?.Longitude;
-                    if (lat == null || lon == null) return false;
+                    // Trận thiếu tọa độ vẫn hiện (không loại oan) — sẽ không có DistanceDisplay
+                    if (lat == null || lon == null) return true;
                     return HaversineKm(UserLat.Value, UserLon.Value, lat.Value, lon.Value) <= radiusKm;
                 }).ToList();
             }
@@ -286,6 +286,9 @@ namespace SportHub.Pages.Matchmaking
                     {
                         var amount = BuildMatchPriceAmount(m);
                         if (!amount.HasValue) return !MinPrice.HasValue || MinPrice.Value <= 0;
+                        // Trận chia đều: card hiển thị giá/người nên filter cũng phải so giá/người
+                        if (m.IsSplitFee && m.MaxParticipants > 0)
+                            amount = Math.Ceiling(amount.Value / m.MaxParticipants);
                         if (MinPrice.HasValue && amount.Value < MinPrice.Value) return false;
                         if (MaxPrice.HasValue && amount.Value > MaxPrice.Value) return false;
                         return true;
@@ -322,6 +325,7 @@ namespace SportHub.Pages.Matchmaking
                     StartTime = m.StartTime.ToString(@"hh\:mm"),
                     Venue = venue,
                     VenueAddress = venueAddress,
+                    CourtNumber = m.CourtNumber,
                     PriceDisplay = BuildPriceDisplay(m),
                     PriceAmount = BuildMatchPriceAmount(m),
                     Participants = acceptedCount,
@@ -380,8 +384,8 @@ namespace SportHub.Pages.Matchmaking
             var match = await _matchService.GetMatchDetailsAsync(id);
             if (match == null) return RedirectToPage("/Matchmaking/Index");
 
-            var joined = await _matchService.JoinMatchAsync(id, userId);
-            if (joined)
+            var joinResult = await _matchService.JoinMatchAsync(id, userId);
+            if (joinResult.Success)
             {
                 SuccessMessage = "Yêu cầu đã gửi. Bạn đang trong hàng chờ - host sẽ duyệt trong vòng 2 giờ.";
                 var currentUser = User.FindFirstValue(ClaimTypes.Name) ?? "Người chơi";
@@ -400,7 +404,9 @@ namespace SportHub.Pages.Matchmaking
             }
             else
             {
-                ErrorMessage = "Không thể tham gia trận đấu. Kiểm tra lại trình độ hoặc trận đấu đã đầy/đóng.";
+                ErrorMessage = joinResult.Reason.ToUserMessage();
+                if (joinResult.Reason == JoinMatchReason.ProfileIncomplete)
+                    TempData["OpenProfileModal"] = true;
             }
 
             return RedirectToPage();
@@ -631,6 +637,30 @@ namespace SportHub.Pages.Matchmaking
             return "Chưa có giá";
         }
 
+        // Trận cầu lông lưu SkillRequired composite "Nam:Yếu,Trung Bình|Nữ:Yếu" — so exact string sẽ không bao giờ khớp.
+        private static bool MatchesSkillFilter(string? skillRequired, string filter)
+        {
+            if (string.IsNullOrWhiteSpace(skillRequired)) return true;
+            skillRequired = skillRequired.Trim();
+            if (skillRequired.Equals("Any", StringComparison.OrdinalIgnoreCase)) return true;
+
+            if (!skillRequired.Contains(':'))
+                return string.Equals(skillRequired, filter, StringComparison.OrdinalIgnoreCase);
+
+            foreach (var part in skillRequired.Split('|', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var idx = part.IndexOf(':');
+                var levels = idx >= 0 ? part[(idx + 1)..] : part;
+                foreach (var level in levels.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var trimmed = level.Trim();
+                    if (trimmed.Equals("Any", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (trimmed.Equals(filter, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+            }
+            return false;
+        }
+
         private static decimal? BuildMatchPriceAmount(Models.Entities.Match match)
         {
             var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
@@ -827,7 +857,26 @@ namespace SportHub.Pages.Matchmaking
 
         private static int? SkillToRank(string value)
         {
-            return value.Trim().ToLowerInvariant() switch
+            value = value.Trim();
+
+            // Composite cầu lông "Nam:Yếu,Trung Bình|Nữ:Yếu" → lấy hạng thấp nhất được chấp nhận
+            if (value.Contains(':'))
+            {
+                int? best = null;
+                foreach (var part in value.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var idx = part.IndexOf(':');
+                    var levels = idx >= 0 ? part[(idx + 1)..] : part;
+                    foreach (var level in levels.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var rank = SkillToRank(level);
+                        if (rank.HasValue && (best == null || rank < best)) best = rank;
+                    }
+                }
+                return best;
+            }
+
+            return value.ToLowerInvariant() switch
             {
                 "newbie" or "beginner" => 1,
                 "yếu" or "intermediate" => 2,
@@ -891,6 +940,7 @@ namespace SportHub.Pages.Matchmaking
             public string StartTime { get; set; } = string.Empty;
             public string Venue { get; set; } = string.Empty;
             public string VenueAddress { get; set; } = string.Empty;
+            public string? CourtNumber { get; set; }
             public string PriceDisplay { get; set; } = string.Empty;
             public decimal? PriceAmount { get; set; }
             public int Participants { get; set; }

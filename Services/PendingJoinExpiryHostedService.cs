@@ -295,6 +295,10 @@ namespace SportHub.Services
 
                     // 6. Send match reminder emails ~2h before start
                     await SendMatchRemindersAsync(scope, stoppingToken);
+
+                    // 7. AI analysis cho khiếu nại quá hạn nhân chứng 48h
+                    var disputeService = scope.ServiceProvider.GetRequiredService<IDisputeService>();
+                    await disputeService.ProcessPendingAiAnalysisAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {

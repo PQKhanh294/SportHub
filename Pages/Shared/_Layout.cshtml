@@ -118,6 +118,8 @@
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
     var showProfileBanner = false;
     var redirectToProfile = false;
+    var showProfileModal = false;
+    var isFirstLogin = false;
     var redirectToBanned = false;
     if (isAuthenticated)
     {
@@ -143,23 +145,32 @@
                 }
             }
 
-            // Profile completion enforcement: sau 5 lần login nếu chưa hoàn thiện
-            if (currentUser?.LoginCount >= 5)
+            isFirstLogin = currentUser?.LoginCount <= 1;
+
+            // Profile completion: popup ngay từ lần đầu (môn + trình độ là điều kiện join trận)
+            if (currentUser != null)
             {
                 var isComplete = await UserService.IsProfileCompleteAsync(currentUserId);
                 var path = Context.Request.Path.Value ?? "";
                 var isExemptPath = path.StartsWith("/Profile", StringComparison.OrdinalIgnoreCase)
                     || path.StartsWith("/Account", StringComparison.OrdinalIgnoreCase)
                     || path.StartsWith("/Auth", StringComparison.OrdinalIgnoreCase)
+                    || path.StartsWith("/Onboarding", StringComparison.OrdinalIgnoreCase)
+                    || path.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase)
                     || path.StartsWith("/api", StringComparison.OrdinalIgnoreCase);
                 if (!isComplete)
                 {
-                    showProfileBanner = true;
-                    // Force redirect mỗi 5 lần login (5, 10, 15...) — dùng JS để tránh lỗi "section not rendered"
-                    if (currentUser.LoginCount % 5 == 0 && !isExemptPath)
+                    showProfileModal = !isExemptPath && !redirectToBanned;
+                    if (currentUser.LoginCount >= 5)
                     {
-                        redirectToProfile = true;
-                        showProfileBanner = false;
+                        showProfileBanner = true;
+                        // Force redirect mỗi 5 lần login (5, 10, 15...) — dùng JS để tránh lỗi "section not rendered"
+                        if (currentUser.LoginCount % 5 == 0 && !isExemptPath)
+                        {
+                            redirectToProfile = true;
+                            showProfileBanner = false;
+                            showProfileModal = false;
+                        }
                     }
                 }
             }
@@ -239,7 +250,7 @@
                 @foreach (var (label, url, key) in navItems)
                 {
                     var isActive = activePage == key;
-                    <a href="@url"
+                    <a href="@url" id="@(key == "Matchmaking" ? "nav-matchmaking-desktop" : null)"
                        class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-all @(isActive ? "bg-primary/10 text-primary font-semibold" : "text-slate-600 dark:text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800/60")">
                         @label
                     </a>
@@ -257,7 +268,7 @@
             <!-- Right Actions -->
             <div class="flex items-center gap-1.5 sm:gap-2">
                 <!-- Tạo trận button -->
-                <a asp-page="/Matchmaking/Create"
+                <a asp-page="/Matchmaking/Create" id="nav-create-match"
                    class="hidden xl:inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-accent/90 hover:shadow-md transition-all active:scale-95">
                     <span class="material-symbols-outlined text-base">add</span>
                     @createMatchText
@@ -307,7 +318,7 @@
                     </a>
                 }
 
-                <a asp-page="/Notifications/Index" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all flex" title="@navNotifications">
+                <a asp-page="/Notifications/Index" id="nav-notif-btn" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/10 rounded-full transition-all flex" title="@navNotifications">
                     <span class="material-symbols-outlined text-[22px]">notifications</span>
                     <span id="notification-badge"
                           class="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold leading-none @(unreadNotificationCount > 0 ? "" : "hidden")">
@@ -319,7 +330,7 @@
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="relative group">
-                        <a asp-page="/Profile/Index" class="block relative">
+                        <a asp-page="/Profile/Index" id="nav-avatar" class="block relative">
                             <img class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30 hover:ring-primary transition-all"
                                  src="@(string.IsNullOrWhiteSpace(currentUserAvatar) ? "/images/avatar-default.png" : currentUserAvatar)"
                                  onerror="this.onerror=null;this.src='/images/avatar-default.png';"
@@ -348,6 +359,9 @@
                             <a href="/Wallet" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                                 <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span> Ví
                             </a>
+                            <button type="button" onclick="SportHubTour.restart()" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <span class="material-symbols-outlined text-sm text-slate-400">help</span> Xem lại hướng dẫn
+                            </button>
                             <div class="border-t border-slate-100 dark:border-slate-800">
                                 <form method="post" asp-page="/Auth/Logout">
                                     <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-b-xl transition-colors">
@@ -379,7 +393,7 @@
             </div>
             <nav class="flex flex-col space-y-0.5">
                 <a asp-page="/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Home" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navHome</a>
-                <a asp-page="/Matchmaking/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Matchmaking" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navMatchmaking</a>
+                <a asp-page="/Matchmaking/Index" id="nav-matchmaking" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Matchmaking" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navMatchmaking</a>
                 <a asp-page="/Users/Index" class="px-4 py-2.5 text-sm font-medium rounded-md hover:bg-primary/10 hover:text-primary transition-colors @(activePage == "Community" ? "bg-primary/10 text-primary font-semibold" : "text-slate-700 dark:text-slate-300")">@navCommunity</a>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
@@ -2180,6 +2194,18 @@ window.updateRightSidebarState = function () {
 @if (redirectToProfile)
 {
     <script>window.location.replace('/Profile?fromBanner=1');</script>
+}
+@{
+    var forceProfileModal = (User?.Identity?.IsAuthenticated ?? false) && TempData["OpenProfileModal"] != null;
+}
+@if (forceProfileModal || showProfileModal)
+{
+    <partial name="_ProfileCompletionModal" model="forceProfileModal" />
+}
+@if (User?.Identity?.IsAuthenticated == true)
+{
+    <script>window.__spFirstLogin = @(isFirstLogin ? "true" : "false");</script>
+    <script src="~/js/sporthub-tour.js"></script>
 }
 <script>
 (function() {

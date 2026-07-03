@@ -57,6 +57,9 @@ namespace SportHub.Pages.Matchmaking
             [StringLength(100)]
             public string? CourtName { get; set; }
 
+            [StringLength(30)]
+            public string? CourtNumber { get; set; }
+
             [StringLength(300)]
             public string? CourtAddress { get; set; }
 
@@ -209,6 +212,7 @@ namespace SportHub.Pages.Matchmaking
                 Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description.Trim(),
                 CustomCourtName = string.IsNullOrWhiteSpace(Input.CourtName) ? null : Input.CourtName.Trim(),
                 CustomCourtAddress = string.IsNullOrWhiteSpace(Input.CourtAddress) ? null : Input.CourtAddress.Trim(),
+                CourtNumber = string.IsNullOrWhiteSpace(Input.CourtNumber) ? null : Input.CourtNumber.Trim(),
                 CustomPriceVnd = Input.PriceVnd,
                 CustomLatitude = Input.Latitude,
                 CustomLongitude = Input.Longitude,
