@@ -7,5 +7,6 @@ namespace SportHub.Services.Interfaces
         Task SendWalletCreditedAsync(string toEmail, string fullName, decimal amount, string description);
         Task SendPromoCodeAsync(string toEmail, string fullName, string code, decimal amount, string campaignName, DateTime? expiresAt);
         Task SendMatchReminderAsync(string toEmail, string fullName, string matchTitle, string matchDate, string venue);
+        Task<(bool Success, string Detail)> SendTestAsync(string toEmail);
     }
 }

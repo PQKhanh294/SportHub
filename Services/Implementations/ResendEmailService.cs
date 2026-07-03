@@ -37,11 +37,43 @@ namespace SportHub.Services.Implementations
             {
                 var resp = await _http.SendAsync(req);
                 if (!resp.IsSuccessStatusCode)
-                    _logger.LogWarning("Resend API returned {Status} for email to {To}", resp.StatusCode, to);
+                {
+                    var body = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Resend API returned {Status} for email to {To}: {Body}", resp.StatusCode, to, body);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email via Resend to {To}", to);
+            }
+        }
+
+        // Gửi thử + trả nguyên văn phản hồi Resend — dùng cho admin chẩn đoán (domain chưa verify, key sai...)
+        public async Task<(bool Success, string Detail)> SendTestAsync(string to)
+        {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                return (false, "Resend:ApiKey chưa được cấu hình trong appsettings.json");
+
+            var payload = JsonSerializer.Serialize(new
+            {
+                from = _from,
+                to,
+                subject = "[SportHub] Test email",
+                html = $"<p>Email test từ SportHub lúc {DateTime.UtcNow.AddHours(7):HH:mm:ss dd/MM/yyyy} (giờ VN).</p>"
+            });
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var resp = await _http.SendAsync(req);
+                var body = await resp.Content.ReadAsStringAsync();
+                return (resp.IsSuccessStatusCode, $"{(int)resp.StatusCode} {resp.StatusCode}: {body}");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
             }
         }
 

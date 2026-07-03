@@ -1,0 +1,313 @@
+@model bool
+@* Model = true khi bị buộc mở (join trận thất bại vì thiếu hồ sơ) — bỏ qua trạng thái skip trong session *@
+
+<div id="pcmOverlay" class="hidden fixed inset-0 z-[10000] items-center justify-center p-4" style="background:rgba(0,0,0,.65);backdrop-filter:blur(4px);">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col overflow-hidden">
+        <div class="h-1 bg-gradient-to-r from-primary to-accent flex-shrink-0"></div>
+        <div class="px-6 pt-5 pb-3 flex items-start justify-between flex-shrink-0">
+            <div>
+                <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">Hoàn thiện hồ sơ của bạn</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cần <strong>môn thể thao & trình độ</strong> để tham gia trận đấu. Chỉ mất 30 giây!</p>
+            </div>
+            <button type="button" onclick="pcmSkip()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl leading-none px-1">✕</button>
+        </div>
+
+        <div class="px-6 pb-4 space-y-4 overflow-y-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Số điện thoại</label>
+                    <input id="pcmPhone" type="tel" placeholder="0901234567"
+                           class="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm" />
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Khu vực hoạt động</label>
+                    <input id="pcmAddress" type="text" autocomplete="off" placeholder="VD: Ngũ Hành Sơn, Đà Nẵng"
+                           class="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm" />
+                    <div id="pcmAddrSuggest" class="hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md mt-1 max-h-40 overflow-y-auto z-10 shadow-lg"></div>
+                    <input type="hidden" id="pcmLat" /><input type="hidden" id="pcmLon" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Môn thể thao bạn chơi <span class="text-red-500">*</span></label>
+                <div id="pcmSports" class="flex flex-wrap gap-2">
+                    <span class="text-xs text-slate-400">Đang tải...</span>
+                </div>
+            </div>
+
+            <div id="pcmSkills" class="space-y-3"></div>
+
+            <div class="border border-slate-200 dark:border-slate-700 rounded-md p-3">
+                <button type="button" onclick="document.getElementById('pcmAiBox').classList.toggle('hidden')"
+                        class="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">psychology</span>
+                    Chưa rõ trình độ? Để AI đánh giá giúp bạn
+                </button>
+                <div id="pcmAiBox" class="hidden mt-2 space-y-2">
+                    <textarea id="pcmAiInput" rows="2" placeholder="Mô tả cách bạn chơi: chơi bao lâu, tần suất, từng thi đấu chưa..."
+                              class="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-xs"></textarea>
+                    <button type="button" id="pcmAiBtn" onclick="pcmAssessSkill()"
+                            class="px-3 py-1.5 rounded-md bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20">Đánh giá trình độ</button>
+                    <div id="pcmAiResult" class="hidden text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-md p-2.5"></div>
+                </div>
+            </div>
+
+            <p id="pcmError" class="hidden text-xs text-red-500 bg-red-50 dark:bg-red-900/20 rounded-md px-3 py-2"></p>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+            <button type="button" id="pcmSaveBtn" onclick="pcmSave()"
+                    class="flex-1 h-10 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-md transition-all active:scale-[.98]">
+                Lưu thông tin
+            </button>
+            <button type="button" onclick="pcmSkip()"
+                    class="px-5 h-10 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">
+                Bỏ qua
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var FORCE = @(Model ? "true" : "false");
+    if (!FORCE && sessionStorage.getItem('spProfileSkipped')) return;
+
+    var selectedSports = []; // [{id, name}]
+
+    var skillsBySport = {
+        'Cầu lông':  ['Newbie','Yếu','Yếu+','TBY/TB-','Trung Bình','TB+/Khá'],
+        'Pickleball':['2.0','2.5','3.0','3.5','4.0','4.5+'],
+        'Tennis':    ['1.0-2.0','2.5-3.0','3.5','4.0','4.5','5.0+'],
+        'Bóng đá':   ['Phong trào','Trung bình','Khá','Tốt','Chuyên nghiệp'],
+        'Bóng bàn':  ['Mới','Cơ bản','Trung bình','Khá','Nâng cao'],
+        'default':   ['Beginner','Intermediate','Advanced','Professional']
+    };
+
+    var guideBySport = {
+        'Cầu lông': [
+            ['Newbie','Mới cầm vợt, đang làm quen với cầu.'],
+            ['Yếu','Đánh qua lại được nhưng chưa ổn định.'],
+            ['Yếu+','Giao cầu, phông cầu cơ bản ổn.'],
+            ['TBY/TB-','Đánh ổn định, biết chiến thuật đơn giản.'],
+            ['Trung Bình','Đập cầu, bỏ nhỏ tốt, di chuyển hợp lý.'],
+            ['TB+/Khá','Đánh giải phong trào, kỹ chiến thuật tốt.']
+        ],
+        'Pickleball': [
+            ['2.0','Mới bắt đầu, chưa nắm luật (dưới 3 tháng).'],
+            ['2.5','Giao & trả bóng đơn giản (3-6 tháng).'],
+            ['3.0','Dink, drive, smash cơ bản (6-12 tháng).'],
+            ['3.5','Dink nhất quán, lobs/drops chiến thuật (1-2 năm).'],
+            ['4.0','Stack & stagger, reset thế bất lợi (2-4 năm).'],
+            ['4.5+','ATP, erne, speedup — thi đấu giải (4+ năm).']
+        ],
+        'Tennis': [
+            ['1.0-2.0','Mới tập, cần học kỹ thuật cơ bản (dưới 6 tháng).'],
+            ['2.5-3.0','Forehand/backhand ổn định (6 tháng-2 năm).'],
+            ['3.5','Rally 10+ lần, chơi được baseline lẫn net (2-4 năm).'],
+            ['4.0','Topspin/slice nhất quán, serve tốc độ (4-6 năm).'],
+            ['4.5','Thi đấu giải, serve+1 mạnh (6+ năm).'],
+            ['5.0+','Gần chuyên nghiệp, chiến thuật đỉnh cao.']
+        ],
+        'Bóng đá': [
+            ['Phong trào','Chơi vui cuối tuần, kỹ năng cơ bản.'],
+            ['Trung bình','Kiểm soát bóng ổn, biết vị trí.'],
+            ['Khá','Dứt điểm tốt, hiểu chiến thuật đội hình.'],
+            ['Tốt','Đọc game tốt, từng đá giải phong trào.'],
+            ['Chuyên nghiệp','Thi đấu chuyên/bán chuyên.']
+        ],
+        'Bóng bàn': [
+            ['Mới','Giao bóng cơ bản (dưới 3 tháng).'],
+            ['Cơ bản','Rally ngắn 10-15 lần (3-12 tháng).'],
+            ['Trung bình','Kiểm soát topspin/backspin (1-3 năm).'],
+            ['Khá','Loop 2 càng, serve xoáy chiến thuật (3-6 năm).'],
+            ['Nâng cao','Thi đấu giải được (6+ năm).']
+        ]
+    };
+
+    function overlay() { return document.getElementById('pcmOverlay'); }
+
+    window.pcmSkip = function () {
+        sessionStorage.setItem('spProfileSkipped', '1');
+        overlay().classList.add('hidden');
+        overlay().classList.remove('flex');
+        document.body.style.overflow = '';
+    };
+
+    function skillOptions(sportName) {
+        return skillsBySport[sportName] || skillsBySport['default'];
+    }
+
+    function renderSkillRows() {
+        var box = document.getElementById('pcmSkills');
+        box.innerHTML = '';
+        selectedSports.forEach(function (s) {
+            var guide = guideBySport[s.name];
+            var wrap = document.createElement('div');
+            wrap.innerHTML =
+                '<div class="flex items-center gap-2 mb-1">' +
+                    '<label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Trình độ ' + s.name + ' <span class="text-red-500">*</span></label>' +
+                    (guide ? '<button type="button" class="pcm-info size-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-bold leading-none">i</button>' : '') +
+                '</div>' +
+                '<select data-sport-id="' + s.id + '" class="pcm-skill w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm">' +
+                    '<option value="">-- Chọn trình độ --</option>' +
+                    skillOptions(s.name).map(function (lv) { return '<option value="' + lv + '">' + lv + '</option>'; }).join('') +
+                '</select>' +
+                (guide ? '<div class="pcm-guide hidden mt-1.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 space-y-1">' +
+                    guide.map(function (g) { return '<p class="text-[11px] text-slate-600 dark:text-slate-300"><strong class="text-primary">' + g[0] + '</strong> — ' + g[1] + '</p>'; }).join('') +
+                '</div>' : '');
+            box.appendChild(wrap);
+            var info = wrap.querySelector('.pcm-info');
+            if (info) info.addEventListener('click', function () {
+                wrap.querySelector('.pcm-guide').classList.toggle('hidden');
+            });
+        });
+    }
+
+    function renderSports(sports) {
+        var box = document.getElementById('pcmSports');
+        box.innerHTML = '';
+        sports.forEach(function (s) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.textContent = s.name;
+            chip.className = 'px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-600 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-primary transition-colors';
+            chip.addEventListener('click', function () {
+                var idx = selectedSports.findIndex(function (x) { return x.id === s.id; });
+                if (idx >= 0) {
+                    selectedSports.splice(idx, 1);
+                    chip.classList.remove('bg-primary/10', 'border-primary', 'text-primary');
+                } else {
+                    selectedSports.push({ id: s.id, name: s.name });
+                    chip.classList.add('bg-primary/10', 'border-primary', 'text-primary');
+                }
+                renderSkillRows();
+            });
+            box.appendChild(chip);
+        });
+    }
+
+    // Địa chỉ autocomplete (không cần bản đồ — chỉnh ghim chi tiết ở trang Hồ sơ)
+    var addrTimer = null;
+    function initAddress() {
+        var input = document.getElementById('pcmAddress');
+        var sug = document.getElementById('pcmAddrSuggest');
+        input.addEventListener('input', function () {
+            clearTimeout(addrTimer);
+            var q = this.value.trim();
+            if (q.length < 3) { sug.classList.add('hidden'); return; }
+            addrTimer = setTimeout(async function () {
+                try {
+                    var res = await fetch('/geo/search?q=' + encodeURIComponent(q) + '&limit=5', { headers: { Accept: 'application/json' } });
+                    var data = res.ok ? await res.json() : [];
+                    sug.innerHTML = '';
+                    (data || []).forEach(function (item) {
+                        var div = document.createElement('div');
+                        div.className = 'px-3 py-2 text-xs cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 last:border-0';
+                        div.textContent = item.display_name || '';
+                        div.addEventListener('click', function () {
+                            input.value = item.display_name || q;
+                            document.getElementById('pcmLat').value = item.lat || '';
+                            document.getElementById('pcmLon').value = item.lon || '';
+                            sug.classList.add('hidden');
+                        });
+                        sug.appendChild(div);
+                    });
+                    sug.classList.toggle('hidden', !data || data.length === 0);
+                } catch (e) { sug.classList.add('hidden'); }
+            }, 450);
+        });
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !sug.contains(e.target)) sug.classList.add('hidden');
+        });
+    }
+
+    window.pcmAssessSkill = async function () {
+        var input = document.getElementById('pcmAiInput');
+        var btn = document.getElementById('pcmAiBtn');
+        var result = document.getElementById('pcmAiResult');
+        if (!input.value.trim()) return;
+        btn.disabled = true; btn.textContent = 'Đang phân tích...';
+        try {
+            var res = await fetch('/api/skill/assess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: input.value.trim() })
+            });
+            var data = await res.json();
+            result.innerHTML = (data.result || 'Không thể phân tích.').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+            result.classList.remove('hidden');
+        } catch (e) {
+            result.textContent = 'Có lỗi xảy ra, vui lòng thử lại.';
+            result.classList.remove('hidden');
+        }
+        btn.disabled = false; btn.textContent = 'Đánh giá trình độ';
+    };
+
+    window.pcmSave = async function () {
+        var err = document.getElementById('pcmError');
+        err.classList.add('hidden');
+
+        var sports = [];
+        var missing = false;
+        document.querySelectorAll('.pcm-skill').forEach(function (sel) {
+            if (!sel.value) { missing = true; return; }
+            sports.push({ sportId: parseInt(sel.dataset.sportId), skillLevel: sel.value });
+        });
+        if (selectedSports.length === 0 || missing || sports.length === 0) {
+            err.textContent = 'Vui lòng chọn ít nhất 1 môn thể thao và trình độ tương ứng.';
+            err.classList.remove('hidden');
+            return;
+        }
+
+        var btn = document.getElementById('pcmSaveBtn');
+        btn.disabled = true; btn.textContent = 'Đang lưu...';
+        try {
+            var res = await fetch('/api/profile/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phoneNumber: document.getElementById('pcmPhone').value || null,
+                    defaultAddress: document.getElementById('pcmAddress').value || null,
+                    latitude: parseFloat(document.getElementById('pcmLat').value) || null,
+                    longitude: parseFloat(document.getElementById('pcmLon').value) || null,
+                    sports: sports
+                })
+            });
+            var data = await res.json();
+            if (data.success) {
+                sessionStorage.removeItem('spProfileSkipped');
+                location.reload();
+            } else {
+                err.textContent = data.message || 'Không thể lưu. Vui lòng thử lại.';
+                err.classList.remove('hidden');
+                btn.disabled = false; btn.textContent = 'Lưu thông tin';
+            }
+        } catch (e) {
+            err.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+            err.classList.remove('hidden');
+            btn.disabled = false; btn.textContent = 'Lưu thông tin';
+        }
+    };
+
+    async function open() {
+        overlay().classList.remove('hidden');
+        overlay().classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        try {
+            var res = await fetch('/api/profile/meta');
+            var data = await res.json();
+            renderSports(data.sports || []);
+        } catch (e) {
+            document.getElementById('pcmSports').innerHTML = '<span class="text-xs text-red-400">Không tải được danh sách môn.</span>';
+        }
+        initAddress();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(open, 600); });
+    } else {
+        setTimeout(open, 600);
+    }
+})();
+</script>

@@ -13,10 +13,12 @@ namespace SportHub.Pages.Auth
     public class RegisterModel : PageModel
     {
         private readonly IUserService _userService;
+        private readonly IPromotionService _promotionService;
 
-        public RegisterModel(IUserService userService)
+        public RegisterModel(IUserService userService, IPromotionService promotionService)
         {
             _userService = userService;
+            _promotionService = promotionService;
         }
 
         [BindProperty]
@@ -88,6 +90,14 @@ namespace SportHub.Pages.Auth
             var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            // Đồng bộ với luồng Login: đếm lượt đăng nhập + promo chào mừng
+            await _userService.IncrementLoginCountAsync(createdUser.UserID);
+            try
+            {
+                await _promotionService.TriggerFirstLoginAsync(createdUser.UserID);
+            }
+            catch { /* non-critical, không break đăng ký */ }
 
             return RedirectToPage("/Onboarding/Index");
         }

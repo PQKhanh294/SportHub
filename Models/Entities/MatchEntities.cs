@@ -75,6 +75,7 @@ namespace SportHub.Models.Entities
         public string? Description { get; set; }
         public string? CustomCourtName { get; set; }
         public string? CustomCourtAddress { get; set; }
+        public string? CourtNumber { get; set; }   // "Sân 3", "3A"... — số sân cụ thể trong cụm sân
         public decimal? CustomPriceVnd { get; set; }
         public decimal? CustomLatitude { get; set; }
         public decimal? CustomLongitude { get; set; }

@@ -107,6 +107,7 @@ namespace SportHub.Pages.Matchmaking
                 TimeText           = $"{match.StartTime:hh\\:mm} - {match.EndTime:hh\\:mm}",
                 Venue              = fallbackLocation ?? match.Court?.Venue?.VenueName ?? "TBD Venue",
                 CourtName          = customCourtName ?? match.Court?.CourtName ?? "Not specified",
+                CourtNumber        = match.CourtNumber,
                 CourtAddress       = customCourtAddress ?? match.Court?.Venue?.Address ?? "Not specified",
                 PriceDisplay       = BuildPriceDisplay(match),
                 CourtImageUrl      = match.Sport?.SportName != null && (match.Sport.SportName.Contains("Cầu lông", StringComparison.OrdinalIgnoreCase) || match.Sport.SportName.Contains("Badminton", StringComparison.OrdinalIgnoreCase))
@@ -202,8 +203,8 @@ namespace SportHub.Pages.Matchmaking
                     usedCredit = await _subscriptionService.UseMatchCreditAsync(userId);
             }
 
-            var joined = await _matchService.JoinMatchAsync(id, userId);
-            if (joined)
+            var joinResult = await _matchService.JoinMatchAsync(id, userId);
+            if (joinResult.Success)
             {
                 await _subscriptionService.RecordJoinAsync(userId);
                 var creditNote = usedCredit ? " (1 credit đã được dùng)" : "";
@@ -218,7 +219,9 @@ namespace SportHub.Pages.Matchmaking
             }
             else
             {
-                TempData["ErrorMessage"] = "Không thể tham gia trận đấu. Trận có thể đã đầy hoặc đã đóng.";
+                TempData["ErrorMessage"] = joinResult.Reason.ToUserMessage();
+                if (joinResult.Reason == JoinMatchReason.ProfileIncomplete)
+                    TempData["OpenProfileModal"] = true;
             }
 
             return RedirectToPage(new { id });
@@ -360,7 +363,7 @@ namespace SportHub.Pages.Matchmaking
             return success ? RedirectToPage("/Matchmaking/Index") : RedirectToPage(new { id });
         }
 
-        public async Task<IActionResult> OnPostSubmitDisputeAsync(int matchId, string disputeType, string description, IFormFile? evidenceFile)
+        public async Task<IActionResult> OnPostSubmitDisputeAsync(int matchId, string disputeType, string description, List<IFormFile>? evidenceFiles)
         {
             var userId = GetCurrentUserId();
             if (userId <= 0) return RedirectToPage("/Auth/Login");
@@ -370,25 +373,31 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage(new { id = matchId });
             }
 
-            string? evidenceUrl = null;
-            if (evidenceFile is { Length: > 0 })
+            var urls = new List<string>();
+            foreach (var file in (evidenceFiles ?? new()).Where(f => f.Length > 0).Take(3))
             {
                 var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-                var ext = Path.GetExtension(evidenceFile.FileName).ToLowerInvariant();
-                if (allowed.Contains(ext) && evidenceFile.Length <= 5 * 1024 * 1024)
-                {
-                    var folder = Path.Combine(_env.WebRootPath, "uploads", "disputes");
-                    Directory.CreateDirectory(folder);
-                    var fileName = $"dispute_{matchId}_{userId}_{Guid.NewGuid():N}{ext}";
-                    var savePath = Path.Combine(folder, fileName);
-                    await using var stream = System.IO.File.Create(savePath);
-                    await evidenceFile.CopyToAsync(stream);
-                    evidenceUrl = $"/uploads/disputes/{fileName}";
-                }
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowed.Contains(ext) || file.Length > 5 * 1024 * 1024) continue;
+
+                var folder = Path.Combine(_env.WebRootPath, "uploads", "disputes");
+                Directory.CreateDirectory(folder);
+                var fileName = $"dispute_{matchId}_{userId}_{Guid.NewGuid():N}{ext}";
+                var savePath = Path.Combine(folder, fileName);
+                await using var stream = System.IO.File.Create(savePath);
+                await file.CopyToAsync(stream);
+                urls.Add($"/uploads/disputes/{fileName}");
             }
 
+            // Lưu JSON array để hỗ trợ nhiều ảnh; record cũ dạng URL đơn vẫn đọc được ở admin
+            string? evidenceUrl = urls.Count switch
+            {
+                0 => null,
+                _ => System.Text.Json.JsonSerializer.Serialize(urls)
+            };
+
             await _disputeService.SubmitDisputeAsync(matchId, userId, disputeType, description.Trim(), evidenceUrl);
-            TempData["SuccessMessage"] = "Khiếu nại đã được gửi. Đội ngũ SportHub sẽ xem xét trong 24–48 giờ.";
+            TempData["SuccessMessage"] = "Khiếu nại đã được gửi. Người chơi trong trận sẽ được mời xác minh, admin xem xét trong 24–48 giờ.";
             return RedirectToPage(new { id = matchId });
         }
 
@@ -493,6 +502,7 @@ namespace SportHub.Pages.Matchmaking
             public string TimeText { get; set; } = string.Empty;
             public string Venue { get; set; } = string.Empty;
             public string CourtName { get; set; } = string.Empty;
+            public string? CourtNumber { get; set; }
             public string CourtAddress { get; set; } = string.Empty;
             public string PriceDisplay { get; set; } = string.Empty;
             public List<ParticipantItem> AcceptedParticipants { get; set; } = new();

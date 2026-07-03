@@ -71,7 +71,33 @@ namespace SportHub.Models.Entities
         public string? Resolution { get; set; }
         public decimal? RefundAmount { get; set; }
 
+        // AI hỗ trợ admin: điểm tin cậy 0-100 + JSON tóm tắt {suggestedResolution, summary, keyPoints}
+        public int? AiScore { get; set; }
+        public string? AiSummary { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ResolvedAt { get; set; }
+
+        public ICollection<DisputeWitnessResponse> WitnessResponses { get; set; } = new List<DisputeWitnessResponse>();
+    }
+
+    // Xác minh nhân chứng: mỗi participant Accepted (+ host) của trận bị khiếu nại nhận 1 yêu cầu phản hồi
+    public class DisputeWitnessResponse
+    {
+        public int Id { get; set; }
+
+        public int DisputeId { get; set; }
+        public MatchDispute Dispute { get; set; } = null!;
+
+        public int WitnessUserId { get; set; }
+        public User Witness { get; set; } = null!;
+
+        // Pending (chưa phản hồi) | Support (đồng ý với khiếu nại) | Oppose (phản đối) | Neutral
+        public string Stance { get; set; } = "Pending";
+        public string? Comment { get; set; }
+        public string? EvidenceUrl { get; set; }
+
+        public DateTime? RespondedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

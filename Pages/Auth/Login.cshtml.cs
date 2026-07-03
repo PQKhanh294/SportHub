@@ -35,9 +35,15 @@ namespace SportHub.Pages.Auth
             public string Password { get; set; } = string.Empty;
         }
 
-        public void OnGet(string? returnUrl = null)
+        public void OnGet(string? returnUrl = null, string? externalError = null)
         {
             ReturnUrl = returnUrl;
+            if (!string.IsNullOrEmpty(externalError))
+            {
+                TempData["ErrorMessage"] = externalError == "facebook"
+                    ? "Đăng nhập Facebook không thành công. Vui lòng thử lại hoặc dùng Google/email."
+                    : "Đăng nhập ngoài không thành công. Vui lòng thử lại.";
+            }
         }
 
         public IActionResult OnGetExternalLogin(string provider = "Google", string? returnUrl = null)

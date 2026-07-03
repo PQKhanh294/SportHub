@@ -76,6 +76,13 @@ builder.Services
         options.SignInScheme = "ExternalCookie";
         options.AppId = builder.Configuration["Authentication:Facebook:AppId"] ?? "";
         options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"] ?? "";
+        // FB App ở Development Mode / user hủy đăng nhập → về Login với thông báo thay vì trang lỗi 500
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/Auth/Login?externalError=facebook");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     });
 
 // Cấu hình Entity Framework Core với chuỗi kết nối (Giai đoạn 1)

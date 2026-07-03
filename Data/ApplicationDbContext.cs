@@ -34,6 +34,7 @@ namespace SportHub.Data
         public DbSet<MatchPayment> MatchPayments { get; set; } = null!;
         public DbSet<MatchReview> MatchReviews { get; set; } = null!;
         public DbSet<MatchDispute> MatchDisputes { get; set; } = null!;
+        public DbSet<DisputeWitnessResponse> DisputeWitnessResponses { get; set; } = null!;
 
         // Nhóm 5: Misc
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
@@ -165,6 +166,25 @@ namespace SportHub.Data
 
             modelBuilder.Entity<MatchInteraction>()
                 .HasIndex(mi => new { mi.MatchID, mi.UserID, mi.Action });
+
+            modelBuilder.Entity<MatchDispute>()
+                .Property(d => d.RefundAmount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<DisputeWitnessResponse>(entity =>
+            {
+                entity.ToTable("DisputeWitnessResponses");
+                entity.HasKey(w => w.Id);
+                entity.HasIndex(w => new { w.DisputeId, w.WitnessUserId }).IsUnique();
+                entity.HasOne(w => w.Dispute)
+                    .WithMany(d => d.WitnessResponses)
+                    .HasForeignKey(w => w.DisputeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(w => w.Witness)
+                    .WithMany()
+                    .HasForeignKey(w => w.WitnessUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<UserBadge>()
                 .HasIndex(b => new { b.UserID, b.BadgeKey })
