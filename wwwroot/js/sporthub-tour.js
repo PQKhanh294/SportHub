@@ -173,25 +173,6 @@ window.SportHubTour = (function () {
         show(list);
     }
 
-    // Nút "?" nổi góc trái-dưới — chỉ hiện trên trang có tour
-    function mountHelpButton(key) {
-        var btn = document.createElement('button');
-        btn.id = 'spTourHelpBtn';
-        btn.title = 'Xem hướng dẫn trang này';
-        btn.textContent = '?';
-        btn.style.cssText =
-            'position:fixed;left:16px;bottom:80px;z-index:9000;width:38px;height:38px;border-radius:50%;' +
-            'background:#fff;color:#50A5B1;font-weight:800;font-size:17px;border:1.5px solid #50A5B1;' +
-            'box-shadow:0 3px 12px rgba(0,0,0,.15);cursor:pointer;transition:transform .15s;';
-        btn.onmouseenter = function () { btn.style.transform = 'scale(1.1)'; };
-        btn.onmouseleave = function () { btn.style.transform = ''; };
-        btn.onclick = function () {
-            localStorage.removeItem(storageKey(key));
-            runTour(key);
-        };
-        document.body.appendChild(btn);
-    }
-
     // Chờ popup hoàn thiện hồ sơ đóng rồi mới chạy tour (popup mở sau ~600ms)
     function waitProfileModalThen(fn) {
         var tries = 0;
@@ -210,7 +191,6 @@ window.SportHubTour = (function () {
 
     function autoStart() {
         var pageKey = detectPage();
-        if (pageKey) mountHelpButton(pageKey);
 
         setTimeout(function () {
             // Ưu tiên tour navbar cho lần đăng nhập đầu
