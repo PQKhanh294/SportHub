@@ -620,10 +620,10 @@ else
 
             <!-- Social Icons -->
             <div class="flex gap-4">
-                <a class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+                <button type="button" onclick="shareSite()" title="Chia sẻ SportHub" class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all">
                     <span class="material-symbols-outlined">share</span>
-                </a>
-                <a class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+                </button>
+                <a asp-page="/Messages/Index" title="Tin nhắn" class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-all">
                     <span class="material-symbols-outlined">chat</span>
                 </a>
             </div>
@@ -632,7 +632,7 @@ else
 
         <!-- Copyright -->
         <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
-            &copy; @DateTime.Now.Year Sport Hub. @footerCopyright
+            &copy; @DateTime.Now.Year SportHub. @footerCopyright
         </div>
 
     </div>
@@ -661,6 +661,24 @@ else
 </div>
 
 <script>
+    async function shareSite() {
+        const shareData = {
+            title: 'SportHub',
+            text: 'Tham gia SportHub — nền tảng ghép trận & đặt sân thể thao!',
+            url: window.location.origin
+        };
+        if (navigator.share) {
+            try { await navigator.share(shareData); } catch (e) { /* user cancelled — im lặng */ }
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(shareData.url);
+            showToast('Đã sao chép liên kết', 'Chia sẻ SportHub với bạn bè ngay!', null, 'System');
+        } catch (e) {
+            showToast('Không thể sao chép', shareData.url, null, 'System');
+        }
+    }
+
     function showToast(title, message, linkUrl, type) {
         const container = document.getElementById('toast-container');
         if (!container) return;
