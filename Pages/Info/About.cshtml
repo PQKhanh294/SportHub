@@ -1,65 +1,191 @@
 @page
+@using System.Globalization
 @model SportHub.Pages.Info.AboutModel
 @{
-    ViewData["Title"] = "Về chúng tôi";
+    var isEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    ViewData["Title"] = isEn ? "About us" : "Về chúng tôi";
 }
 
-<div class="max-w-3xl mx-auto py-10 px-4">
-    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Về SportHub</h1>
-    <p class="text-slate-500 dark:text-slate-400 mb-10 text-sm">Câu chuyện phía sau biểu tượng và sứ mệnh của chúng tôi</p>
+<div class="max-w-4xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">@(isEn ? "About SportHub" : "Về SportHub")</h1>
+    <p class="text-slate-500 dark:text-slate-400 mb-10 text-sm">@(isEn ? "The story behind our symbol and our mission" : "Câu chuyện phía sau biểu tượng và sứ mệnh của chúng tôi")</p>
 
-    <!-- Logo Section -->
+    <!-- Logo meaning section -->
     <div class="mb-10 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <!-- Logo header -->
-        <div class="flex items-center gap-4 px-6 pt-6 pb-4">
-            <img src="/images/logo sporthub.png" alt="SportHub Logo" class="w-14 h-14 object-contain shrink-0" />
+        <div class="flex items-center gap-4 px-6 pt-6 pb-2">
+            <img src="/images/logo sporthub.png" alt="SportHub Logo" class="w-12 h-12 object-contain shrink-0" />
             <div>
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white">Ý nghĩa logo SportHub</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Mỗi chi tiết đều mang một câu chuyện</p>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">@(isEn ? "The meaning behind our logo" : "Ý nghĩa logo SportHub")</h2>
+                <p class="text-xs text-slate-400 mt-0.5">@(isEn ? "Every detail tells a story" : "Mỗi chi tiết đều mang một câu chuyện")</p>
             </div>
         </div>
 
-        <!-- Logo meaning image -->
-        <div class="px-6 pb-4">
-            <img src="/images/Ý nghĩa logo sporthub.jpg"
-                 alt="Ý nghĩa logo SportHub"
-                 class="w-full rounded-md object-contain max-h-72 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700" />
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-[minmax(0,260px)_1fr] gap-8 px-6 py-6">
+            <!-- Left: big logo mark + 45° caption -->
+            <div class="flex flex-col items-center text-center gap-4">
+                <img src="/images/logo sporthub.png" alt="SportHub Logo" class="w-40 h-40 sm:w-48 sm:h-48 object-contain" />
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-[220px]">
+                    @if (isEn)
+                    {
+                        <text>The <strong class="text-slate-700 dark:text-slate-200">45° tilt</strong> conveys a sense of motion — symbolizing sporting energy, continuous connection, and the journey toward the perfect match.</text>
+                    }
+                    else
+                    {
+                        <text>Góc nghiêng <strong class="text-slate-700 dark:text-slate-200">45°</strong> mang đến cảm giác chuyển động, tượng trưng cho năng lượng thể thao, sự kết nối liên tục và hành trình tạo nên những trận đấu phù hợp.</text>
+                    }
+                </p>
+            </div>
 
-        <!-- Description bullets -->
-        <div class="px-6 pb-6">
-            <ul class="space-y-2.5 text-sm text-slate-600 dark:text-slate-300">
-                <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">1</span>
-                    <span><strong>Hình tròn</strong> — sự đoàn kết và không giới hạn, cộng đồng thể thao không phân biệt trình độ.</span>
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">2</span>
-                    <span><strong>4 mảnh ghép</strong> — bốn yếu tố cốt lõi: Người chơi, Trận đấu, Sân thể thao và Cộng đồng.</span>
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">3</span>
-                    <span><strong>Ngôi sao</strong> — mục tiêu vươn đến đỉnh cao thể thao, dù bạn là người mới hay vận động viên chuyên nghiệp.</span>
-                </li>
-                <li class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">4</span>
-                    <span><strong>Đường cong năng động</strong> — sự linh hoạt và chuyển động không ngừng, phản ánh tinh thần thể thao sống động.</span>
-                </li>
-            </ul>
+            <!-- Right: 4 meaning blocks -->
+            <div class="space-y-6">
+                <!-- 1. Circle -->
+                <div class="flex gap-4">
+                    <div class="w-11 h-11 rounded-full bg-navy shrink-0"></div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white">
+                            @(isEn ? "Circle" : "Hình tròn")
+                            <span class="font-normal text-slate-500 dark:text-slate-400">— @(isEn ? "Sports ecosystem" : "Hệ sinh thái thể thao")</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The circle represents the diverse world of sports, inspired by the balls used across many disciplines. It also symbolizes connection, community, and an open playing field — a place where everyone can meet, stay active, and share their passion, regardless of sport, skill level, or distance.</text>
+                            }
+                            else
+                            {
+                                <text>Hình tròn đại diện cho thế giới thể thao đa dạng, được lấy cảm hứng từ những quả bóng quen thuộc trong thi đấu. Đồng thời, đây là biểu tượng của sự kết nối, tính cộng đồng và một sân chơi mở, nơi mọi người có thể gặp gỡ, vận động và chia sẻ đam mê mà không bị giới hạn bởi bộ môn, trình độ hay khoảng cách.</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. Puzzle pieces -->
+                <div class="flex gap-4">
+                    <div class="w-11 h-11 rounded-md bg-navy/10 dark:bg-navy/30 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-navy dark:text-blue-300">extension</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white">
+                            @(isEn ? "Puzzle pieces" : "Các mảnh ghép")
+                            <span class="font-normal text-slate-500 dark:text-slate-400">— @(isEn ? "Multi-sport connection & matching" : "Kết nối đa bộ môn & Matching")</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The four puzzle pieces represent the core building blocks of the ecosystem: <strong>players, venues, clubs, and tournament partners/organizers</strong>.</text>
+                            }
+                            else
+                            {
+                                <text>Bốn mảnh ghép tượng trưng cho những thành phần cốt lõi của hệ sinh thái gồm: <strong>người chơi, sân bãi, câu lạc bộ và đối tác/tổ chức giải đấu</strong>.</text>
+                            }
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>All pieces point toward the center, representing the platform's role as a connector — helping every sporting need meet the right person, the right place, and the right time.</text>
+                            }
+                            else
+                            {
+                                <text>Các yếu tố cùng hướng về trung tâm thể hiện vai trò kết nối của nền tảng, giúp mọi nhu cầu thể thao được gặp đúng người, đúng địa điểm và đúng thời điểm.</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3. Central star -->
+                <div class="flex gap-4">
+                    <div class="w-11 h-11 rounded-md bg-navy/10 dark:bg-navy/30 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-navy dark:text-blue-300">auto_awesome</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white">
+                            @(isEn ? "Central star" : "Ngôi sao trung tâm")
+                            <span class="font-normal text-slate-500 dark:text-slate-400">— @(isEn ? "Value created through connection" : "Giá trị được tạo nên từ sự kết nối")</span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The star emerges from the negative space between the puzzle pieces, symbolizing the value created when the right connections come together.</text>
+                            }
+                            else
+                            {
+                                <text>Ngôi sao được hình thành từ khoảng âm giữa các mảnh ghép, tượng trưng cho giá trị xuất hiện khi những kết nối phù hợp được tạo ra.</text>
+                            }
+                        </p>
+                        <ul class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-2 space-y-1">
+                            <li>@(isEn ? "Finding the right court." : "Tìm được sân phù hợp.")</li>
+                            <li>@(isEn ? "Matching the right opponent." : "Ghép được đối thủ phù hợp.")</li>
+                            <li>@(isEn ? "Connecting with the right teammates." : "Kết nối được đồng đội phù hợp.")</li>
+                            <li>@(isEn ? "Creating quality matches." : "Tạo nên những trận đấu chất lượng.")</li>
+                        </ul>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The star also represents the standout experience the platform aims to bring to the sports community.</text>
+                            }
+                            else
+                            {
+                                <text>Ngôi sao cũng đại diện cho trải nghiệm nổi bật mà nền tảng mong muốn mang đến cho cộng đồng thể thao.</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4. Motion curves -->
+                <div class="flex gap-4">
+                    <div class="w-11 h-11 rounded-md bg-navy/10 dark:bg-navy/30 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-navy dark:text-blue-300">gesture</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white">@(isEn ? "Motion curves" : "Đường cong chuyển động")</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The smooth curves create a sense of continuous motion, expressing energy, flexibility, and a positive competitive spirit.</text>
+                            }
+                            else
+                            {
+                                <text>Những đường cong mềm mại tạo cảm giác chuyển động liên tục, thể hiện năng lượng, sự linh hoạt và tinh thần thi đấu tích cực.</text>
+                            }
+                        </p>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            @if (isEn)
+                            {
+                                <text>The shape also evokes the structure of <strong>a shuttlecock opening in motion</strong> — a subtle sporting reference rather than a literal depiction of one specific sport.</text>
+                            }
+                            else
+                            {
+                                <text>Hình khối đồng thời gợi liên tưởng đến <strong>cấu trúc của quả cầu lông đang mở rộng trong chuyển động</strong>, mang đến một dấu ấn thể thao tinh tế thay vì mô phỏng trực tiếp một bộ môn cụ thể.</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Mission -->
     <div class="mb-8">
-        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Sứ mệnh của chúng tôi</h2>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-3">@(isEn ? "Our mission" : "Sứ mệnh của chúng tôi")</h2>
         <p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-            SportHub ra đời với mục tiêu đơn giản: <strong>kết nối người yêu thể thao với nhau</strong>.
-            Dù bạn đang tìm một đồng đội cầu lông, một đối thủ tennis ngang tầm, hay một nhóm bóng đá cuối tuần —
-            SportHub là nơi bạn tìm được họ dễ dàng.
+            @if (isEn)
+            {
+                <text>SportHub was built with one simple goal: <strong>bring sports lovers together</strong>. Whether you're looking for a badminton partner, an evenly-matched tennis rival, or a weekend football squad — SportHub is where you'll find them.</text>
+            }
+            else
+            {
+                <text>SportHub ra đời với mục tiêu đơn giản: <strong>kết nối người yêu thể thao với nhau</strong>. Dù bạn đang tìm một đồng đội cầu lông, một đối thủ tennis ngang tầm, hay một nhóm bóng đá cuối tuần — SportHub là nơi bạn tìm được họ dễ dàng.</text>
+            }
         </p>
         <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-            Chúng tôi tin rằng thể thao không chỉ là tập luyện, mà còn là nơi kết bạn, xây dựng tinh thần đồng đội
-            và tạo ra những kỷ niệm đáng nhớ. Mỗi trận đấu trên SportHub là một cơ hội mới.
+            @if (isEn)
+            {
+                <text>We believe sport is more than just exercise — it's where friendships are built, team spirit grows, and memorable moments are made. Every match on SportHub is a new opportunity.</text>
+            }
+            else
+            {
+                <text>Chúng tôi tin rằng thể thao không chỉ là tập luyện, mà còn là nơi kết bạn, xây dựng tinh thần đồng đội và tạo ra những kỷ niệm đáng nhớ. Mỗi trận đấu trên SportHub là một cơ hội mới.</text>
+            }
         </p>
     </div>
 
@@ -67,25 +193,25 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="p-5 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
             <span class="material-symbols-outlined text-primary text-3xl mb-2 block">people</span>
-            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Cộng đồng</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Xây dựng mạng lưới bạn chơi thể thao trên khắp mọi nơi.</p>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">@(isEn ? "Community" : "Cộng đồng")</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">@(isEn ? "Build your network of sports friends everywhere." : "Xây dựng mạng lưới bạn chơi thể thao trên khắp mọi nơi.")</p>
         </div>
         <div class="p-5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
             <span class="material-symbols-outlined text-emerald-600 text-3xl mb-2 block">emoji_events</span>
-            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Phát triển</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Theo dõi tiến bộ và nâng cao trình độ qua từng trận đấu.</p>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">@(isEn ? "Growth" : "Phát triển")</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">@(isEn ? "Track your progress and level up with every match." : "Theo dõi tiến bộ và nâng cao trình độ qua từng trận đấu.")</p>
         </div>
         <div class="p-5 rounded-md bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900">
             <span class="material-symbols-outlined text-violet-600 text-3xl mb-2 block">location_on</span>
-            <h3 class="font-bold text-slate-900 dark:text-white mb-1">Kết nối</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Tìm đồng đội gần bạn nhất, đặt sân và bắt đầu ngay hôm nay.</p>
+            <h3 class="font-bold text-slate-900 dark:text-white mb-1">@(isEn ? "Connection" : "Kết nối")</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">@(isEn ? "Find teammates nearby, book a court, and start today." : "Tìm đồng đội gần bạn nhất, đặt sân và bắt đầu ngay hôm nay.")</p>
         </div>
     </div>
 
     <div class="text-center pt-4">
         <a asp-page="/Matchmaking/Index" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
             <span class="material-symbols-outlined">sports</span>
-            Tìm trận ngay
+            @(isEn ? "Find a match now" : "Tìm trận ngay")
         </a>
     </div>
 </div>
