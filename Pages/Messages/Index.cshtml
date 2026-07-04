@@ -4,7 +4,7 @@
     ViewData["Title"] = "Tin nhắn";
 }
 
-<div class="max-w-6xl mx-auto h-[calc(100svh-140px)] md:h-[calc(100svh-140px)] min-h-[500px] flex bg-white dark:bg-slate-900 rounded-md overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="max-w-6xl mx-auto h-[calc(100svh-140px)] md:h-[calc(100svh-140px)] min-h-[500px] flex bg-white dark:bg-slate-900 rounded-md overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 @(Model.ActiveChatUser != null ? "chat-mobile-fullscreen-wrap" : "")">
 
     <!-- Cột trái: Danh sách bạn bè -->
     <div class="w-full md:w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 flex flex-col @(Model.ActiveChatUser != null ? "hidden md:flex" : "flex")">
@@ -133,7 +133,7 @@
     </div>
 
     <!-- Cột phải: Khung Chat -->
-    <div class="flex-1 flex flex-col @(Model.ActiveChatUser == null ? "hidden md:flex" : "flex")">
+    <div class="flex-1 flex flex-col @(Model.ActiveChatUser == null ? "hidden md:flex" : "flex") @(Model.ActiveChatUser != null ? "chat-mobile-fullscreen" : "")">
         @if (Model.ActiveChatUser == null)
         {
             <div class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50 dark:bg-slate-900/50">
@@ -549,7 +549,7 @@
 </div>
 
 <!-- Forward modal -->
-<div id="forward-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+<div id="forward-modal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
     <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 class="font-bold text-slate-800 dark:text-white">Chuyển tiếp tin nhắn</h3>
@@ -583,7 +583,7 @@
 </div>
 
 <!-- Report modal -->
-<div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+<div id="report-modal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
     <div class="bg-white dark:bg-slate-900 rounded-md shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 class="font-bold text-slate-800 dark:text-white">Báo cáo tin nhắn</h3>
@@ -667,6 +667,19 @@
     0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
     30% { opacity: 1; transform: translateY(-3px); }
 }
+@@media (max-width: 767px) {
+    /* Cuộc trò chuyện đang mở chiếm toàn màn hình trên mobile — tránh lỗi header
+       bị cuộn khuất sau bàn phím ảo do khung ngoài có chiều cao cố định. */
+    .chat-mobile-fullscreen {
+        position: fixed !important; inset: 0; z-index: 55;
+        border-radius: 0 !important; border: none !important; box-shadow: none !important;
+    }
+    /* Khung ngoài thu về 0 khi cột chat đã tách ra fullscreen, tránh để lại khoảng trống */
+    .chat-mobile-fullscreen-wrap {
+        height: 0 !important; min-height: 0 !important; overflow: hidden !important;
+        border: none !important; box-shadow: none !important; margin: 0 !important;
+    }
+}
 </style>
 }
 
@@ -689,6 +702,22 @@
         <script>
             const chatMessages = document.getElementById("chat-messages");
             if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Mobile: giữ khung chat fullscreen đúng chiều cao viewport thật khi bàn phím ảo mở
+            (function () {
+                if (!window.visualViewport) return;
+                var el = document.querySelector('.chat-mobile-fullscreen');
+                if (!el) return;
+                function adjust() {
+                    if (window.innerWidth >= 768) { el.style.top = ''; el.style.height = ''; return; }
+                    var vv = window.visualViewport;
+                    el.style.top = vv.offsetTop + 'px';
+                    el.style.height = vv.height + 'px';
+                }
+                window.visualViewport.addEventListener('resize', adjust);
+                window.visualViewport.addEventListener('scroll', adjust);
+                adjust();
+            })();
 
             const chatConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/chat")
@@ -1323,7 +1352,7 @@
             }
             function showToast(msg, isErr) {
                 var t = document.createElement('div');
-                t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md text-sm font-semibold shadow-lg text-white ' + (isErr ? 'bg-rose-500' : 'bg-emerald-500');
+                t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] px-4 py-2 rounded-md text-sm font-semibold shadow-lg text-white ' + (isErr ? 'bg-rose-500' : 'bg-emerald-500');
                 t.textContent = msg;
                 document.body.appendChild(t);
                 setTimeout(function() { t.remove(); }, 3000);

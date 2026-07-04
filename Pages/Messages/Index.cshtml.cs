@@ -71,6 +71,7 @@ namespace SportHub.Pages.Messages
 
         public async Task<IActionResult> OnGetAsync(int? userId)
         {
+            ViewData["ActivePage"] = "Messages";
             var currentUserIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(currentUserIdStr, out int currentUserId)) return RedirectToPage("/Auth/Login");
 
