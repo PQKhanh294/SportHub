@@ -1,0 +1,135 @@
+@page
+@model SportHub.Pages.Auth.VerifyEmailModel
+@{
+    ViewData["Title"] = "Xác thực email";
+    Layout = "_AuthLayout";
+}
+
+<div class="w-full max-w-[420px] mx-auto relative z-10">
+    <div class="bg-slate-900/75 backdrop-blur-xl rounded-md shadow-2xl overflow-hidden border border-white/10">
+        <div class="h-1 bg-gradient-to-r from-primary to-accent"></div>
+
+        <div class="px-8 pt-8 pb-3 text-center">
+            <div class="mx-auto w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center mb-3">
+                <span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-white">Xác thực email</h1>
+            <p class="mt-1.5 text-sm text-white/60">Nhập mã 6 số vừa gửi tới <strong class="text-white">@Model.Email</strong></p>
+        </div>
+
+        @if (Model.ResendSent)
+        {
+            <div class="mx-8 mt-4 text-sm text-primary bg-primary/10 border border-primary/30 rounded-md px-3 py-2 text-center">
+                Đã gửi lại mã xác thực mới.
+            </div>
+        }
+
+        <form method="post" asp-page-handler="Verify" class="px-8 pb-8 pt-4 space-y-5">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-red-400 bg-red-950/40 border border-red-500/30 rounded-md px-3 py-2 empty:hidden"></div>
+
+            <input type="hidden" asp-for="Email" />
+            <input type="hidden" asp-for="Purpose" />
+            <input type="hidden" asp-for="ReturnUrl" />
+            <input type="hidden" asp-for="Input.Code" id="codeHidden" />
+
+            <div class="flex justify-between gap-2" id="otpBoxes">
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" autocomplete="one-time-code" />
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" />
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" />
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" />
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" />
+                <input class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold border-2 border-white/15 bg-white/10 text-white rounded-md focus:border-primary focus:outline-none transition-colors" maxlength="1" type="text" inputmode="numeric" />
+            </div>
+
+            <div class="flex flex-col items-center gap-3">
+                <div id="countdownBadge" class="flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
+                    <span class="material-symbols-outlined text-white/40 text-lg">timer</span>
+                    <span id="countdownText" class="text-white/70 font-semibold text-sm tabular-nums">10:00</span>
+                </div>
+                <p class="text-sm text-white/50">
+                    Không nhận được mã?
+                    <button type="submit" asp-page-handler="Resend" id="resendBtn" class="text-primary font-semibold hover:underline disabled:opacity-40 disabled:no-underline" disabled>Gửi lại mã</button>
+                </p>
+            </div>
+
+            <button type="submit"
+                    class="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold rounded-md shadow-md shadow-primary/30 transition-all active:scale-[.98] hover:-translate-y-0.5">
+                Xác thực
+            </button>
+
+            <p class="text-center text-sm text-white/50 pt-1">
+                <a asp-page="/Auth/Login" class="font-bold text-primary hover:text-primary/80 hover:underline">← Quay lại đăng nhập</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var boxes = document.querySelectorAll('.otp-box');
+            var hidden = document.getElementById('codeHidden');
+
+            function syncHidden() {
+                var code = '';
+                boxes.forEach(function (b) { code += b.value; });
+                hidden.value = code;
+            }
+
+            boxes.forEach(function (box, i) {
+                box.addEventListener('input', function () {
+                    box.value = box.value.replace(/[^0-9]/g, '');
+                    if (box.value && i < boxes.length - 1) {
+                        boxes[i + 1].focus();
+                    }
+                    syncHidden();
+                });
+                box.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && !box.value && i > 0) {
+                        boxes[i - 1].focus();
+                    }
+                });
+                box.addEventListener('paste', function (e) {
+                    var text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                    if (!text) return;
+                    e.preventDefault();
+                    for (var j = 0; j < boxes.length; j++) {
+                        boxes[j].value = text[j] || '';
+                    }
+                    syncHidden();
+                    boxes[Math.min(text.length, boxes.length - 1)].focus();
+                });
+            });
+            if (boxes.length) boxes[0].focus();
+
+            // Đếm ngược 10 phút (hạn mã) — khi hết hạn, cho phép gửi lại ngay
+            var remaining = 10 * 60;
+            var countdownText = document.getElementById('countdownText');
+            var timer = setInterval(function () {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    countdownText.textContent = '00:00';
+                    return;
+                }
+                var m = Math.floor(remaining / 60);
+                var s = remaining % 60;
+                countdownText.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            }, 1000);
+
+            // Cooldown gửi lại 60s — khớp với UserService.GenerateEmailVerificationCodeAsync
+            var resendBtn = document.getElementById('resendBtn');
+            var cooldown = 60;
+            var resendTimer = setInterval(function () {
+                cooldown--;
+                if (cooldown <= 0) {
+                    clearInterval(resendTimer);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Gửi lại mã';
+                } else {
+                    resendBtn.textContent = 'Gửi lại mã (' + cooldown + 's)';
+                }
+            }, 1000);
+        })();
+    </script>
+}

@@ -69,10 +69,21 @@
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">@p.FullName</h1>
                 <p class="text-sm text-slate-400 mt-0.5">Thành viên từ @p.JoinedText</p>
                 <div class="flex flex-wrap gap-2 mt-3">
-                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-md">
-                        <span class="material-symbols-outlined text-xs">verified</span>
-                        Người chơi xác thực
-                    </span>
+                    @if (p.EmailConfirmed)
+                    {
+                        <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-md">
+                            <span class="material-symbols-outlined text-xs">verified</span>
+                            Đã xác thực tài khoản
+                        </span>
+                    }
+                    else
+                    {
+                        <a asp-page="/Auth/VerifyEmail" asp-route-email="@p.Email" asp-route-purpose="login"
+                           class="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-md hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">
+                            <span class="material-symbols-outlined text-xs">warning</span>
+                            Chưa xác thực email — Nhấn để xác thực
+                        </a>
+                    }
                     @if (Model.CurrentPlanKey != null && Model.CurrentPlanKey != "Free")
                     {
                         var (subBg, subText) = Model.CurrentPlanKey switch {

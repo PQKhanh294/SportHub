@@ -20,5 +20,7 @@ namespace SportHub.Services.Interfaces
         Task<bool> IsProfileCompleteAsync(int userId);
         Task<User> GetOrCreateGoogleUserAsync(string googleId, string email, string fullName, string? avatarUrl);
         Task<bool> IsAdminAsync(int userId);
+        Task<string?> GenerateEmailVerificationCodeAsync(int userId);
+        Task<bool> ConfirmEmailCodeAsync(string email, string code);
     }
 }

@@ -95,7 +95,8 @@ namespace SportHub.Pages.Profile
                 JoinedText = user.CreatedAt.ToString("MM/yyyy"),
                 MatchesPlayed = await _userService.GetTotalMatchesPlayedAsync(userId),
                 Wins = await _userService.GetTotalWinsAsync(userId),
-                TotalBookings = await _userService.GetTotalBookingsAsync(userId)
+                TotalBookings = await _userService.GetTotalBookingsAsync(userId),
+                EmailConfirmed = user.EmailConfirmed
             };
 
             SportProfiles = await _context.UserSportProfiles
@@ -144,6 +145,7 @@ namespace SportHub.Pages.Profile
             public int MatchesPlayed { get; set; }
             public int Wins { get; set; }
             public int TotalBookings { get; set; }
+            public bool EmailConfirmed { get; set; }
         }
     }
 }

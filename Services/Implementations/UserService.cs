@@ -248,6 +248,7 @@ namespace SportHub.Services.Implementations
                 user.GoogleId = googleId;
                 if (string.IsNullOrWhiteSpace(user.AvatarUrl) && avatarUrl != null)
                     user.AvatarUrl = avatarUrl;
+                user.EmailConfirmed = true; // Google đã xác thực email này
                 user.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return user;
@@ -264,6 +265,7 @@ namespace SportHub.Services.Implementations
                 PasswordHash = string.Empty,
                 IsActive = true,
                 IsVerified = true,
+                EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -286,6 +288,40 @@ namespace SportHub.Services.Implementations
             return _context.UserRoles
                 .Include(ur => ur.Role)
                 .AnyAsync(ur => ur.UserID == userId && ur.Role.RoleName == "Admin");
+        }
+
+        // Sinh mã 6 số, hết hạn 10 phút. Trả về null nếu vừa gửi chưa quá 60s (chặn spam gửi lại).
+        public async Task<string?> GenerateEmailVerificationCodeAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null) return null;
+
+            if (user.EmailVerificationSentAt.HasValue &&
+                user.EmailVerificationSentAt.Value.AddSeconds(60) > DateTime.UtcNow)
+                return null;
+
+            var code = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+            user.EmailVerificationCode = code;
+            user.EmailVerificationCodeExpiresAt = DateTime.UtcNow.AddMinutes(10);
+            user.EmailVerificationSentAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return code;
+        }
+
+        public async Task<bool> ConfirmEmailCodeAsync(string email, string code)
+        {
+            var normalizedEmail = email.Trim().ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            if (user == null) return false;
+            if (user.EmailVerificationCode != code) return false;
+            if (!user.EmailVerificationCodeExpiresAt.HasValue || user.EmailVerificationCodeExpiresAt.Value < DateTime.UtcNow) return false;
+
+            user.EmailConfirmed = true;
+            user.EmailVerificationCode = null;
+            user.EmailVerificationCodeExpiresAt = null;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -120,5 +120,13 @@ namespace SportHub.Services.Implementations
                    <p><a href='{resetUrl}' style='color:#6366f1;font-weight:bold;'>Đặt lại mật khẩu →</a></p>
                    <p style='color:#888;font-size:12px;'>Liên kết có hiệu lực trong 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
                    <hr/><p style='color:#888;font-size:12px;'>SportHub — Nền tảng ghép trận thể thao</p>");
+
+        public Task SendVerificationCodeAsync(string toEmail, string fullName, string code) =>
+            SendAsync(toEmail, "[SportHub] Mã xác thực email của bạn",
+                $@"<p>Xin chào <strong>{fullName}</strong>,</p>
+                   <p>Mã xác thực email của bạn là:</p>
+                   <p style='font-size:28px;font-weight:bold;letter-spacing:6px;color:#50A5B1;'>{code}</p>
+                   <p style='color:#888;font-size:12px;'>Mã có hiệu lực trong 10 phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+                   <hr/><p style='color:#888;font-size:12px;'>SportHub — Nền tảng ghép trận thể thao</p>");
     }
 }

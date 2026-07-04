@@ -1,7 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SportHub.Models.Entities;
@@ -13,12 +10,12 @@ namespace SportHub.Pages.Auth
     public class RegisterModel : PageModel
     {
         private readonly IUserService _userService;
-        private readonly IPromotionService _promotionService;
+        private readonly IEmailService _emailService;
 
-        public RegisterModel(IUserService userService, IPromotionService promotionService)
+        public RegisterModel(IUserService userService, IEmailService emailService)
         {
             _userService = userService;
-            _promotionService = promotionService;
+            _emailService = emailService;
         }
 
         [BindProperty]
@@ -80,26 +77,14 @@ namespace SportHub.Pages.Auth
                 return Page();
             }
 
-            // Auto-login after registration
-            var claims = new List<Claim>
+            // Chưa đăng nhập ngay — bắt xác thực email bằng mã OTP trước
+            var code = await _userService.GenerateEmailVerificationCodeAsync(createdUser.UserID);
+            if (code != null)
             {
-                new(ClaimTypes.NameIdentifier, createdUser.UserID.ToString()),
-                new(ClaimTypes.Name, createdUser.FullName),
-                new(ClaimTypes.Email, createdUser.Email)
-            };
-            var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            // Đồng bộ với luồng Login: đếm lượt đăng nhập + promo chào mừng
-            await _userService.IncrementLoginCountAsync(createdUser.UserID);
-            try
-            {
-                await _promotionService.TriggerFirstLoginAsync(createdUser.UserID);
+                await _emailService.SendVerificationCodeAsync(createdUser.Email, createdUser.FullName, code);
             }
-            catch { /* non-critical, không break đăng ký */ }
 
-            return RedirectToPage("/Onboarding/Index");
+            return RedirectToPage("/Auth/VerifyEmail", new { email = createdUser.Email, purpose = "register" });
         }
     }
 }
