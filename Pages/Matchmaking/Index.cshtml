@@ -138,28 +138,48 @@
     <!-- Menu tap-through — chỉ mobile, thay cho việc cuộn qua 5 card cá nhân xếp chồng -->
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <div class="md:hidden bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
-            <a href="/Matchmaking?StatusFilter=Joined" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <span class="material-symbols-outlined text-primary">calendar_today</span>
-                <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Trận đã tham gia</span>
-                <span class="text-xs text-slate-400">@Model.UpcomingJoinedMatches.Count sắp tới</span>
-                <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
-            </a>
-            @if (Model.PendingRequestMatches.Count > 0)
-            {
+        <div class="md:hidden space-y-2">
+            <!-- Thống kê — mini stat strip, tương đương card "Thống kê" bên desktop -->
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm p-3">
+                <div class="flex items-center gap-1.5 mb-2">
+                    <span class="material-symbols-outlined text-primary text-[16px]">bar_chart</span>
+                    <span class="font-bold text-xs text-slate-700 dark:text-slate-200">Thống kê</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-primary/5 rounded-md p-2 text-center">
+                        <p class="text-lg font-black text-primary leading-tight">@Model.UpcomingJoinedMatches.Count</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Sắp tới</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800 rounded-md p-2 text-center">
+                        <p class="text-lg font-black text-slate-700 dark:text-slate-200 leading-tight">@Model.JoinedMatchHistory.Count</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Đã chơi</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+                <a href="/Matchmaking?StatusFilter=Joined" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <span class="material-symbols-outlined text-primary">calendar_today</span>
+                    <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Sắp tới</span>
+                    <span class="text-xs font-bold text-slate-400">@Model.UpcomingJoinedMatches.Count</span>
+                    <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+                </a>
                 <a href="/Matchmaking?StatusFilter=Pending" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <span class="material-symbols-outlined text-amber-500">pending</span>
                     <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Yêu cầu đang chờ duyệt</span>
-                    <span class="text-xs font-bold text-amber-600">@Model.PendingRequestMatches.Count</span>
+                    @if (Model.PendingRequestMatches.Count > 0)
+                    {
+                        <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">@Model.PendingRequestMatches.Count</span>
+                    }
                     <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
                 </a>
-            }
-            <a href="/Matchmaking?StatusFilter=Owned" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <span class="material-symbols-outlined text-primary">shield_person</span>
-                <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Trận của tôi (Host)</span>
-                <span class="text-xs text-slate-400">@Model.MyHostedMatches.Count</span>
-                <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
-            </a>
+                <a href="/Matchmaking?StatusFilter=Owned" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <span class="material-symbols-outlined text-primary">shield_person</span>
+                    <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Trận của tôi (Host)</span>
+                    <span class="text-xs font-bold text-slate-400">@Model.MyHostedMatches.Count</span>
+                    <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+                </a>
+            </div>
         </div>
     }
 
