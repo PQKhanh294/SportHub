@@ -24,6 +24,7 @@ namespace SportHub.Models.Entities
         public decimal WalletBalance { get; set; } = 0m;
         public int LoginCount { get; set; } = 0;
         public bool NotifyByEmail { get; set; } = true;
+        public bool ShowContactToTeammates { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

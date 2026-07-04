@@ -1,0 +1,38 @@
+@page
+@model SportHub.Pages.Profile.BadgesModel
+@{
+    ViewData["Title"] = "Huy hiệu";
+}
+
+<section class="max-w-2xl mx-auto space-y-4">
+    <div class="flex items-center gap-2">
+        <a asp-page="/Profile/Index" class="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">arrow_back</span>
+        </a>
+        <h1 class="text-2xl font-black tracking-tight">Huy hiệu SportHub</h1>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="space-y-2">
+            @foreach (var badge in Model.Badges)
+            {
+                <div class="p-3.5 rounded-md border @(badge.IsEarned ? "border-primary/25 bg-primary/5" : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30")">
+                    <div class="flex items-start gap-2.5">
+                        <span class="material-symbols-outlined text-lg @(badge.IsEarned ? "text-primary" : "text-slate-300 dark:text-slate-600")">@badge.Icon</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="font-bold text-xs text-slate-800 dark:text-slate-200">@badge.Name</p>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md @(badge.IsEarned ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500")">@badge.Level</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">@badge.Description</p>
+                            <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                <div class="h-full bg-primary rounded-full transition-all" style="width:@badge.ProgressPercent%"></div>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-0.5">@badge.ProgressValue / @badge.TargetValue</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
