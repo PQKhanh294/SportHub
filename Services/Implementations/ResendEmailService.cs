@@ -112,5 +112,13 @@ namespace SportHub.Services.Implementations
                    <p>Trận <strong>{matchTitle}</strong> của bạn sẽ diễn ra vào <strong>{matchDate}</strong>.</p>
                    <p><strong>Địa điểm:</strong> {venue}</p>
                    <hr/><p style='color:#888;font-size:12px;'>SportHub</p>");
+
+        public Task SendPasswordResetAsync(string toEmail, string fullName, string resetUrl) =>
+            SendAsync(toEmail, "[SportHub] Đặt lại mật khẩu",
+                $@"<p>Xin chào <strong>{fullName}</strong>,</p>
+                   <p>Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu cho tài khoản SportHub này.</p>
+                   <p><a href='{resetUrl}' style='color:#6366f1;font-weight:bold;'>Đặt lại mật khẩu →</a></p>
+                   <p style='color:#888;font-size:12px;'>Liên kết có hiệu lực trong 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+                   <hr/><p style='color:#888;font-size:12px;'>SportHub — Nền tảng ghép trận thể thao</p>");
     }
 }

@@ -23,6 +23,7 @@ window.SportHubTour = (function () {
             steps: [
                 { sel: '#mmStatusFilter',        title: 'Trạng thái kèo',  text: 'Chuyển giữa trận Đang mở, Đã tham gia, Đang chờ duyệt hoặc Trận của tôi.' },
                 { sel: '#filterSidebar',         title: 'Bộ lọc',          text: 'Lọc theo môn, trình độ (nhấn (i) xem thang điểm từng môn), khu vực, giờ và chi phí.' },
+                { sel: '#mmFilterBtnMobile',     title: 'Bộ lọc',          text: 'Nhấn để mở bộ lọc: môn, trình độ, khu vực, giờ và chi phí.' },
                 { sel: '.draggable-match-card',  title: 'Card trận đấu',   text: 'Mỗi card hiển thị điểm phù hợp, khoảng cách, giá mỗi người và số chỗ còn trống.' },
                 { sel: '.mm-join-btn',           title: 'Gửi yêu cầu',     text: 'Gửi yêu cầu tham gia — host duyệt trong 2 giờ, sau đó bạn thanh toán 5.000 xu để giữ chỗ.' },
                 { sel: '#nav-create-match',      title: 'Tạo trận',        text: 'Không thấy kèo phù hợp? Tự tạo trận của bạn chỉ trong 30 giây.' }
@@ -86,7 +87,12 @@ window.SportHubTour = (function () {
     function visible(el) {
         if (!el) return false;
         var r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0;
+        if (r.width <= 0 || r.height <= 0) return false;
+        // Loại phần tử bị đẩy ra ngoài khung hình bằng CSS transform/position
+        // (vd: drawer bộ lọc mobile đóng translateY(100%) — vẫn có width/height
+        // nhưng nằm hẳn ngoài viewport, không nên spotlight vào đó).
+        if (r.bottom <= 0 || r.top >= window.innerHeight || r.right <= 0 || r.left >= window.innerWidth) return false;
+        return true;
     }
 
     function stepsFor(key) {
