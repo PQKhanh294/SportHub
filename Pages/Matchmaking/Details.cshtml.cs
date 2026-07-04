@@ -127,8 +127,8 @@ namespace SportHub.Pages.Matchmaking
                             ? "/images/avatar-default.png"
                             : p.User.AvatarUrl,
                         SkillLevel   = p.User.SkillLevel ?? "Unknown",
-                        PhoneNumber  = p.User.PhoneNumber,
-                        ZaloContact  = p.User.ZaloContact
+                        PhoneNumber  = p.User.ShowContactToTeammates ? p.User.PhoneNumber : null,
+                        ZaloContact  = p.User.ShowContactToTeammates ? p.User.ZaloContact : null
                     }).ToList(),
                 PendingParticipants = pendingParticipants,
                 MaxParticipants    = match.MaxParticipants,

@@ -106,6 +106,36 @@
         </div>
     </div>
 
+    @{
+        var earnedBadges = Model.Badges.Count(b => b.IsEarned);
+    }
+    <!-- Menu tap-through — chỉ mobile, thay cho việc cuộn dài qua từng khối -->
+    <div class="lg:hidden bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+        <a href="/Wallet" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+            <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Ví SportHub</span>
+            <span class="text-sm font-bold @(Model.WalletBalance > 0 ? "text-primary" : "text-slate-400")">@Model.WalletBalance.ToString("N0") xu</span>
+            <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+        </a>
+        <a asp-page="/Profile/Edit" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="material-symbols-outlined text-primary">sports</span>
+            <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Môn thể thao & Trình độ</span>
+            <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+        </a>
+        <a asp-page="/Profile/Badges" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="material-symbols-outlined text-primary">military_tech</span>
+            <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Huy hiệu</span>
+            <span class="text-xs text-slate-400">@earnedBadges/@Model.Badges.Count</span>
+            <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+        </a>
+        <a asp-page="/Profile/Reviews" class="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="material-symbols-outlined text-primary">rate_review</span>
+            <span class="flex-1 font-semibold text-sm text-slate-800 dark:text-slate-200">Đánh giá nhận được</span>
+            <span class="text-xs text-slate-400">@Model.ReceivedReviews.Count</span>
+            <span class="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+        </a>
+    </div>
+
     <!-- Body Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -150,8 +180,8 @@
                 </div>
             </div>
 
-            <!-- Ví SportHub -->
-            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <!-- Ví SportHub — mobile: đã có hàng menu riêng trỏ /Wallet, ẩn khối này để đỡ scroll -->
+            <div class="hidden lg:block bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <span class="material-symbols-outlined text-primary text-lg">account_balance_wallet</span>
@@ -193,8 +223,8 @@
                 </a>
             </div>
 
-            <!-- Môn thể thao & Trình độ -->
-            <div id="pfSkills" class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <!-- Môn thể thao & Trình độ — mobile: menu trỏ /Profile/Edit, ẩn khối này -->
+            <div id="pfSkills" class="hidden lg:block bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">sports</span>
                     Môn thể thao & Trình độ
@@ -243,7 +273,7 @@
                 var totalCodes = Model.SavedCodes.Count + Model.MyVouchers.Count;
                 var validCodes = Model.SavedCodes.Count(c => c.IsValid) + Model.MyVouchers.Count(v => !v.IsUsed && (v.ExpiresAt == null || v.ExpiresAt > DateTime.UtcNow));
             }
-            <div class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="hidden lg:block bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <span class="material-symbols-outlined text-primary text-lg">local_offer</span>
@@ -370,8 +400,8 @@
                 }
             </div>
 
-            <!-- Huy hiệu -->
-            <div id="pfBadges" class="bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <!-- Huy hiệu — mobile: menu trỏ /Profile/Badges, ẩn khối này -->
+            <div id="pfBadges" class="hidden lg:block bg-white dark:bg-slate-900 rounded-md p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 class="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                     <span class="material-symbols-outlined text-primary text-lg">military_tech</span>
                     Huy hiệu SportHub
@@ -400,8 +430,8 @@
             </div>
         </div>
 
-        <!-- Main content (8 col) -->
-        <div class="lg:col-span-8 space-y-4">
+        <!-- Main content (8 col) — mobile: menu trỏ /Profile/Reviews, ẩn cả cột này -->
+        <div class="hidden lg:block lg:col-span-8 space-y-4">
 
             <!-- Rating Summary -->
             <div id="pfReviews" class="grid grid-cols-1 md:grid-cols-2 gap-4">

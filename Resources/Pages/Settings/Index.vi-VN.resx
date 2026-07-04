@@ -24,4 +24,17 @@
   <data name="NotifyTitle" xml:space="preserve"><value>Thông báo</value></data>
   <data name="NotifyDesc" xml:space="preserve"><value>Quản lý cách bạn nhận thông báo từ SportHub.</value></data>
   <data name="NotifyEmailLabel" xml:space="preserve"><value>Nhận thông báo quan trọng qua email (trận được duyệt, bị hủy, khuyến mãi)</value></data>
+  <data name="PrivacyTitle" xml:space="preserve"><value>Quyền riêng tư</value></data>
+  <data name="PrivacyDesc" xml:space="preserve"><value>Kiểm soát thông tin liên hệ của bạn được chia sẻ với ai.</value></data>
+  <data name="PrivacyContactLabel" xml:space="preserve"><value>Hiển thị SĐT/Zalo cho người chơi cùng trận sau khi được duyệt</value></data>
+  <data name="HelpTitle" xml:space="preserve"><value>Trợ giúp</value></data>
+  <data name="HelpDesc" xml:space="preserve"><value>Xem lại hướng dẫn sử dụng SportHub.</value></data>
+  <data name="HelpRestartTour" xml:space="preserve"><value>Xem lại hướng dẫn sử dụng</value></data>
+  <data name="SecurityTitle" xml:space="preserve"><value>Bảo mật tài khoản</value></data>
+  <data name="SecurityDesc" xml:space="preserve"><value>Đổi mật khẩu đăng nhập của bạn.</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Mật khẩu hiện tại</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Xác nhận mật khẩu mới</value></data>
+  <data name="ChangePasswordBtn" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="OAuthOnlyNote" xml:space="preserve"><value>Tài khoản của bạn đăng nhập bằng Google — không có mật khẩu để đổi.</value></data>
 </root>

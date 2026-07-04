@@ -24,4 +24,17 @@
   <data name="NotifyTitle" xml:space="preserve"><value>Notifications</value></data>
   <data name="NotifyDesc" xml:space="preserve"><value>Manage how you receive notifications from SportHub.</value></data>
   <data name="NotifyEmailLabel" xml:space="preserve"><value>Receive important notifications via email (match approved, cancelled, promotions)</value></data>
+  <data name="PrivacyTitle" xml:space="preserve"><value>Privacy</value></data>
+  <data name="PrivacyDesc" xml:space="preserve"><value>Control who can see your contact info.</value></data>
+  <data name="PrivacyContactLabel" xml:space="preserve"><value>Show phone/Zalo to teammates after being approved</value></data>
+  <data name="HelpTitle" xml:space="preserve"><value>Help</value></data>
+  <data name="HelpDesc" xml:space="preserve"><value>Review the SportHub usage guide.</value></data>
+  <data name="HelpRestartTour" xml:space="preserve"><value>Restart usage guide</value></data>
+  <data name="SecurityTitle" xml:space="preserve"><value>Account security</value></data>
+  <data name="SecurityDesc" xml:space="preserve"><value>Change your login password.</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Current password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ChangePasswordBtn" xml:space="preserve"><value>Change password</value></data>
+  <data name="OAuthOnlyNote" xml:space="preserve"><value>Your account signs in with Google — there is no password to change.</value></data>
 </root>

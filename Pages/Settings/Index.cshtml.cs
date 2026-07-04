@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SportHub.Data;
+using SportHub.Services.Security;
 
 namespace SportHub.Pages.Settings
 {
@@ -20,6 +22,28 @@ namespace SportHub.Pages.Settings
         public string CurrentLanguage { get; set; } = "vi-VN";
         public bool IsAuthenticated { get; set; }
         public bool NotifyByEmail { get; set; } = true;
+        public bool ShowContactToTeammates { get; set; } = true;
+        public bool HasPassword { get; set; }
+
+        [BindProperty]
+        public ChangePasswordInput PasswordInput { get; set; } = new();
+
+        [TempData] public string? PasswordSuccess { get; set; }
+        [TempData] public string? PasswordError { get; set; }
+
+        public class ChangePasswordInput
+        {
+            [Required(ErrorMessage = "Nhập mật khẩu hiện tại.")]
+            public string CurrentPassword { get; set; } = string.Empty;
+
+            [Required(ErrorMessage = "Nhập mật khẩu mới.")]
+            [MinLength(6, ErrorMessage = "Mật khẩu mới phải từ 6 ký tự.")]
+            public string NewPassword { get; set; } = string.Empty;
+
+            [Required(ErrorMessage = "Xác nhận mật khẩu mới.")]
+            [Compare(nameof(NewPassword), ErrorMessage = "Xác nhận mật khẩu không khớp.")]
+            public string ConfirmPassword { get; set; } = string.Empty;
+        }
 
         public async Task OnGetAsync()
         {
@@ -38,10 +62,16 @@ namespace SportHub.Pages.Settings
                 var userId = GetCurrentUserId();
                 if (userId > 0)
                 {
-                    NotifyByEmail = await _context.Users
+                    var user = await _context.Users
                         .Where(u => u.UserID == userId)
-                        .Select(u => u.NotifyByEmail)
+                        .Select(u => new { u.NotifyByEmail, u.ShowContactToTeammates, u.PasswordHash })
                         .FirstOrDefaultAsync();
+                    if (user != null)
+                    {
+                        NotifyByEmail = user.NotifyByEmail;
+                        ShowContactToTeammates = user.ShowContactToTeammates;
+                        HasPassword = !string.IsNullOrEmpty(user.PasswordHash);
+                    }
                 }
             }
         }
@@ -81,6 +111,53 @@ namespace SportHub.Pages.Settings
                     await _context.SaveChangesAsync();
                 }
             }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostSetContactPrivacyAsync(bool showContactToTeammates)
+        {
+            var userId = GetCurrentUserId();
+            if (userId > 0)
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user != null)
+                {
+                    user.ShowContactToTeammates = showContactToTeammates;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostChangePasswordAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToPage("/Auth/Login");
+
+            if (!ModelState.IsValid)
+            {
+                PasswordError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Thông tin không hợp lệ.";
+                return RedirectToPage();
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || string.IsNullOrEmpty(user.PasswordHash))
+            {
+                PasswordError = "Tài khoản này không hỗ trợ đổi mật khẩu.";
+                return RedirectToPage();
+            }
+
+            if (user.PasswordHash != PasswordHasher.Hash(PasswordInput.CurrentPassword))
+            {
+                PasswordError = "Mật khẩu hiện tại không đúng.";
+                return RedirectToPage();
+            }
+
+            user.PasswordHash = PasswordHasher.Hash(PasswordInput.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            PasswordSuccess = "Đã đổi mật khẩu thành công.";
             return RedirectToPage();
         }
 

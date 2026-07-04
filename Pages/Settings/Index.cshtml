@@ -153,6 +153,93 @@
                     </label>
                 </form>
             </div>
+
+            <!-- Quyền riêng tư -->
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold">@Localizer["PrivacyTitle"]</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">@Localizer["PrivacyDesc"]</p>
+                    </div>
+                    <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
+                </div>
+
+                <form method="post" asp-page-handler="SetContactPrivacy" id="privacyForm">
+                    @Html.AntiForgeryToken()
+                    <label class="flex items-center gap-3 p-4 rounded-md border-2 border-slate-100 dark:border-slate-800 cursor-pointer hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+                        <input type="checkbox" name="showContactToTeammates" value="true" @(Model.ShowContactToTeammates ? "checked" : "")
+                               onchange="document.getElementById('privacyForm').submit()"
+                               class="w-5 h-5 rounded accent-primary shrink-0" />
+                        <span class="font-semibold text-sm">@Localizer["PrivacyContactLabel"]</span>
+                    </label>
+                </form>
+            </div>
+
+            <!-- Trợ giúp -->
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold">@Localizer["HelpTitle"]</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">@Localizer["HelpDesc"]</p>
+                    </div>
+                    <span class="material-symbols-outlined text-primary text-3xl">help</span>
+                </div>
+                <button type="button" onclick="SportHubTour.restart()"
+                        class="w-full flex items-center justify-between p-4 rounded-md border-2 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                    <span class="font-semibold text-sm">@Localizer["HelpRestartTour"]</span>
+                    <span class="material-symbols-outlined text-primary">play_circle</span>
+                </button>
+            </div>
+
+            <!-- Bảo mật tài khoản -->
+            <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold">@Localizer["SecurityTitle"]</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">@Localizer["SecurityDesc"]</p>
+                    </div>
+                    <span class="material-symbols-outlined text-primary text-3xl">lock</span>
+                </div>
+
+                @if (TempData["PasswordSuccess"] != null)
+                {
+                    <div class="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        @TempData["PasswordSuccess"]
+                    </div>
+                }
+                @if (TempData["PasswordError"] != null)
+                {
+                    <div class="mb-4 p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-md text-rose-700 dark:text-rose-400 text-sm font-medium">
+                        @TempData["PasswordError"]
+                    </div>
+                }
+
+                @if (Model.HasPassword)
+                {
+                    <form method="post" asp-page-handler="ChangePassword" class="space-y-3">
+                        @Html.AntiForgeryToken()
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["CurrentPassword"]</label>
+                            <input type="password" asp-for="PasswordInput.CurrentPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["NewPassword"]</label>
+                            <input type="password" asp-for="PasswordInput.NewPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["ConfirmNewPassword"]</label>
+                            <input type="password" asp-for="PasswordInput.ConfirmPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                        </div>
+                        <button type="submit" class="px-5 py-2 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-semibold transition-colors">
+                            @Localizer["ChangePasswordBtn"]
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-sm text-slate-400">@Localizer["OAuthOnlyNote"]</p>
+                }
+            </div>
         }
     </div>
 
