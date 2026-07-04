@@ -13,11 +13,13 @@ namespace SportHub.Pages.Auth
     {
         private readonly IUserService _userService;
         private readonly IPromotionService _promotionService;
+        private readonly IEmailService _emailService;
 
-        public LoginModel(IUserService userService, IPromotionService promotionService)
+        public LoginModel(IUserService userService, IPromotionService promotionService, IEmailService emailService)
         {
             _userService = userService;
             _promotionService = promotionService;
+            _emailService = emailService;
         }
 
         [BindProperty]
@@ -78,6 +80,16 @@ namespace SportHub.Pages.Auth
             {
                 ModelState.AddModelError(string.Empty, "Account does not exist.");
                 return Page();
+            }
+
+            if (!user.EmailConfirmed)
+            {
+                var code = await _userService.GenerateEmailVerificationCodeAsync(user.UserID);
+                if (code != null)
+                {
+                    await _emailService.SendVerificationCodeAsync(user.Email, user.FullName, code);
+                }
+                return RedirectToPage("/Auth/VerifyEmail", new { email = user.Email, purpose = "login", returnUrl = ReturnUrl });
             }
 
             var claims = new List<Claim>

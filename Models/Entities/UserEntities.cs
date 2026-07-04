@@ -27,6 +27,10 @@ namespace SportHub.Models.Entities
         public bool ShowContactToTeammates { get; set; } = true;
         public string? PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpiresAt { get; set; }
+        public bool EmailConfirmed { get; set; } = false;
+        public string? EmailVerificationCode { get; set; }
+        public DateTime? EmailVerificationCodeExpiresAt { get; set; }
+        public DateTime? EmailVerificationSentAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
