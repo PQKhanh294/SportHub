@@ -23,6 +23,8 @@ namespace SportHub.Pages.Admin
             _walletService = walletService;
         }
 
+        public static readonly string[] AllRoles = { "Admin", "CourtOwner", "Player" };
+
         public List<User> Users { get; set; } = new();
         [TempData] public string? SuccessMessage { get; set; }
         [TempData] public string? ErrorMessage { get; set; }
@@ -92,6 +94,76 @@ namespace SportHub.Pages.Admin
             }
             await _walletService.CreditAsync(userId, amount, string.IsNullOrWhiteSpace(description) ? "Admin hoàn tiền thủ công" : description);
             SuccessMessage = $"Đã cộng {amount:N0} xu vào ví người dùng #{userId}.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDebitWalletAsync(int userId, decimal amount, string description)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+            if (amount <= 0)
+            {
+                ErrorMessage = "Số tiền phải lớn hơn 0.";
+                return RedirectToPage();
+            }
+            // type "Deduction" khớp CHECK CONSTRAINT hiện có trên WalletTransactions — không cần thêm giá trị mới
+            var ok = await _walletService.DeductAsync(userId, amount, string.IsNullOrWhiteSpace(description) ? "Admin trừ ví thủ công" : description);
+            SuccessMessage = ok ? $"Đã trừ {amount:N0} xu từ ví người dùng #{userId}." : null;
+            if (!ok) ErrorMessage = "Số dư không đủ để trừ số xu này.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostSetRolesAsync(int userId, List<string>? roles)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+
+            var selected = (roles ?? new()).Where(r => AllRoles.Contains(r)).Distinct().ToList();
+
+            var currentAdminId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+            if (userId == currentAdminId && !selected.Contains("Admin"))
+            {
+                ErrorMessage = "Không thể tự gỡ quyền Admin của chính mình.";
+                return RedirectToPage();
+            }
+
+            var existingLinks = await _context.UserRoles
+                .Include(ur => ur.Role)
+                .Where(ur => ur.UserID == userId)
+                .ToListAsync();
+
+            var existingRoleNames = existingLinks.Select(ur => ur.Role.RoleName).ToHashSet();
+
+            var toRemove = existingLinks.Where(ur => !selected.Contains(ur.Role.RoleName)).ToList();
+            if (toRemove.Count > 0) _context.UserRoles.RemoveRange(toRemove);
+
+            var toAddNames = selected.Where(r => !existingRoleNames.Contains(r)).ToList();
+            if (toAddNames.Count > 0)
+            {
+                var roleIds = await _context.Roles
+                    .Where(r => toAddNames.Contains(r.RoleName))
+                    .ToDictionaryAsync(r => r.RoleName, r => r.RoleID);
+                foreach (var name in toAddNames)
+                    _context.UserRoles.Add(new UserRole { UserID = userId, RoleID = roleIds[name] });
+            }
+
+            await _context.SaveChangesAsync();
+            SuccessMessage = $"Đã cập nhật vai trò cho người dùng #{userId}.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostToggleVerifiedAsync(int userId, bool currentVerified)
+        {
+            if (!await IsAdminAsync()) return Forbid();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                ErrorMessage = "Không tìm thấy người dùng.";
+                return RedirectToPage();
+            }
+
+            user.IsVerified = !currentVerified;
+            await _context.SaveChangesAsync();
+            SuccessMessage = user.IsVerified ? $"Đã xác thực người dùng #{userId}." : $"Đã bỏ xác thực người dùng #{userId}.";
             return RedirectToPage();
         }
 
