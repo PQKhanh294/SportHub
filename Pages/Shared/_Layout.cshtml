@@ -965,6 +965,8 @@ body { }
     #ai-fab { width: 48px !important; height: 48px !important; }
     /* Hide AI FAB on Messages page — it covers the send button */
     body.page-messages #ai-chat-wrap { display: none !important; }
+    /* Sidebar AI đã là fullscreen trên mobile — ẩn nút "Thu nhỏ" về popup nhỏ (không còn hợp lệ) */
+    #ai-sidebar button[onclick="shrinkAiChat()"] { display: none !important; }
 }
 .dark #ai-sidebar { background: #0f172a; border-left-color: rgba(51,65,85,0.8); }
 #ai-sidebar.open { transform: translateX(0); }
@@ -1198,6 +1200,10 @@ window.updateRightSidebarState = function () {
     }
 
     window.toggleAiChat = function () {
+        if (window.innerWidth < 1024) {
+            if (aiExpanded) { window.closeAiSidebar(); } else { window.expandAiChat(); }
+            return;
+        }
         var panel = document.getElementById('ai-panel');
         var open  = panel.style.display === 'flex';
         panel.style.display = open ? 'none' : 'flex';
@@ -2657,6 +2663,31 @@ window.setChatBadge = function(n) {
         if (_adjusting) return;
         adjust();
     }).observe(panel, { attributeFilter: ['style'] });
+})();
+</script>
+<script>
+// Mobile: keep AI sidebar (fullscreen) header above the on-screen keyboard using visualViewport API
+(function () {
+    if (!window.visualViewport) return;
+    var sidebar = document.getElementById('ai-sidebar');
+    if (!sidebar) return;
+
+    function adjust() {
+        if (window.innerWidth >= 1024 || !sidebar.classList.contains('open')) {
+            sidebar.style.top = ''; sidebar.style.height = ''; sidebar.style.bottom = '';
+            return;
+        }
+        var vv = window.visualViewport;
+        sidebar.style.top = vv.offsetTop + 'px';
+        sidebar.style.height = vv.height + 'px';
+        sidebar.style.bottom = 'auto';
+    }
+
+    window.visualViewport.addEventListener('resize', adjust);
+    window.visualViewport.addEventListener('scroll', adjust);
+
+    // Fire adjust when sidebar open/close toggles (handles keyboard-already-open case)
+    new MutationObserver(adjust).observe(sidebar, { attributeFilter: ['class'] });
 })();
 </script>
 </body>
