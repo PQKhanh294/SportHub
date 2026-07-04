@@ -52,11 +52,12 @@
                class="px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors @(string.IsNullOrWhiteSpace(Model.FilterRole) ? "bg-primary text-white border-primary" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary")">
                 @(isEn ? "All roles" : "Tất cả")
             </a>
+            @* Chỉ 3 role thật sự tồn tại trong bảng Roles: Admin, CourtOwner, Player.
+               (trước đây có tab "Host"/"User" không khớp RoleName nào — lọc luôn ra rỗng) *@
             @foreach (var (role, color, label) in new[] {
                 ("Admin","rose", "Admin"),
-                ("Host","blue", isEn ? "Host" : "Chủ kèo"),
-                ("CourtOwner","purple", isEn ? "CourtOwner" : "Chủ sân"),
-                ("User","slate", isEn ? "Player" : "Người chơi")
+                ("CourtOwner","purple", "Chủ sân"),
+                ("Player","slate", "Người chơi")
             })
             {
                 var active = Model.FilterRole == role;
@@ -85,14 +86,22 @@
     <div class="sm:hidden space-y-2">
         @foreach (var user in Model.Users)
         {
-            var mobileRoles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null);
+            var mobileRoles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null).Select(r => r!).ToList();
             var mobileAvatar = string.IsNullOrWhiteSpace(user.AvatarUrl) ? "/images/avatar-default.png" : user.AvatarUrl;
+            var mobileRolesJson = System.Text.Json.JsonSerializer.Serialize(mobileRoles);
+            var mobileNameJs = user.FullName.Replace("\\", "\\\\").Replace("'", "\\'");
             <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-3 shadow-sm">
                 <div class="flex items-center gap-3">
                     <img src="@mobileAvatar" class="size-10 rounded-full object-cover flex-shrink-0" alt="@user.FullName" />
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="font-semibold text-slate-900 dark:text-white text-sm truncate">@user.FullName</span>
+                            <span class="font-semibold text-slate-900 dark:text-white text-sm truncate flex items-center gap-1">
+                                @user.FullName
+                                @if (user.IsVerified)
+                                {
+                                    <span class="material-symbols-outlined text-blue-500 text-[13px]" style="font-variation-settings:'FILL' 1">verified</span>
+                                }
+                            </span>
                             @foreach (var role in mobileRoles)
                             {
                                 var mrc = role switch {
@@ -120,13 +129,28 @@
                         <form method="post" asp-page-handler="ToggleActive">
                             <input type="hidden" name="userId" value="@user.UserID" />
                             <input type="hidden" name="currentActive" value="@user.IsActive.ToString().ToLower()" />
-                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
-                                @(user.IsActive ? "Suspend" : "Activate")
+                            <button type="submit" class="w-full px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
+                                @(user.IsActive ? "Khóa" : "Mở khóa")
                             </button>
                         </form>
-                        <button type="button" onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
+                        <button type="button" onclick='openRoleModal(@user.UserID, "@mobileNameJs", @Html.Raw(mobileRolesJson))'
+                                class="px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 text-blue-700 transition-colors">
+                            Vai trò
+                        </button>
+                        <form method="post" asp-page-handler="ToggleVerified">
+                            <input type="hidden" name="userId" value="@user.UserID" />
+                            <input type="hidden" name="currentVerified" value="@user.IsVerified.ToString().ToLower()" />
+                            <button type="submit" class="w-full px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsVerified ? "bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-500" : "bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 text-sky-700")">
+                                @(user.IsVerified ? "Bỏ xác thực" : "Xác thực")
+                            </button>
+                        </form>
+                        <button type="button" onclick="openCreditModal(@user.UserID, '@mobileNameJs')"
                                 class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
-                            + Credit
+                            + Xu
+                        </button>
+                        <button type="button" onclick="openDebitModal(@user.UserID, '@mobileNameJs')"
+                                class="px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 text-amber-700 transition-colors">
+                            − Xu
                         </button>
                     </div>
                 </div>
@@ -152,16 +176,24 @@
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach (var user in Model.Users)
                     {
-                        var roles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null);
+                        var roles = user.UserRoles.Select(ur => ur.Role?.RoleName).Where(r => r != null).Select(r => r!).ToList();
                         var avatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
                             ? "/images/avatar-default.png"
                             : user.AvatarUrl;
+                        var rolesJson = System.Text.Json.JsonSerializer.Serialize(roles);
+                        var nameJs = user.FullName.Replace("\\", "\\\\").Replace("'", "\\'");
                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <img src="@avatarUrl" class="size-8 rounded-full object-cover flex-shrink-0" alt="@user.FullName" />
                                     <div class="min-w-0">
-                                        <p class="font-semibold text-slate-900 dark:text-white truncate">@user.FullName</p>
+                                        <p class="font-semibold text-slate-900 dark:text-white truncate flex items-center gap-1">
+                                            @user.FullName
+                                            @if (user.IsVerified)
+                                            {
+                                                <span class="material-symbols-outlined text-blue-500 text-[15px]" title="Đã xác thực" style="font-variation-settings:'FILL' 1">verified</span>
+                                            }
+                                        </p>
                                         <p class="text-xs text-slate-400">#@user.UserID</p>
                                     </div>
                                 </div>
@@ -193,18 +225,34 @@
                                 }
                             </td>
                             <td class="px-4 py-3 text-center">
-                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                <div class="flex items-center justify-center gap-1.5 flex-wrap max-w-[220px] mx-auto">
                                     <form method="post" asp-page-handler="ToggleActive" class="inline">
                                         <input type="hidden" name="userId" value="@user.UserID" />
                                         <input type="hidden" name="currentActive" value="@user.IsActive.ToString().ToLower()" />
                                         <button type="submit"
-                                                class="px-3 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
-                                            @(user.IsActive ? "Suspend" : "Activate")
+                                                class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsActive ? "bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 text-rose-600" : "bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-600")">
+                                            @(user.IsActive ? "Khóa" : "Mở khóa")
                                         </button>
                                     </form>
-                                    <button type="button" onclick="openCreditModal(@user.UserID, '@user.FullName.Replace("'","\\'")')"
-                                            class="px-3 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
-                                        + Credit
+                                    <button type="button" onclick='openRoleModal(@user.UserID, "@nameJs", @Html.Raw(rolesJson))'
+                                            class="px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 text-blue-700 transition-colors">
+                                        Vai trò
+                                    </button>
+                                    <form method="post" asp-page-handler="ToggleVerified" class="inline">
+                                        <input type="hidden" name="userId" value="@user.UserID" />
+                                        <input type="hidden" name="currentVerified" value="@user.IsVerified.ToString().ToLower()" />
+                                        <button type="submit"
+                                                class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors @(user.IsVerified ? "bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-500" : "bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 text-sky-700")">
+                                            @(user.IsVerified ? "Bỏ xác thực" : "Xác thực")
+                                        </button>
+                                    </form>
+                                    <button type="button" onclick="openCreditModal(@user.UserID, '@nameJs')"
+                                            class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 transition-colors">
+                                        + Xu
+                                    </button>
+                                    <button type="button" onclick="openDebitModal(@user.UserID, '@nameJs')"
+                                            class="px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 text-amber-700 transition-colors">
+                                        − Xu
                                     </button>
                                 </div>
                             </td>
@@ -233,25 +281,79 @@
 <!-- Credit Wallet Modal -->
 <div id="creditModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div class="bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-sm mx-4 p-6">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">@(isEn ? "Add wallet credit" : "Nạp tiền ví")</h3>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Cộng xu vào ví</h3>
         <p id="creditModalName" class="text-sm text-slate-500 mb-4"></p>
         <form method="post" asp-page-handler="CreditWallet">
             <input type="hidden" name="userId" id="creditUserId" />
             <div class="space-y-3">
                 <div>
-                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Amount (xu)</label>
-                    <input type="number" name="amount" min="1000" step="1000" required placeholder="e.g. 10000"
+                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Số xu</label>
+                    <input type="number" name="amount" min="1000" step="1000" required placeholder="VD: 10000"
                            class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Lý do</label>
-                    <input type="text" name="description" placeholder="e.g. Refund for match #5"
+                    <input type="text" name="description" placeholder="VD: Hoàn tiền trận #5"
                            class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
                 </div>
             </div>
             <div class="flex gap-2 mt-4">
                 <button type="submit" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-semibold transition-colors">Xác nhận</button>
                 <button type="button" onclick="document.getElementById('creditModal').classList.add('hidden')"
+                        class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-sm font-semibold">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Debit Wallet Modal -->
+<div id="debitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-sm mx-4 p-6">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Trừ xu khỏi ví</h3>
+        <p id="debitModalName" class="text-sm text-slate-500 mb-4"></p>
+        <form method="post" asp-page-handler="DebitWallet">
+            <input type="hidden" name="userId" id="debitUserId" />
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Số xu</label>
+                    <input type="number" name="amount" min="1000" step="1000" required placeholder="VD: 10000"
+                           class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Lý do</label>
+                    <input type="text" name="description" placeholder="VD: Sửa nhầm cộng xu #12"
+                           class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                </div>
+                <p class="text-xs text-amber-600 dark:text-amber-400">⚠ Trừ sẽ thất bại nếu số dư người dùng không đủ.</p>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button type="submit" class="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-semibold transition-colors">Xác nhận</button>
+                <button type="button" onclick="document.getElementById('debitModal').classList.add('hidden')"
+                        class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-sm font-semibold">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Set Role Modal -->
+<div id="roleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-sm mx-4 p-6">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Đổi vai trò</h3>
+        <p id="roleModalName" class="text-sm text-slate-500 mb-4"></p>
+        <form method="post" asp-page-handler="SetRoles">
+            <input type="hidden" name="userId" id="roleUserId" />
+            <div class="space-y-2">
+                @foreach (var r in SportHub.Pages.Admin.AdminUsersModel.AllRoles)
+                {
+                    <label class="flex items-center gap-2.5 text-sm cursor-pointer p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <input type="checkbox" name="roles" value="@r" class="role-checkbox w-4 h-4 rounded" data-role="@r" style="accent-color:#50A5B1" />
+                        <span class="text-slate-700 dark:text-slate-300">@r</span>
+                    </label>
+                }
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button type="submit" class="flex-1 py-2 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-semibold transition-colors">Lưu</button>
+                <button type="button" onclick="document.getElementById('roleModal').classList.add('hidden')"
                         class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-sm font-semibold">Hủy</button>
             </div>
         </form>
@@ -329,6 +431,19 @@ function openCreditModal(userId, name) {
     document.getElementById('creditUserId').value = userId;
     document.getElementById('creditModalName').textContent = name + ' (#' + userId + ')';
     document.getElementById('creditModal').classList.remove('hidden');
+}
+function openDebitModal(userId, name) {
+    document.getElementById('debitUserId').value = userId;
+    document.getElementById('debitModalName').textContent = name + ' (#' + userId + ')';
+    document.getElementById('debitModal').classList.remove('hidden');
+}
+function openRoleModal(userId, name, currentRoles) {
+    document.getElementById('roleUserId').value = userId;
+    document.getElementById('roleModalName').textContent = name + ' (#' + userId + ')';
+    document.querySelectorAll('.role-checkbox').forEach(function (cb) {
+        cb.checked = currentRoles.indexOf(cb.dataset.role) !== -1;
+    });
+    document.getElementById('roleModal').classList.remove('hidden');
 }
 </script>
 }
