@@ -21,4 +21,7 @@
   <data name="Active" xml:space="preserve"><value>Đang sử dụng</value></data>
   <data name="LangTitle" xml:space="preserve"><value>Ngôn ngữ</value></data>
   <data name="LangDesc" xml:space="preserve"><value>Chọn ngôn ngữ hiển thị chính.</value></data>
+  <data name="NotifyTitle" xml:space="preserve"><value>Thông báo</value></data>
+  <data name="NotifyDesc" xml:space="preserve"><value>Quản lý cách bạn nhận thông báo từ SportHub.</value></data>
+  <data name="NotifyEmailLabel" xml:space="preserve"><value>Nhận thông báo quan trọng qua email (trận được duyệt, bị hủy, khuyến mãi)</value></data>
 </root>
