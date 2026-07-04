@@ -21,4 +21,7 @@
   <data name="Active" xml:space="preserve"><value>Active</value></data>
   <data name="LangTitle" xml:space="preserve"><value>Language</value></data>
   <data name="LangDesc" xml:space="preserve"><value>Choose the primary display language.</value></data>
+  <data name="NotifyTitle" xml:space="preserve"><value>Notifications</value></data>
+  <data name="NotifyDesc" xml:space="preserve"><value>Manage how you receive notifications from SportHub.</value></data>
+  <data name="NotifyEmailLabel" xml:space="preserve"><value>Receive important notifications via email (match approved, cancelled, promotions)</value></data>
 </root>
