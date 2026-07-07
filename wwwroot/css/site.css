@@ -81,10 +81,13 @@ body {
    MOBILE OPTIMIZATIONS (M6–M8)
    ============================================= */
 
-/* M6: Minimum touch target size on mobile */
+/* M6: Minimum touch target size on mobile.
+   Chỉ áp cho button (tự căn giữa nội dung theo UA style) và hạ 44px → 32px theo
+   hướng UI gọn. KHÔNG áp cho <a>/select: anchor bị ép min-height sẽ dồn chữ lên
+   đỉnh (không tự căn giữa) — thủ phạm chip lọc/link "Xem →" cao bất thường. */
 @media (max-width: 1023px) {
-    button, a, [role="button"], select, input[type="submit"], input[type="button"] {
-        min-height: 44px;
+    button, [role="button"], input[type="submit"], input[type="button"] {
+        min-height: 32px;
     }
     /* Inputs: add comfortable padding for thumbs */
     input[type="text"], input[type="email"], input[type="password"],
