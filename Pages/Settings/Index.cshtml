@@ -220,15 +220,33 @@
                         @Html.AntiForgeryToken()
                         <div>
                             <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["CurrentPassword"]</label>
-                            <input type="password" asp-for="PasswordInput.CurrentPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                            <div class="relative">
+                                <input type="password" id="stCurrentPwd" asp-for="PasswordInput.CurrentPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 pr-10 text-sm" />
+                                <button type="button" onclick="toggleSettingsPassword('stCurrentPwd', 'stEyeCurrent')"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                    <span id="stEyeCurrent" class="material-symbols-outlined text-lg">visibility</span>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["NewPassword"]</label>
-                            <input type="password" asp-for="PasswordInput.NewPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                            <div class="relative">
+                                <input type="password" id="stNewPwd" asp-for="PasswordInput.NewPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 pr-10 text-sm" />
+                                <button type="button" onclick="toggleSettingsPassword('stNewPwd', 'stEyeNew')"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                    <span id="stEyeNew" class="material-symbols-outlined text-lg">visibility</span>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">@Localizer["ConfirmNewPassword"]</label>
-                            <input type="password" asp-for="PasswordInput.ConfirmPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm" />
+                            <div class="relative">
+                                <input type="password" id="stConfirmPwd" asp-for="PasswordInput.ConfirmPassword" class="w-full rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 pr-10 text-sm" />
+                                <button type="button" onclick="toggleSettingsPassword('stConfirmPwd', 'stEyeConfirm')"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                    <span id="stEyeConfirm" class="material-symbols-outlined text-lg">visibility</span>
+                                </button>
+                            </div>
                         </div>
                         <button type="submit" class="px-5 py-2 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-semibold transition-colors">
                             @Localizer["ChangePasswordBtn"]
@@ -247,3 +265,15 @@
         <p class="text-xs text-slate-400 font-medium tracking-widest uppercase">SportHub v1.0.0 - 2026</p>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        function toggleSettingsPassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        }
+    </script>
+}

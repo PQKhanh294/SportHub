@@ -93,16 +93,28 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 field-4">
                 <div>
                     <label class="block text-sm font-semibold text-white/80 mb-1.5">Mật khẩu</label>
-                    <input asp-for="Input.Password" type="password"
-                           class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
-                           placeholder="••••••••" />
+                    <div class="relative">
+                        <input asp-for="Input.Password" id="passwordInput" type="password"
+                               class="w-full h-11 px-4 pr-11 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                               placeholder="••••••••" />
+                        <button type="button" onclick="toggleRegPassword('passwordInput', 'eyeIconPwd')"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
+                            <span id="eyeIconPwd" class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
                     <span asp-validation-for="Input.Password" class="text-xs text-red-400"></span>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-white/80 mb-1.5">Xác nhận mật khẩu</label>
-                    <input asp-for="Input.ConfirmPassword" type="password"
-                           class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
-                           placeholder="••••••••" />
+                    <div class="relative">
+                        <input asp-for="Input.ConfirmPassword" id="confirmPasswordInput" type="password"
+                               class="w-full h-11 px-4 pr-11 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                               placeholder="••••••••" />
+                        <button type="button" onclick="toggleRegPassword('confirmPasswordInput', 'eyeIconConfirm')"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
+                            <span id="eyeIconConfirm" class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
                     <span asp-validation-for="Input.ConfirmPassword" class="text-xs text-red-400"></span>
                 </div>
             </div>
@@ -122,3 +134,15 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function toggleRegPassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+        }
+    </script>
+}
