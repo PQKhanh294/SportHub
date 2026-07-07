@@ -10,5 +10,11 @@ namespace SportHub.Services.Interfaces
         Task SendPasswordResetAsync(string toEmail, string fullName, string resetUrl);
         Task SendVerificationCodeAsync(string toEmail, string fullName, string code);
         Task<(bool Success, string Detail)> SendTestAsync(string toEmail);
+
+        Task SendDailyDigestAsync(string toEmail, string fullName, List<(string SenderName, int UnreadCount)> unreadChats,
+            List<(string Title, string Message)> unreadNotifications, string? aiSummary, string dashboardUrl);
+        Task SendPaymentReminderAsync(string toEmail, string fullName, string matchTitle, string paymentType,
+            decimal amount, DateTime expiresAt, string payUrl, bool urgent = false);
+        Task SendMatchJoinRequestAsync(string toEmail, string fullName, string matchTitle, string playerName, string matchUrl);
     }
 }

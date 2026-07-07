@@ -19,6 +19,8 @@ namespace SportHub.Pages.Matchmaking
         private readonly IDisputeService _disputeService;
         private readonly IWebHostEnvironment _env;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
         public DetailsModel(
             IMatchService matchService,
@@ -28,7 +30,9 @@ namespace SportHub.Pages.Matchmaking
             ISubscriptionService subscriptionService,
             IDisputeService disputeService,
             IWebHostEnvironment env,
-            IHubContext<NotificationHub> hubContext)
+            IHubContext<NotificationHub> hubContext,
+            IEmailService emailService,
+            IConfiguration config)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
@@ -38,6 +42,8 @@ namespace SportHub.Pages.Matchmaking
             _disputeService = disputeService;
             _env = env;
             _hubContext = hubContext;
+            _emailService = emailService;
+            _config = config;
         }
 
         public MatchDetailItem? Item { get; set; }
@@ -216,6 +222,21 @@ namespace SportHub.Pages.Matchmaking
                     "Có người muốn tham gia trận",
                     $"{currentUser} gửi yêu cầu tham gia trận \"{match.Title ?? match.MatchType}\". Vui lòng duyệt trong 1 giờ.",
                     $"/Matchmaking/Details?id={id}");
+
+                await _hubContext.Clients.Group($"user:{match.CreatedByUserID}").SendAsync("match_join_request", new
+                {
+                    matchId = id,
+                    matchTitle = match.Title ?? match.MatchType,
+                    playerName = currentUser,
+                    playerUserId = userId
+                });
+
+                if (match.CreatedByUser?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(match.CreatedByUser.Email))
+                {
+                    var baseUrl = (_config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn/").TrimEnd('/');
+                    await _emailService.SendMatchJoinRequestAsync(match.CreatedByUser.Email, match.CreatedByUser.FullName,
+                        match.Title ?? match.MatchType, currentUser, $"{baseUrl}/Matchmaking/Details?id={id}");
+                }
             }
             else
             {

@@ -29,13 +29,16 @@ namespace SportHub.Services
             _logger = logger;
         }
 
-        private async Task RemindRemainingFeesAsync(IServiceScope scope, INotificationService notificationService, CancellationToken ct)
+        private async Task RemindRemainingFeesAsync(IServiceScope scope, INotificationService notificationService, IEmailService emailService, CancellationToken ct)
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            var baseUrl = (config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn/").TrimEnd('/');
             var now = DateTime.UtcNow;
 
             var pendingRemaining = await db.MatchPayments
                 .Include(p => p.Match)
+                .Include(p => p.Payer)
                 .Where(p => p.PaymentType == "HostRemaining"
                     && p.Status == "Pending"
                     && p.ReceiptUrl == null
@@ -65,6 +68,9 @@ namespace SportHub.Services
                     "Nhắc nhở: còn 24h để nộp phí còn lại",
                     $"Trận \"{title}\" — còn 24 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu.",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
+                if (p.Payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.Payer.Email))
+                    await emailService.SendPaymentReminderAsync(p.Payer.Email, p.Payer.FullName, title, p.PaymentType,
+                        p.Amount, p.ExpiresAt ?? now.AddHours(24), $"{baseUrl}/Matchmaking/Payment?matchId={p.MatchID}&type=remaining", urgent: false);
                 p.ReminderSentAt = now;
             }
 
@@ -77,6 +83,9 @@ namespace SportHub.Services
                     "Khẩn: còn ít hơn 4h nộp phí còn lại!",
                     $"Trận \"{title}\" — còn ít hơn 4 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu. Hãy nộp ngay!",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
+                if (p.Payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.Payer.Email))
+                    await emailService.SendPaymentReminderAsync(p.Payer.Email, p.Payer.FullName, title, p.PaymentType,
+                        p.Amount, p.ExpiresAt ?? now.AddHours(4), $"{baseUrl}/Matchmaking/Payment?matchId={p.MatchID}&type=remaining", urgent: true);
                 p.ReminderSentAt = now;
             }
 
@@ -243,6 +252,7 @@ namespace SportHub.Services
                     var matchService = scope.ServiceProvider.GetRequiredService<IMatchService>();
                     var matchPaymentService = scope.ServiceProvider.GetRequiredService<IMatchPaymentService>();
                     var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
                     // 1. Hủy Pending join quá 1 giờ
                     var expiredJoins = await matchService.ExpireStalePendingJoinsAsync(MaxPendingAge, stoppingToken);
@@ -288,7 +298,7 @@ namespace SportHub.Services
                         _logger.LogInformation("Sent {Count} remaining fee notification(s).", remainingFeeMatches.Count);
 
                     // 4. Remind host to pay HostRemaining fee (24h warning + 4h urgent)
-                    await RemindRemainingFeesAsync(scope, notificationService, stoppingToken);
+                    await RemindRemainingFeesAsync(scope, notificationService, emailService, stoppingToken);
 
                     // 5. Auto-complete matches that have ended + send review reminders
                     await AutoCompleteMatchesAsync(scope, notificationService, stoppingToken);

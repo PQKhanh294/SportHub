@@ -40,6 +40,7 @@ namespace SportHub.Data
         public DbSet<TimeSlot> TimeSlots { get; set; } = null!;
         public DbSet<PricingRule> PricingRules { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
+        public DbSet<EmailLog> EmailLogs { get; set; } = null!;
 
         // Nhóm 6: New Features
         public DbSet<UserSportProfile> UserSportProfiles { get; set; } = null!;
@@ -96,6 +97,7 @@ namespace SportHub.Data
             modelBuilder.Entity<MatchPayment>().ToTable("MatchPayments");
             modelBuilder.Entity<MatchReview>().ToTable("MatchReviews");
             modelBuilder.Entity<Review>().ToTable("Reviews");
+            modelBuilder.Entity<EmailLog>().ToTable("EmailLogs");
             modelBuilder.Entity<WalletTransaction>().ToTable("WalletTransactions");
             modelBuilder.Entity<UserSportProfile>().ToTable("UserSportProfiles");
             modelBuilder.Entity<Notification>().ToTable("Notifications");

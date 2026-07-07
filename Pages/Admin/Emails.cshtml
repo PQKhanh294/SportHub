@@ -97,6 +97,13 @@
                 </div>
             </div>
             <div class="px-5 py-3 flex items-start gap-3">
+                <span class="material-symbols-outlined text-slate-400 text-lg mt-0.5">person_search</span>
+                <div>
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Có người muốn tham gia trận</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Gửi cho chủ trận (host) ngay khi có người gửi yêu cầu tham gia — để host không bỏ lỡ mà duyệt trễ.</p>
+                </div>
+            </div>
+            <div class="px-5 py-3 flex items-start gap-3">
                 <span class="material-symbols-outlined text-slate-400 text-lg mt-0.5">event_busy</span>
                 <div>
                     <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Trận đấu đã bị hủy</p>
@@ -110,6 +117,61 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">Gửi tự động khoảng 2 giờ trước giờ thi đấu cho người tham gia đã được xác nhận.</p>
                 </div>
             </div>
+            <div class="px-5 py-3 flex items-start gap-3">
+                <span class="material-symbols-outlined text-slate-400 text-lg mt-0.5">payments</span>
+                <div>
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Nhắc thanh toán phí còn lại</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Tự động gửi lúc còn 24h và lúc còn dưới 4h (khẩn cấp) trước hạn thanh toán phí dịch vụ còn lại. Admin cũng có thể gửi thủ công ở phần bên dưới.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tổng hợp hằng ngày</p>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+            <div class="px-5 py-3 flex items-start gap-3">
+                <span class="material-symbols-outlined text-slate-400 text-lg mt-0.5">summarize</span>
+                <div>
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Email tổng hợp 7h sáng</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Gửi lúc 7h sáng mỗi ngày cho người dùng có tin nhắn hoặc thông báo chưa đọc từ hôm qua — có kèm câu tóm tắt do AI viết. Không gửi nếu không có gì chưa đọc.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thanh toán đang chờ / quá hạn -->
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+            <div>
+                <h2 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">payments</span>
+                    Thanh toán đang chờ / quá hạn
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gửi nhắc nhở thủ công thay vì phải tự tìm người dùng để nhắn tay.</p>
+            </div>
+            <button type="button" id="remindOverdueBtn" onclick="sendReminders('overdue')"
+                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-xs font-semibold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">notifications_active</span>
+                Gửi tất cả đang quá hạn
+            </button>
+        </div>
+        <div id="pendingPaymentsBox" class="divide-y divide-slate-100 dark:divide-slate-800">
+            <div class="p-6 text-center text-sm text-slate-400">Đang tải...</div>
+        </div>
+    </div>
+
+    <!-- Lịch sử gửi email -->
+    <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">history</span>
+                Lịch sử gửi email
+            </h2>
+            <p id="emailLogStats" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Đang tải...</p>
+        </div>
+        <div id="emailLogBox" class="divide-y divide-slate-100 dark:divide-slate-800 max-h-[480px] overflow-y-auto">
+            <div class="p-6 text-center text-sm text-slate-400">Đang tải...</div>
         </div>
     </div>
 </div>
@@ -145,5 +207,103 @@
                 btn.disabled = false;
             }
         }
+
+        const paymentTypeLabel = { HostRemaining: 'Phí còn lại', PlayerFee: 'Phí tham gia', HostDeposit: 'Đặt cọc' };
+
+        async function loadPendingPayments() {
+            const box = document.getElementById('pendingPaymentsBox');
+            try {
+                const res = await fetch('/api/admin/pending-payments');
+                const items = await res.json();
+                if (!items.length) {
+                    box.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Không có khoản thanh toán nào đang chờ.</div>';
+                    return;
+                }
+                const now = Date.now();
+                box.innerHTML = items.map(function (p) {
+                    const overdue = p.expiresAt && new Date(p.expiresAt).getTime() < now;
+                    const expText = p.expiresAt
+                        ? new Date(p.expiresAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+                        : 'Không giới hạn';
+                    return `
+                        <div class="px-5 py-3 flex items-center gap-3 flex-wrap">
+                            <input type="checkbox" class="payment-check w-4 h-4 rounded" value="${p.paymentId}" style="accent-color:#50A5B1" />
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">${p.payerName} — ${p.matchTitle}</p>
+                                <p class="text-xs text-slate-400">${paymentTypeLabel[p.paymentType] || p.paymentType} · ${Number(p.amount).toLocaleString('vi-VN')}đ · Hạn: <span class="${overdue ? 'text-rose-500 font-bold' : ''}">${expText}${overdue ? ' (quá hạn)' : ''}</span></p>
+                            </div>
+                            <button type="button" onclick="sendReminders('single', ${p.paymentId})"
+                                    class="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/5 hover:bg-primary/10 rounded-md flex items-center gap-1 shrink-0">
+                                <span class="material-symbols-outlined text-sm">send</span>
+                                Gửi nhắc nhở
+                            </button>
+                        </div>`;
+                }).join('');
+            } catch (ex) {
+                box.innerHTML = '<div class="p-6 text-center text-sm text-rose-400">Lỗi tải danh sách: ' + ex.message + '</div>';
+            }
+        }
+
+        async function sendReminders(mode, singleId) {
+            let ids = [];
+            if (mode === 'single') {
+                ids = [singleId];
+            } else if (mode === 'selected') {
+                ids = Array.from(document.querySelectorAll('.payment-check:checked')).map(function (c) { return Number(c.value); });
+            } else if (mode === 'overdue') {
+                const now = Date.now();
+                document.querySelectorAll('.payment-check').forEach(function (c) {
+                    const row = c.closest('div.px-5');
+                    if (row && row.textContent.includes('quá hạn')) ids.push(Number(c.value));
+                });
+            }
+            if (ids.length === 0) {
+                alert('Không có khoản thanh toán nào để gửi.');
+                return;
+            }
+            try {
+                const res = await fetch('/api/admin/send-payment-reminder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentIds: ids })
+                });
+                const data = await res.json();
+                alert(`Đã gửi ${data.sent} email nhắc nhở${data.skipped ? `, bỏ qua ${data.skipped} người đã tắt nhận email` : ''}.`);
+                loadEmailLog();
+            } catch (ex) {
+                alert('Lỗi gửi nhắc nhở: ' + ex.message);
+            }
+        }
+
+        async function loadEmailLog() {
+            const box = document.getElementById('emailLogBox');
+            const stats = document.getElementById('emailLogStats');
+            try {
+                const res = await fetch('/api/admin/email-log');
+                const data = await res.json();
+                stats.textContent = `${data.sentToday} email đã gửi hôm nay, ${data.failedToday} lỗi.`;
+                if (!data.logs.length) {
+                    box.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Chưa có email nào được gửi.</div>';
+                    return;
+                }
+                box.innerHTML = data.logs.map(function (l) {
+                    const time = new Date(l.sentAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+                    return `
+                        <div class="px-5 py-2.5 flex items-center gap-3 text-sm">
+                            <span class="material-symbols-outlined text-base ${l.success ? 'text-emerald-500' : 'text-rose-500'}">${l.success ? 'check_circle' : 'error'}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-slate-700 dark:text-slate-300 truncate">${l.toEmail} <span class="text-slate-400 font-normal">— ${l.templateType}</span></p>
+                                ${!l.success && l.errorDetail ? `<p class="text-xs text-rose-400 truncate">${l.errorDetail}</p>` : ''}
+                            </div>
+                            <span class="text-xs text-slate-400 shrink-0">${time}</span>
+                        </div>`;
+                }).join('');
+            } catch (ex) {
+                box.innerHTML = '<div class="p-6 text-center text-sm text-rose-400">Lỗi tải lịch sử: ' + ex.message + '</div>';
+            }
+        }
+
+        loadPendingPayments();
+        loadEmailLog();
     </script>
 }
