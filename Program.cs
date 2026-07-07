@@ -116,6 +116,7 @@ builder.Services.AddScoped<SportHub.Services.Interfaces.IEmailService, SportHub.
 builder.Services.AddScoped<SportHub.Services.Interfaces.IDisputeService, SportHub.Services.Implementations.DisputeService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();
 builder.Services.AddHostedService<SportHub.Services.PromotionSchedulerService>();
+builder.Services.AddHostedService<SportHub.Services.DailyDigestEmailService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

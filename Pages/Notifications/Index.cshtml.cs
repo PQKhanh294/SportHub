@@ -29,9 +29,6 @@ namespace SportHub.Pages.Notifications
             Notifications = await _notificationService.GetUserNotificationsAsync(userId, 30);
             UnreadCount = Notifications.Count(n => !n.IsRead);
 
-            // Tự động mark all read khi vào trang
-            await _notificationService.MarkAllReadAsync(userId);
-
             return Page();
         }
 

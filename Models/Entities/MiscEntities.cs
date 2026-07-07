@@ -100,4 +100,24 @@ namespace SportHub.Models.Entities
         public DateTime? RespondedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
+
+    // Lịch sử gửi email qua Resend — phục vụ Admin/Emails tra cứu deliverability
+    public class EmailLog
+    {
+        public int EmailLogID { get; set; }
+
+        public int? UserID { get; set; }
+        public User? User { get; set; }
+
+        public string ToEmail { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+
+        // Tên method template, vd "SendMatchApprovedAsync", "SendPaymentReminderAsync", "SendTestAsync"
+        public string TemplateType { get; set; } = string.Empty;
+
+        public bool Success { get; set; }
+        public string? ErrorDetail { get; set; }
+
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    }
 }

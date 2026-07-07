@@ -32,7 +32,7 @@ namespace SportHub.Services.Implementations
 
         public async Task CreateAsync(int userId, string type, string title, string message, string? linkUrl = null)
         {
-            _context.Notifications.Add(new Notification
+            var notification = new Notification
             {
                 UserID = userId,
                 Type = type,
@@ -41,7 +41,8 @@ namespace SportHub.Services.Implementations
                 LinkUrl = linkUrl,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
-            });
+            };
+            _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
             var unreadCount = await _context.Notifications
@@ -50,6 +51,7 @@ namespace SportHub.Services.Implementations
             await _hubContext.Clients.Group($"user:{userId}")
                 .SendAsync("notification_received", new
                 {
+                    notificationId = notification.NotificationID,
                     type,
                     title,
                     message,

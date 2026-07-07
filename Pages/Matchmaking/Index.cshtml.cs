@@ -22,6 +22,8 @@ namespace SportHub.Pages.Matchmaking
         private readonly ISubscriptionService _subscriptionService;
         private readonly IAiChatService _aiChat;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
         public IndexModel(
             IMatchService matchService,
@@ -31,7 +33,9 @@ namespace SportHub.Pages.Matchmaking
             IMatchReviewService reviewService,
             ISubscriptionService subscriptionService,
             IAiChatService aiChat,
-            IHubContext<NotificationHub> hubContext)
+            IHubContext<NotificationHub> hubContext,
+            IEmailService emailService,
+            IConfiguration config)
         {
             _matchService = matchService;
             _notificationService = notificationService;
@@ -41,6 +45,8 @@ namespace SportHub.Pages.Matchmaking
             _subscriptionService = subscriptionService;
             _aiChat = aiChat;
             _hubContext = hubContext;
+            _emailService = emailService;
+            _config = config;
         }
 
         [TempData]
@@ -401,6 +407,13 @@ namespace SportHub.Pages.Matchmaking
                     playerName = currentUser,
                     playerUserId = userId
                 });
+
+                if (match.CreatedByUser?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(match.CreatedByUser.Email))
+                {
+                    var baseUrl = (_config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn/").TrimEnd('/');
+                    await _emailService.SendMatchJoinRequestAsync(match.CreatedByUser.Email, match.CreatedByUser.FullName,
+                        match.Title ?? match.MatchType, currentUser, $"{baseUrl}/Matchmaking/Details?id={id}");
+                }
             }
             else
             {

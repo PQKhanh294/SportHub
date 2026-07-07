@@ -2,18 +2,25 @@
 @model SportHub.Pages.Notifications.IndexModel
 @{
     ViewData["Title"] = "Notifications";
+    var urgentTypes = new HashSet<string> { "RemainingFeeReminder", "MatchJoinExpired", "BookingCancelled", "MatchPaymentRequired", "MatchRemainingFeeRequired" };
 }
 
 <section class="space-y-6">
-    <div class="flex items-center justify-between gap-3">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
         <div class="min-w-0">
             <h1 class="text-2xl sm:text-4xl font-black tracking-tight">Thông báo</h1>
             <p class="text-slate-500 dark:text-slate-400">Cập nhật về đặt sân, thanh toán và trận đấu.</p>
         </div>
-        <span id="notifications-unread-pill"
-              class="flex-shrink-0 px-3 py-1 bg-primary/10 text-primary font-bold rounded-md text-sm @(Model.UnreadCount > 0 ? "" : "hidden")">
-            @Model.UnreadCount chưa đọc
-        </span>
+        <div class="flex items-center gap-2">
+            <span id="notifications-unread-pill"
+                  class="flex-shrink-0 px-3 py-1 bg-primary/10 text-primary font-bold rounded-md text-sm @(Model.UnreadCount > 0 ? "" : "hidden")">
+                @Model.UnreadCount chưa đọc
+            </span>
+            <button type="button" id="mark-all-read-btn"
+                    class="flex-shrink-0 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-md hover:text-primary hover:border-primary/40 transition-colors @(Model.UnreadCount > 0 ? "" : "hidden")">
+                Đánh dấu tất cả đã đọc
+            </button>
+        </div>
     </div>
 
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-sm">
@@ -38,9 +45,12 @@
                         "BookingConfirmed"  => ("calendar_today","text-primary"),
                         "BookingCancelled"  => ("event_busy",    "text-rose-400"),
                         "Chat"              => ("chat",          "text-indigo-500"),
+                        "RemainingFeeReminder" or "MatchPaymentRequired" or "MatchRemainingFeeRequired" => ("payments", "text-rose-500"),
                         _                   => ("notifications", "text-slate-400")
                     };
-                    <article class="p-5 flex items-start gap-4 @(!n.IsRead ? "bg-primary/5 dark:bg-primary/10" : "")">
+                    var isUrgent = urgentTypes.Contains(n.Type);
+                    <article data-notification-id="@n.NotificationID"
+                             class="p-5 flex items-start gap-4 notif-item @(!n.IsRead ? "bg-primary/5 dark:bg-primary/10" : "") @(isUrgent && !n.IsRead ? "notif-urgent" : "")">
                         <span class="material-symbols-outlined @icon.Item2 mt-0.5 flex-shrink-0">@icon.Item1</span>
                         <div class="flex-1 min-w-0">
                             <p class="font-semibold text-slate-900 dark:text-white">@n.Title</p>
@@ -49,7 +59,7 @@
                         </div>
                         @if (!string.IsNullOrWhiteSpace(n.LinkUrl))
                         {
-                            <a href="@n.LinkUrl" class="shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>
+                            <a href="@n.LinkUrl" class="notif-view-link shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>
                         }
                     </article>
                 }
@@ -58,12 +68,23 @@
     </div>
 </section>
 
+@section Styles {
+    <style>
+        @@keyframes notifUrgentPulse {
+            0%, 100% { box-shadow: inset 3px 0 0 0 rgba(239,68,68,0.9); }
+            50%      { box-shadow: inset 3px 0 0 0 rgba(239,68,68,0.35); }
+        }
+        .notif-urgent { animation: notifUrgentPulse 1.8s ease-in-out infinite; }
+    </style>
+}
+
 @section Scripts {
     <script>
         (function () {
             const listEl = document.getElementById('notifications-list');
             const emptyEl = document.getElementById('notifications-empty');
             const unreadPill = document.getElementById('notifications-unread-pill');
+            const markAllBtn = document.getElementById('mark-all-read-btn');
 
             function iconFor(type) {
                 switch (type) {
@@ -74,9 +95,13 @@
                     case 'BookingConfirmed': return { icon: 'calendar_today', cls: 'text-primary' };
                     case 'BookingCancelled': return { icon: 'event_busy', cls: 'text-rose-400' };
                     case 'Chat': return { icon: 'chat', cls: 'text-indigo-500' };
+                    case 'RemainingFeeReminder': case 'MatchPaymentRequired': case 'MatchRemainingFeeRequired':
+                        return { icon: 'payments', cls: 'text-rose-500' };
                     default: return { icon: 'notifications', cls: 'text-slate-400' };
                 }
             }
+
+            const URGENT_TYPES = new Set(['RemainingFeeReminder', 'MatchJoinExpired', 'BookingCancelled', 'MatchPaymentRequired', 'MatchRemainingFeeRequired']);
 
             function formatDate(value) {
                 const d = new Date(value);
@@ -95,17 +120,20 @@
                 if (n <= 0) {
                     unreadPill.classList.add('hidden');
                     unreadPill.textContent = '';
+                    if (markAllBtn) markAllBtn.classList.add('hidden');
                 } else {
                     unreadPill.classList.remove('hidden');
                     unreadPill.textContent = `${n} chưa đọc`;
+                    if (markAllBtn) markAllBtn.classList.remove('hidden');
                 }
             }
 
             function prependNotification(payload) {
                 if (!payload || !listEl) return;
                 const icon = iconFor(payload.type);
+                const isUrgent = URGENT_TYPES.has(payload.type);
                 const article = document.createElement('article');
-                article.className = 'p-5 flex items-start gap-4 bg-primary/5 dark:bg-primary/10';
+                article.className = 'p-5 flex items-start gap-4 notif-item bg-primary/5 dark:bg-primary/10' + (isUrgent ? ' notif-urgent' : '');
                 article.innerHTML = `
                     <span class="material-symbols-outlined ${icon.cls} mt-0.5 flex-shrink-0">${icon.icon}</span>
                     <div class="flex-1 min-w-0">
@@ -113,15 +141,48 @@
                         <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5 max-w-prose">${payload.message || ''}</p>
                         <p class="text-xs text-slate-400 mt-1">${formatDate(payload.createdAt)}</p>
                     </div>
-                    ${payload.linkUrl ? `<a href="${payload.linkUrl}" class="shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>` : ''}
+                    ${payload.linkUrl ? `<a href="${payload.linkUrl}" class="notif-view-link shrink-0 text-xs font-bold text-primary hover:underline mt-1">Xem →</a>` : ''}
                 `;
                 listEl.prepend(article);
                 if (emptyEl) emptyEl.classList.add('hidden');
             }
 
+            // Bấm "Xem" → báo đã đọc (không chặn điều hướng) rồi tắt highlight ngay lập tức
+            document.addEventListener('click', function (ev) {
+                const link = ev.target.closest('.notif-view-link');
+                if (!link) return;
+                const article = link.closest('.notif-item');
+                if (!article) return;
+                const id = article.getAttribute('data-notification-id');
+                if (id) {
+                    navigator.sendBeacon('/api/notifications/mark-read/' + id);
+                }
+                article.classList.remove('bg-primary/5', 'dark:bg-primary/10', 'notif-urgent');
+            });
+
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', async function () {
+                    markAllBtn.disabled = true;
+                    try {
+                        await fetch('/api/notifications/mark-all-read', { method: 'POST' });
+                        document.querySelectorAll('.notif-item').forEach(function (el) {
+                            el.classList.remove('bg-primary/5', 'dark:bg-primary/10', 'notif-urgent');
+                        });
+                        updateUnreadPill(0);
+                    } finally {
+                        markAllBtn.disabled = false;
+                    }
+                });
+            }
+
             window.addEventListener('sporthub:notification', function (ev) {
                 const payload = ev.detail || {};
                 prependNotification(payload);
+                updateUnreadPill(payload.unreadCount);
+            });
+
+            window.addEventListener('sporthub:notifications_read', function (ev) {
+                const payload = ev.detail || {};
                 updateUnreadPill(payload.unreadCount);
             });
         })();
