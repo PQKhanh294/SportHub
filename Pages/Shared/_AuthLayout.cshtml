@@ -34,6 +34,10 @@
         }
     </script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* Mobile: thu nhỏ toàn bộ chữ + nút ~22% (đồng bộ với _Layout) */
+        @@media (max-width: 767px) { html { font-size: 12.5px; } }
+    </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen relative overflow-x-hidden">
@@ -73,6 +77,7 @@
             if (el) setTimeout(() => el.remove(), 3000);
         });
     </script>
+    <script src="~/js/sporthub-ux.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

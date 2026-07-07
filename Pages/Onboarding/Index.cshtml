@@ -48,13 +48,25 @@
                 <div id="skillContainer" class="space-y-4 mt-2"></div>
             </div>
 
-            <!-- Step 3: Khu vực -->
+            <!-- Step 3: Khu vực + SĐT -->
             <div class="step" id="step3">
                 <div class="mt-2 space-y-3">
-                    <input type="text" id="onboardAddress" name="defaultAddress"
-                           class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
-                           placeholder="Ví dụ: Quận Ngũ Hành Sơn, Đà Nẵng" />
+                    <div class="relative">
+                        <input type="text" id="onboardAddress" name="defaultAddress" autocomplete="off"
+                               class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                               placeholder="Ví dụ: Quận Ngũ Hành Sơn, Đà Nẵng" />
+                        <div id="onboardAddrSuggest" class="hidden absolute top-full left-0 right-0 bg-slate-800 border border-white/15 rounded-md mt-1 max-h-44 overflow-y-auto z-20 shadow-xl"></div>
+                        <input type="hidden" id="onboardLat" name="defaultLatitude" />
+                        <input type="hidden" id="onboardLon" name="defaultLongitude" />
+                    </div>
                     <p class="text-xs text-white/40">Dùng để hiển thị các trận đấu gần bạn trước.</p>
+                    <div>
+                        <label class="block text-sm font-semibold text-white/80 mb-1.5">Số điện thoại</label>
+                        <input type="tel" id="onboardPhone" name="phoneNumber" autocomplete="tel"
+                               class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
+                               placeholder="0901234567" />
+                        <p class="text-xs text-white/40 mt-1">Để người cùng trận liên hệ trước giờ đấu.</p>
+                    </div>
                 </div>
             </div>
 
@@ -152,6 +164,43 @@ function buildSkillStep() {
         container.appendChild(div);
     });
 }
+
+// Gợi ý địa chỉ — cùng nguồn /geo/search với popup hoàn thiện hồ sơ
+(function () {
+    var input = document.getElementById('onboardAddress');
+    var sug = document.getElementById('onboardAddrSuggest');
+    var timer = null;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        document.getElementById('onboardLat').value = '';
+        document.getElementById('onboardLon').value = '';
+        var q = this.value.trim();
+        if (q.length < 3) { sug.classList.add('hidden'); return; }
+        timer = setTimeout(async function () {
+            try {
+                var res = await fetch('/geo/search?q=' + encodeURIComponent(q) + '&limit=5', { headers: { Accept: 'application/json' } });
+                var data = res.ok ? await res.json() : [];
+                sug.innerHTML = '';
+                (data || []).forEach(function (item) {
+                    var div = document.createElement('div');
+                    div.className = 'px-3 py-2 text-xs cursor-pointer hover:bg-white/10 text-white/90 border-b border-white/10 last:border-0';
+                    div.textContent = item.display_name || '';
+                    div.addEventListener('click', function () {
+                        input.value = item.display_name || q;
+                        document.getElementById('onboardLat').value = item.lat || '';
+                        document.getElementById('onboardLon').value = item.lon || '';
+                        sug.classList.add('hidden');
+                    });
+                    sug.appendChild(div);
+                });
+                sug.classList.toggle('hidden', !data || data.length === 0);
+            } catch (e) { sug.classList.add('hidden'); }
+        }, 450);
+    });
+    document.addEventListener('click', function (e) {
+        if (!input.contains(e.target) && !sug.contains(e.target)) sug.classList.add('hidden');
+    });
+})();
 
 // On final submit, populate hidden inputs
 document.getElementById('onboardForm').addEventListener('submit', function() {

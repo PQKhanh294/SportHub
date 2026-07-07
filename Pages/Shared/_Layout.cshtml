@@ -366,7 +366,7 @@
                             <a href="/Wallet" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                                 <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span> Ví
                             </a>
-                            <button type="button" onclick="SportHubTour.restart()" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <button type="button" onclick="SportHubTour.restart()" class="w-full flex items-center justify-start text-left gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                                 <span class="material-symbols-outlined text-sm text-slate-400">help</span> Xem lại hướng dẫn
                             </button>
                             <div class="border-t border-slate-100 dark:border-slate-800">
@@ -974,6 +974,8 @@ body { }
 #ai-chat-wrap.fab-dragging, #chat-popup-wrap.fab-dragging { transition: none !important; }
 /* Bottom nav safe area */
 #mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Mobile: thu nhỏ toàn bộ chữ + nút ~22% (Tailwind dùng rem nên scale theo root font-size) */
+@@media (max-width: 767px) { html { font-size: 12.5px; } }
 /* Hide footer on mobile to save space */
 @@media (max-width: 1023px) { footer { display: none; } }
 /* ── Global rounding: tất cả button native → 6px, giữ nguyên rounded-full / 50% ── */
@@ -2241,6 +2243,7 @@ window.updateRightSidebarState = function () {
 }
 <script>window.__spFirstLogin = @(isFirstLogin ? "true" : "false");</script>
 <script src="~/js/sporthub-tour.js" asp-append-version="true"></script>
+<script src="~/js/sporthub-ux.js" asp-append-version="true"></script>
 <script>
 (function() {
     var LIGHT_AV = '/images/avatar-default.png';

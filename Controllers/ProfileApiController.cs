@@ -26,7 +26,30 @@ namespace SportHub.Controllers
                 .OrderBy(s => s.SportName)
                 .Select(s => new { id = s.SportID, name = s.SportName })
                 .ToListAsync();
-            return Ok(new { sports });
+
+            // Trả kèm hồ sơ hiện tại để popup prefill — tránh bắt user điền lại thứ đã điền ở Onboarding
+            var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+            var user = await _context.Users.AsNoTracking()
+                .Where(u => u.UserID == userId)
+                .Select(u => new { u.PhoneNumber, u.DefaultAddress, u.DefaultLatitude, u.DefaultLongitude })
+                .FirstOrDefaultAsync();
+            var mySports = await _context.UserSportProfiles.AsNoTracking()
+                .Where(p => p.UserID == userId)
+                .Select(p => new { sportId = p.SportID, skillLevel = p.SkillLevel })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                sports,
+                current = new
+                {
+                    phoneNumber = user?.PhoneNumber,
+                    defaultAddress = user?.DefaultAddress,
+                    latitude = user?.DefaultLatitude,
+                    longitude = user?.DefaultLongitude,
+                    sports = mySports
+                }
+            });
         }
 
         [HttpPost("complete")]
