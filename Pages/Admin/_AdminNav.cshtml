@@ -55,6 +55,10 @@
         <span class="material-symbols-outlined text-[15px]">gavel</span>
         @(isEn ? "Disputes" : "Khiếu nại")
     </a>
+    <a asp-page="/Admin/Emails" class="@navItemBase @(current == "Emails" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[15px]">mail</span>
+        @(isEn ? "Emails" : "Email")
+    </a>
 </nav>
 <!-- Gradient fade hint — more items to scroll -->
 <div class="absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-slate-100 dark:from-slate-950 to-transparent pointer-events-none"></div>

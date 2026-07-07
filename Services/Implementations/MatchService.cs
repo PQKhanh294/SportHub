@@ -525,7 +525,7 @@ namespace SportHub.Services.Implementations
             foreach (var payment in playerFeePayments)
             {
                 await _walletService.CreditAsync(payment.PayerUserID, payment.Amount,
-                    $"Hoàn phí trận #{matchId} — {match.Title ?? "Trận đấu"}", matchId: matchId, type: "Refund");
+                    $"Hoàn phí trận #{matchId} — {match.Title ?? "Trận đấu"}", matchId: matchId, type: "Refund", sendEmail: false);
                 payment.Status = "Refunded";
 
                 await _notificationService.CreateAsync(
