@@ -23,7 +23,19 @@
   <data name="LangDesc" xml:space="preserve"><value>Choose the primary display language.</value></data>
   <data name="NotifyTitle" xml:space="preserve"><value>Notifications</value></data>
   <data name="NotifyDesc" xml:space="preserve"><value>Manage how you receive notifications from SportHub.</value></data>
-  <data name="NotifyEmailLabel" xml:space="preserve"><value>Receive important notifications via email (match approved, cancelled, promotions)</value></data>
+  <data name="NotifyEmailLabel" xml:space="preserve"><value>Receive email notifications (master switch — turning this off disables all types below)</value></data>
+  <data name="NotifyGroupWallet" xml:space="preserve"><value>Wallet &amp; promotions</value></data>
+  <data name="NotifyWalletCreditLabel" xml:space="preserve"><value>Wallet credited</value></data>
+  <data name="NotifyPromoCodeLabel" xml:space="preserve"><value>Promo code / voucher</value></data>
+  <data name="NotifyGroupMatch" xml:space="preserve"><value>Match activity</value></data>
+  <data name="NotifyMatchApprovedLabel" xml:space="preserve"><value>Join request approved</value></data>
+  <data name="NotifyMatchJoinRequestLabel" xml:space="preserve"><value>Someone requests to join your match (host)</value></data>
+  <data name="NotifyMatchCancelledLabel" xml:space="preserve"><value>Match cancelled</value></data>
+  <data name="NotifyMatchReminderLabel" xml:space="preserve"><value>Match schedule reminder</value></data>
+  <data name="NotifyPaymentReminderLabel" xml:space="preserve"><value>Remaining fee payment reminder</value></data>
+  <data name="NotifyGroupDigest" xml:space="preserve"><value>Daily digest</value></data>
+  <data name="NotifyDailyDigestLabel" xml:space="preserve"><value>Daily digest email (7am)</value></data>
+  <data name="NotifySaveBtn" xml:space="preserve"><value>Save changes</value></data>
   <data name="PrivacyTitle" xml:space="preserve"><value>Privacy</value></data>
   <data name="PrivacyDesc" xml:space="preserve"><value>Control who can see your contact info.</value></data>
   <data name="PrivacyContactLabel" xml:space="preserve"><value>Show phone/Zalo to teammates after being approved</value></data>

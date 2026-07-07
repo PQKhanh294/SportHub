@@ -68,7 +68,7 @@ namespace SportHub.Services
                     "Nhắc nhở: còn 24h để nộp phí còn lại",
                     $"Trận \"{title}\" — còn 24 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu.",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
-                if (p.Payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.Payer.Email))
+                if (p.Payer?.NotifyByEmail == true && p.Payer.NotifyPaymentReminder && !string.IsNullOrWhiteSpace(p.Payer.Email))
                     await emailService.SendPaymentReminderAsync(p.Payer.Email, p.Payer.FullName, title, p.PaymentType,
                         p.Amount, p.ExpiresAt ?? now.AddHours(24), $"{baseUrl}/Matchmaking/Payment?matchId={p.MatchID}&type=remaining", urgent: false);
                 p.ReminderSentAt = now;
@@ -83,7 +83,7 @@ namespace SportHub.Services
                     "Khẩn: còn ít hơn 4h nộp phí còn lại!",
                     $"Trận \"{title}\" — còn ít hơn 4 giờ để nộp phí dịch vụ còn lại {p.Amount:N0} xu. Hãy nộp ngay!",
                     $"/Matchmaking/Payment?matchId={p.MatchID}&type=remaining");
-                if (p.Payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.Payer.Email))
+                if (p.Payer?.NotifyByEmail == true && p.Payer.NotifyPaymentReminder && !string.IsNullOrWhiteSpace(p.Payer.Email))
                     await emailService.SendPaymentReminderAsync(p.Payer.Email, p.Payer.FullName, title, p.PaymentType,
                         p.Amount, p.ExpiresAt ?? now.AddHours(4), $"{baseUrl}/Matchmaking/Payment?matchId={p.MatchID}&type=remaining", urgent: true);
                 p.ReminderSentAt = now;
@@ -226,7 +226,7 @@ namespace SportHub.Services
                 {
                     if (remindedSet.Contains((match.MatchID, p.UserID))) continue;
 
-                    if (p.User?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(p.User.Email))
+                    if (p.User?.NotifyByEmail == true && p.User.NotifyMatchReminder && !string.IsNullOrWhiteSpace(p.User.Email))
                     {
                         await emailService.SendMatchReminderAsync(p.User.Email, p.User.FullName, matchTitle, matchDateStr, venue);
                         sentCount++;
