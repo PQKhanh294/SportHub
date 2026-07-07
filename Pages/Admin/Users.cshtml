@@ -2,7 +2,7 @@
 @model SportHub.Pages.Admin.AdminUsersModel
 @using System.Globalization
 @{
-    ViewData["Title"] = "Admin — Users";
+    ViewData["Title"] = "Admin — Người dùng";
     var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var activeCount   = Model.Users.Count(u => u.IsActive);
     var inactiveCount = Model.Users.Count(u => !u.IsActive);
@@ -13,6 +13,13 @@
         .ToList();
     var monthLabels = string.Join(",", joinedByMonth.Select(g => $"\"{g.Key}\""));
     var monthCounts = string.Join(",", joinedByMonth.Select(g => g.Count()));
+    string RoleLabel(string r) => r switch
+    {
+        "Admin" => "Admin",
+        "CourtOwner" => "Chủ sân",
+        "Player" => "Người chơi",
+        _ => r
+    };
 }
 
 <div class="space-y-6">
@@ -109,7 +116,7 @@
                                     "CourtOwner" => "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
                                     _            => "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                                 };
-                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold @mrc">@role</span>
+                                <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold @mrc">@RoleLabel(role)</span>
                             }
                         </div>
                         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -226,7 +233,7 @@
                                         "CourtOwner" => "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
                                         _            => "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                                     };
-                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold @roleColor">@role</span>
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold @roleColor">@RoleLabel(role)</span>
                                 }
                             </td>
                             <td class="px-4 py-3 text-right">
@@ -366,7 +373,7 @@
                 {
                     <label class="flex items-center gap-2.5 text-sm cursor-pointer p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800">
                         <input type="checkbox" name="roles" value="@r" class="role-checkbox w-4 h-4 rounded" data-role="@r" style="accent-color:#50A5B1" />
-                        <span class="text-slate-700 dark:text-slate-300">@r</span>
+                        <span class="text-slate-700 dark:text-slate-300">@RoleLabel(r)</span>
                     </label>
                 }
             </div>
@@ -384,7 +391,7 @@
     <button onclick="toggleAdminChart('users-chart-section', this)" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
         <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
             <span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span>
-            User chart
+            Biểu đồ người dùng
         </div>
         <span class="material-symbols-outlined text-slate-400 text-[18px] chart-chevron">expand_more</span>
     </button>
@@ -436,13 +443,13 @@ function initUsersCharts() {
     var ctx1 = document.getElementById('usersStatusChart');
     if (ctx1) new Chart(ctx1, {
         type: 'doughnut',
-        data: { labels: ['Active', 'Suspended'], datasets: [{ data: [@activeCount, @inactiveCount], backgroundColor: ['#10b981','#ef4444'], borderWidth: 0 }] },
+        data: { labels: ['Hoạt động', 'Đã khóa'], datasets: [{ data: [@activeCount, @inactiveCount], backgroundColor: ['#10b981','#ef4444'], borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '55%' }
     });
     var ctx2 = document.getElementById('usersJoinChart');
     if (ctx2) new Chart(ctx2, {
         type: 'bar',
-        data: { labels: [@Html.Raw(monthLabels)], datasets: [{ label: 'Registrations', data: [@Html.Raw(monthCounts)], backgroundColor: '#50A5B1', borderRadius: 6 }] },
+        data: { labels: [@Html.Raw(monthLabels)], datasets: [{ label: 'Đăng ký mới', data: [@Html.Raw(monthCounts)], backgroundColor: '#50A5B1', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
     });
 }

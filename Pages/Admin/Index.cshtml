@@ -2,7 +2,7 @@
 @model SportHub.Pages.Admin.AdminIndexModel
 @using System.Globalization
 @{
-    ViewData["Title"] = "Admin — Dashboard";
+    ViewData["Title"] = "Admin — Tổng quan";
     var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var s = Model.Stats;
     var dr = Model.DailyRevenue;
@@ -17,7 +17,17 @@
     };
     var userLabels = string.Join(",", Model.DailyNewUsers.Select(x => $"\"{x.Date}\""));
     var userData = string.Join(",", Model.DailyNewUsers.Select(x => x.Count));
-    var statusLabels = string.Join(",", Model.MatchStatusCounts.Keys.Select(k => $"\"{k}\""));
+    string MatchStatusLabel(string status) => status switch
+    {
+        "Open" => "Đang mở",
+        "Full" => "Đã đầy",
+        "PendingDeposit" => "Chờ đặt cọc",
+        "Cancelled" => "Đã hủy",
+        "Completed" => "Hoàn thành",
+        "InProgress" => "Đang diễn ra",
+        _ => status
+    };
+    var statusLabels = string.Join(",", Model.MatchStatusCounts.Keys.Select(k => $"\"{MatchStatusLabel(k)}\""));
     var statusData = string.Join(",", Model.MatchStatusCounts.Values);
     var days = Model.Days;
 }
@@ -25,7 +35,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
-            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Admin Dashboard</h1>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Bảng điều khiển Admin</h1>
             <p class="text-sm text-slate-500 mt-1">@(isEn ? "SportHub system overview" : "Tổng quan hệ thống SportHub")</p>
         </div>
         <!-- Time range selector -->
@@ -278,9 +288,9 @@
         data: {
             labels: [@Html.Raw(labels)],
             datasets: [
-                { label: 'Host deposit', data: [@depositData], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
-                { label: 'Player fee',   data: [@feeData],     borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
-                { label: 'Host remainder', data: [@remainData], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4, pointRadius: 4 }
+                { label: 'Đặt cọc chủ trận', data: [@depositData], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
+                { label: 'Phí người chơi',   data: [@feeData],     borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 4 },
+                { label: 'Phí còn lại',      data: [@remainData], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4, pointRadius: 4 }
             ]
         },
         options: {
@@ -300,7 +310,7 @@
         type: 'bar',
         data: {
             labels: [@Html.Raw(userLabels)],
-            datasets: [{ label: 'New users', data: [@userData], backgroundColor: 'rgba(14,165,233,0.7)', borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4 }]
+            datasets: [{ label: 'Người dùng mới', data: [@userData], backgroundColor: 'rgba(14,165,233,0.7)', borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4 }]
         },
         options: {
             responsive: true,
@@ -334,7 +344,7 @@
     new Chart(document.getElementById('typeChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Host deposit', 'Player fee', 'Host remainder'],
+            labels: ['Đặt cọc chủ trận', 'Phí người chơi', 'Phí còn lại'],
             datasets: [{ data: [@typeTotal[0], @typeTotal[1], @typeTotal[2]], backgroundColor: ['#3b82f6','#10b981','#f59e0b'], borderWidth: 0, hoverOffset: 6 }]
         },
         options: {

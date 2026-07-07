@@ -1,7 +1,7 @@
 ﻿@page
 @model SportHub.Pages.Admin.MatchPaymentsModel
 @{
-    ViewData["Title"] = "Admin — Pending Payments";
+    ViewData["Title"] = "Admin — Thanh toán chờ xử lý";
     ViewData["AdminPage"] = "Payments";
     var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var hostDepositCount = Model.Payments.Count(p => p.PaymentType == "HostDeposit");
@@ -17,7 +17,7 @@
             <p class="text-sm text-slate-500 mt-1">@(isEn ? "Transactions awaiting receipt confirmation" : "Giao dịch chờ xác nhận biên lai")</p>
         </div>
         <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-bold rounded-md">
-            @Model.TotalPendingCount pending
+            @Model.TotalPendingCount đang chờ
         </span>
     </div>
 
@@ -103,11 +103,11 @@
                             <p class="font-bold text-slate-900 dark:text-white">@p.MatchTitle</p>
                             <p class="text-sm text-slate-500">@(isEn ? "Payer" : "Người thanh toán"): <span class="font-semibold text-slate-700 dark:text-slate-300">@p.PayerName</span></p>
                             <p class="text-sm text-slate-500 mt-1">
-                                Amount: <span class="font-bold text-primary">@p.Amount.ToString("N0") xu</span>
-                                <span class="ml-2 text-xs">• Submitted @p.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                Số tiền: <span class="font-bold text-primary">@p.Amount.ToString("N0") xu</span>
+                                <span class="ml-2 text-xs">• Gửi lúc @p.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</span>
                                 @if (p.ExpiresAt.HasValue)
                                 {
-                                    <span class="ml-2 text-xs text-amber-700 dark:text-amber-400">• Expires @p.ExpiresAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                    <span class="ml-2 text-xs text-amber-700 dark:text-amber-400">• Hết hạn lúc @p.ExpiresAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</span>
                                 }
                             </p>
                         </div>
@@ -136,14 +136,14 @@
                     <div class="mt-4 flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <a asp-page="/Matchmaking/Details" asp-route-id="@p.MatchId"
                            class="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-primary border border-slate-200 dark:border-slate-700 rounded-md font-medium transition-colors">
-                            View match
+                            Xem trận đấu
                         </a>
                         <div class="flex-1"></div>
                         <form method="post" asp-page-handler="Reject">
                             <input type="hidden" name="paymentId" value="@p.PaymentId" />
                             <button type="submit"
                                     class="px-4 py-1.5 text-sm bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-600 dark:text-slate-400 hover:text-rose-500 font-semibold rounded-md transition-colors">
-                                Reject
+                                Từ chối
                             </button>
                         </form>
                         <form method="post" asp-page-handler="Confirm">
@@ -151,7 +151,7 @@
                             <button type="submit"
                                     class="px-4 py-1.5 text-sm bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-md transition-colors flex items-center gap-1">
                                 <span class="material-symbols-outlined text-sm">check</span>
-                                Confirm
+                                Xác nhận
                             </button>
                         </form>
                     </div>
@@ -166,7 +166,7 @@
     <button onclick="toggleAdminChart('payments-chart-section', this)" class="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
         <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
             <span class="material-symbols-outlined text-primary text-[18px]">donut_large</span>
-            Pending payment breakdown
+            Phân bổ thanh toán đang chờ
         </div>
         <span class="material-symbols-outlined text-slate-400 text-[18px] chart-chevron">expand_more</span>
     </button>
@@ -187,7 +187,7 @@
                     <strong>@hostRemainCount</strong>
                 </div>
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-500">
-                    Total pending: <strong class="text-rose-600">@totalAmountPending.ToString("N0") xu</strong>
+                    Tổng đang chờ: <strong class="text-rose-600">@totalAmountPending.ToString("N0") xu</strong>
                 </div>
                 <div class="pt-2">
                     <button onclick="loadAiInsight('payments', '@Model.Payments.Count', '@totalAmountPending', '@hostDepositCount', '@playerFeeCount')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/5 hover:bg-primary/10 rounded-md transition-colors">
@@ -227,7 +227,7 @@
                 new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Host deposit', 'Player fee', 'Host remainder'],
+                        labels: ['Đặt cọc chủ trận', 'Phí người chơi', 'Phí còn lại'],
                         datasets: [{ data: [@hostDepositCount, @playerFeeCount, @hostRemainCount], backgroundColor: ['#3b82f6','#10b981','#f59e0b'], borderWidth: 0 }]
                     },
                     options: { plugins: { legend: { display: false } }, cutout: '60%' }
