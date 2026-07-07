@@ -679,6 +679,12 @@
         height: 0 !important; min-height: 0 !important; overflow: hidden !important;
         border: none !important; box-shadow: none !important; margin: 0 !important;
     }
+    /* Đang trong cuộc trò chuyện fullscreen → ẩn hẳn header chính + bottom nav của site,
+       tránh icon chồng lên header chat (giống app chat gốc: chỉ thấy khung chat) */
+    body:has(.chat-mobile-fullscreen) > header,
+    body:has(.chat-mobile-fullscreen) #mobile-bottom-nav {
+        display: none !important;
+    }
 }
 </style>
 }

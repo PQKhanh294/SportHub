@@ -29,7 +29,10 @@ namespace SportHub.Pages.Onboarding
         public async Task<IActionResult> OnPostAsync(
             [FromForm] List<int> sportIds,
             [FromForm] List<string> skillLevels,
-            [FromForm] string? defaultAddress)
+            [FromForm] string? defaultAddress,
+            [FromForm] decimal? defaultLatitude,
+            [FromForm] decimal? defaultLongitude,
+            [FromForm] string? phoneNumber)
         {
             var userId = GetCurrentUserId();
             if (userId <= 0) return RedirectToPage("/Auth/Login");
@@ -61,17 +64,16 @@ namespace SportHub.Pages.Onboarding
                 {
                     user.FavoriteSport = firstSport.SportName;
                     user.SkillLevel    = skillLevels.FirstOrDefault() ?? "Any";
-                    if (!string.IsNullOrWhiteSpace(defaultAddress))
-                        user.DefaultAddress = defaultAddress.Trim();
+                    ApplyContactFields(user, defaultAddress, defaultLatitude, defaultLongitude, phoneNumber);
                     user.UpdatedAt = DateTime.UtcNow;
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(defaultAddress))
+            else
             {
                 var user = await _context.Users.FindAsync(userId);
                 if (user != null)
                 {
-                    user.DefaultAddress = defaultAddress.Trim();
+                    ApplyContactFields(user, defaultAddress, defaultLatitude, defaultLongitude, phoneNumber);
                     user.UpdatedAt = DateTime.UtcNow;
                 }
             }
@@ -79,6 +81,18 @@ namespace SportHub.Pages.Onboarding
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Chào mừng đến SportHub! Hãy khám phá các trận đấu gần bạn.";
             return RedirectToPage("/Matchmaking/Index");
+        }
+
+        private static void ApplyContactFields(User user, string? address, decimal? lat, decimal? lon, string? phone)
+        {
+            if (!string.IsNullOrWhiteSpace(address))
+            {
+                user.DefaultAddress = address.Trim();
+                if (lat is >= -90 and <= 90) user.DefaultLatitude = lat;
+                if (lon is >= -180 and <= 180) user.DefaultLongitude = lon;
+            }
+            if (!string.IsNullOrWhiteSpace(phone))
+                user.PhoneNumber = phone.Trim();
         }
 
         private int GetCurrentUserId()

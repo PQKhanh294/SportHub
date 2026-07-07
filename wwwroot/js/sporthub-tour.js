@@ -207,11 +207,14 @@ window.SportHubTour = (function () {
     }
 
     function autoStart() {
-        var pageKey = detectPage();
+        // Tour CHỈ tự khởi động ở lần đăng nhập đầu tiên. Người dùng cũ (kể cả trên
+        // trình duyệt/máy mới, localStorage trống) tự mở qua nút (?) / "Xem lại hướng dẫn".
+        if (!window.__spFirstLogin) return;
 
+        var pageKey = detectPage();
         setTimeout(function () {
-            // Ưu tiên tour navbar cho lần đăng nhập đầu
-            if (window.__spFirstLogin && !localStorage.getItem('spTourDone')) {
+            // Ưu tiên tour navbar trước, sau đó tour theo từng trang trong phiên đầu
+            if (!localStorage.getItem('spTourDone')) {
                 waitProfileModalThen(function () { runTour('nav'); });
                 return;
             }
