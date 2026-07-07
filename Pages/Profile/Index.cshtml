@@ -6,17 +6,23 @@
     var p = Model.Profile;
 
     string planKey = ViewData["CurrentPlanKey"] as string ?? "Free";
-    var fromBanner = Request.Query["fromBanner"] == "1" && Model.MissingProfileFields.Count > 0;
+    var profileIncomplete = Model.MissingProfileFields.Count > 0;
+    var fromBanner = Request.Query["fromBanner"] == "1" && profileIncomplete;
 }
 
-@if (fromBanner)
+@if (profileIncomplete)
 {
     <style>
         @@keyframes spPulseHighlight {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(80,165,177,0.6); }
-            50%      { box-shadow: 0 0 0 8px rgba(80,165,177,0); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.55); }
+            50%      { box-shadow: 0 0 0 9px rgba(244,63,94,0); }
         }
-        #pfEditBtn.sp-pulse { animation: spPulseHighlight 1.4s ease-in-out 4; }
+        @@keyframes spPointBounce {
+            0%, 100% { transform: translateX(0); }
+            50%      { transform: translateX(-5px); }
+        }
+        #pfEditBtn.sp-pulse { animation: spPulseHighlight 1.6s ease-in-out infinite; }
+        #pfEditPointer { animation: spPointBounce 1s ease-in-out infinite; }
     </style>
 }
 
@@ -37,12 +43,18 @@
     <div class="bg-white dark:bg-slate-900 rounded-md overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
         <!-- Teal cover banner -->
         <div class="h-28 bg-gradient-to-br from-primary/80 via-primary to-navy/90 relative">
-            <!-- Edit button top-right -->
-            <a asp-page="/Profile/Edit" id="pfEditBtn"
-               class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all @(fromBanner ? "sp-pulse" : "")">
-                <span class="material-symbols-outlined text-sm">edit</span>
-                Chỉnh sửa
-            </a>
+            <!-- Edit button top-right — nổi bật liên tục khi hồ sơ chưa đầy đủ -->
+            <div class="absolute top-3 right-3 flex items-center gap-1.5">
+                @if (profileIncomplete)
+                {
+                    <span id="pfEditPointer" class="material-symbols-outlined text-rose-300 text-2xl" style="font-variation-settings:'FILL' 1" title="Còn thiếu thông tin hồ sơ">touch_app</span>
+                }
+                <a asp-page="/Profile/Edit" id="pfEditBtn"
+                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-all @(profileIncomplete ? "sp-pulse border-2 border-rose-400" : "")">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Chỉnh sửa
+                </a>
+            </div>
         </div>
 
         <!-- Avatar + Info -->
