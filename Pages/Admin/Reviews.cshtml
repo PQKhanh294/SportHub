@@ -1,7 +1,7 @@
 @page
 @model SportHub.Pages.Admin.ReviewsModel
 @{
-    ViewData["Title"] = "Admin — Reviews";
+    ViewData["Title"] = "Admin — Đánh giá";
     ViewData["AdminPage"] = "Reviews";
     var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     var starCounts = new int[5];
@@ -263,7 +263,7 @@
                     type: 'bar',
                     data: {
                         labels: ['1★','2★','3★','4★','5★'],
-                        datasets: [{ label: 'Reviews', data: [@starCounts[0],@starCounts[1],@starCounts[2],@starCounts[3],@starCounts[4]], backgroundColor: ['#ef4444','#f97316','#eab308','#84cc16','#22c55e'], borderRadius: 6 }]
+                        datasets: [{ label: 'Đánh giá', data: [@starCounts[0],@starCounts[1],@starCounts[2],@starCounts[3],@starCounts[4]], backgroundColor: ['#ef4444','#f97316','#eab308','#84cc16','#22c55e'], borderRadius: 6 }]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,

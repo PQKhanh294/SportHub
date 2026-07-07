@@ -2,7 +2,7 @@
 @model SportHub.Pages.Admin.DisputesModel
 @using System.Globalization
 @{
-    ViewData["Title"] = "Admin — Disputes";
+    ViewData["Title"] = "Admin — Khiếu nại";
     ViewData["AdminPage"] = "Disputes";
     var isEn = false; // Admin thuần tiếng Việt — công cụ nội bộ, không song ngữ
     string StatusBadge(string s) => s switch {
@@ -131,7 +131,7 @@
                                 </div>
                                 <p class="font-bold text-slate-800 dark:text-white truncate">
                                     <a asp-page="/Matchmaking/Details" asp-route-id="@d.MatchId" class="hover:text-primary transition-colors">
-                                        @(d.Match?.Title ?? $"Match #{d.MatchId}")
+                                        @(d.Match?.Title ?? $"Trận #{d.MatchId}")
                                     </a>
                                 </p>
                                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -230,7 +230,7 @@
                                         <span class="font-semibold">@(isEn ? "Outcome" : "Kết quả"):</span> @d.Resolution
                                         @if (d.RefundAmount.HasValue && d.RefundAmount > 0)
                                         {
-                                            <span class="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">· Refunded @d.RefundAmount.Value.ToString("N0") xu</span>
+                                            <span class="ml-2 text-emerald-600 dark:text-emerald-400 font-semibold">· Đã hoàn @d.RefundAmount.Value.ToString("N0") xu</span>
                                         }
                                     </div>
                                 }

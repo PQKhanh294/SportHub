@@ -445,7 +445,7 @@
 @{
     var _adminSection = ViewData["AdminPage"]?.ToString();
     var _isAdminLayout = !string.IsNullOrEmpty(_adminSection);
-    var _adminIsEn = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    var _adminIsEn = false; // Admin thuần tiếng Việt — không phụ thuộc ngôn ngữ site chính
 }
 @{
     // Helper: admin nav item class
@@ -463,7 +463,7 @@
             <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Admin Panel</p>
         </div>
         <nav class="flex-1 p-3 space-y-0.5">
-            <a asp-page="/Admin/Index"          class="@AdminNavCls("Dashboard")"><span class="material-symbols-outlined text-[18px]">dashboard</span>Dashboard</a>
+            <a asp-page="/Admin/Index"          class="@AdminNavCls("Dashboard")"><span class="material-symbols-outlined text-[18px]">dashboard</span>Tổng quan</a>
             <a asp-page="/Admin/Transactions"   class="@AdminNavCls("Transactions")"><span class="material-symbols-outlined text-[18px]">receipt_long</span>@(_adminIsEn ? "Transactions" : "Giao dịch")</a>
             <a asp-page="/Admin/MatchPayments"  class="@AdminNavCls("Payments") relative">
                 <span class="material-symbols-outlined text-[18px]">pending_actions</span>@(_adminIsEn ? "Pending Payments" : "Thanh toán chờ xử lý")
