@@ -43,6 +43,7 @@ namespace SportHub.Pages.Profile
         public string? CurrentPlanKey { get; set; }
         public List<SavedCodeWithDetailsDto> SavedCodes { get; set; } = new();
         public List<SportHub.Models.Entities.UserVoucher> MyVouchers { get; set; } = new();
+        public List<string> MissingProfileFields { get; set; } = new();
 
         public class UserSportProfileItem
         {
@@ -98,6 +99,10 @@ namespace SportHub.Pages.Profile
                 TotalBookings = await _userService.GetTotalBookingsAsync(userId),
                 EmailConfirmed = user.EmailConfirmed
             };
+
+            if (string.IsNullOrWhiteSpace(user.PhoneNumber)) MissingProfileFields.Add(isEnglish ? "phone number" : "số điện thoại");
+            if (string.IsNullOrWhiteSpace(user.FavoriteSport) || string.IsNullOrWhiteSpace(user.SkillLevel)) MissingProfileFields.Add(isEnglish ? "sport & skill level" : "môn thể thao & trình độ");
+            if (string.IsNullOrWhiteSpace(user.DefaultAddress)) MissingProfileFields.Add(isEnglish ? "area" : "khu vực hoạt động");
 
             SportProfiles = await _context.UserSportProfiles
                 .Where(usp => usp.UserID == userId)

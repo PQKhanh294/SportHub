@@ -165,12 +165,18 @@
                     if (currentUser.LoginCount >= 5)
                     {
                         showProfileBanner = true;
-                        // Force redirect mỗi 5 lần login (5, 10, 15...) — dùng JS để tránh lỗi "section not rendered"
-                        if (currentUser.LoginCount % 5 == 0 && !isExemptPath)
+                        // Force redirect mỗi mốc 5 lần login (5, 10, 15...) — nhưng CHỈ 1 LẦN cho mỗi mốc,
+                        // không phải mỗi lần chuyển trang trong cả phiên (đó là bug cũ khiến user bị kẹt,
+                        // không rời được trang Hồ sơ). Cookie phiên (không set hạn) ghi lại mốc LoginCount
+                        // đã redirect rồi — còn nguyên giá trị đó thì không redirect lại nữa.
+                        const string redirectCookieName = "sp_profile_nudge_lc";
+                        var alreadyRedirectedThisMilestone = Context.Request.Cookies[redirectCookieName] == currentUser.LoginCount.ToString();
+                        if (currentUser.LoginCount % 5 == 0 && !isExemptPath && !alreadyRedirectedThisMilestone)
                         {
                             redirectToProfile = true;
                             showProfileBanner = false;
                             showProfileModal = false;
+                            Context.Response.Cookies.Append(redirectCookieName, currentUser.LoginCount.ToString());
                         }
                     }
                 }
@@ -2262,6 +2268,10 @@ window.updateRightSidebarState = function () {
 @if (forceProfileModal || showProfileModal)
 {
     <partial name="_ProfileCompletionModal" model="forceProfileModal" />
+}
+@if (TempData["ClearProfileSkipFlag"] != null)
+{
+    <script>sessionStorage.removeItem('spProfileSkipped');</script>
 }
 <script>window.__spFirstLogin = @(isFirstLogin ? "true" : "false");</script>
 <script src="~/js/sporthub-tour.js" asp-append-version="true"></script>
