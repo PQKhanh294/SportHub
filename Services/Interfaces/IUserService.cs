@@ -12,7 +12,7 @@ namespace SportHub.Services.Interfaces
         Task<List<User>> GetSuggestedPlayersAsync(int currentUserId, int limit = 4);
         Task<List<User>> SearchUsersAsync(int currentUserId, string? keyword, string? skillLevel, string? sport, string? sortBy);
         Task<int> GetTotalMatchesPlayedAsync(int userId);
-        Task<int> GetTotalWinsAsync(int userId);
+        Task<int> GetTotalHostedMatchesAsync(int userId);
         Task<int> GetTotalBookingsAsync(int userId);
         Task<List<User>> GetAllUsersAsync();
         Task<bool> SetUserActiveAsync(int userId, bool isActive);

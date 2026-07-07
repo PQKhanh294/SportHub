@@ -95,7 +95,7 @@ namespace SportHub.Pages.Profile
                     : user.AvatarUrl,
                 JoinedText = user.CreatedAt.ToString("MM/yyyy"),
                 MatchesPlayed = await _userService.GetTotalMatchesPlayedAsync(userId),
-                Wins = await _userService.GetTotalWinsAsync(userId),
+                HostedMatches = await _userService.GetTotalHostedMatchesAsync(userId),
                 TotalBookings = await _userService.GetTotalBookingsAsync(userId),
                 EmailConfirmed = user.EmailConfirmed
             };
@@ -148,7 +148,7 @@ namespace SportHub.Pages.Profile
             public string AvatarUrl { get; set; } = string.Empty;
             public string JoinedText { get; set; } = string.Empty;
             public int MatchesPlayed { get; set; }
-            public int Wins { get; set; }
+            public int HostedMatches { get; set; }
             public int TotalBookings { get; set; }
             public bool EmailConfirmed { get; set; }
         }

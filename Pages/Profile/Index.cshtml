@@ -94,12 +94,12 @@
                 <div class="hidden sm:flex items-center gap-6 pb-1">
                     <div class="text-center">
                         <p class="text-2xl font-black text-slate-900 dark:text-white">@p.MatchesPlayed</p>
-                        <p class="text-xs text-slate-400 font-medium">Trận đã chơi</p>
+                        <p class="text-xs text-slate-400 font-medium">Trận đã tham gia</p>
                     </div>
                     <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                     <div class="text-center">
-                        <p class="text-2xl font-black text-primary">@p.Wins</p>
-                        <p class="text-xs text-slate-400 font-medium">Trận thắng</p>
+                        <p class="text-2xl font-black text-primary">@p.HostedMatches</p>
+                        <p class="text-xs text-slate-400 font-medium">Trận đã host</p>
                     </div>
                     <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                     <div class="text-center">
@@ -148,11 +148,11 @@
             <div class="sm:hidden flex items-center gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div class="text-center flex-1">
                     <p class="text-xl font-black text-slate-900 dark:text-white">@p.MatchesPlayed</p>
-                    <p class="text-[11px] text-slate-400">Trận đã chơi</p>
+                    <p class="text-[11px] text-slate-400">Trận đã tham gia</p>
                 </div>
                 <div class="text-center flex-1">
-                    <p class="text-xl font-black text-primary">@p.Wins</p>
-                    <p class="text-[11px] text-slate-400">Trận thắng</p>
+                    <p class="text-xl font-black text-primary">@p.HostedMatches</p>
+                    <p class="text-[11px] text-slate-400">Trận đã host</p>
                 </div>
                 <div class="text-center flex-1">
                     <p class="text-xl font-black text-accent">@p.TotalBookings</p>
@@ -247,7 +247,7 @@
                 </div>
                 @if (Model.WalletHistory.Any())
                 {
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                         @foreach (var tx in Model.WalletHistory)
                         {
                             var txColor = tx.Amount > 0 ? "text-primary" : "text-rose-600";
