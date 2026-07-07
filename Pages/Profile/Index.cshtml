@@ -18,11 +18,16 @@
             50%      { box-shadow: 0 0 0 9px rgba(241,96,13,0); }
         }
         @@keyframes spFingerTap {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50%      { transform: translateX(-50%) translateY(-4px); }
+            0%   { transform: translateY(0)    rotate(0deg)  scale(1);    }
+            35%  { transform: translateY(8px)  rotate(4deg)  scale(0.95); }
+            50%  { transform: translateY(9px)  rotate(5deg)  scale(0.94); }
+            65%  { transform: translateY(4px)  rotate(2deg)  scale(0.97); }
+            80%  { transform: translateY(-2px) rotate(-1deg) scale(1.02); }
+            100% { transform: translateY(0)    rotate(0deg)  scale(1);    }
         }
         #pfEditBtn.sp-pulse { animation: spPulseHighlight 1.6s ease-in-out infinite; }
-        #pfEditPointer { animation: spFingerTap 0.9s ease-in-out infinite; }
+        /* Đầu ngón trỏ nằm ở góc trên-trái ảnh gốc — pivot quanh đúng điểm đó để bàn tay "nảy" quanh điểm chạm, không trôi khỏi nút */
+        #pfEditPointer { animation: spFingerTap 0.85s cubic-bezier(0.36,0.07,0.19,0.97) infinite; transform-origin: 13% 4%; }
     </style>
 }
 
@@ -53,9 +58,10 @@
                     </a>
                     @if (profileIncomplete)
                     {
-                        <span id="pfEditPointer" class="material-symbols-outlined text-accent text-2xl absolute pointer-events-none"
-                              style="font-variation-settings:'FILL' 1; bottom:-20px; left:50%; transform:translateX(-50%);"
-                              title="Còn thiếu thông tin hồ sơ">touch_app</span>
+                        <div class="absolute pointer-events-none" style="top:100%; left:50%; width:46px; transform:translate(-13%,-6%);" title="Còn thiếu thông tin hồ sơ">
+                            <img id="pfEditPointer" src="/images/finger-tap.png" alt="" class="w-full h-full"
+                                 style="filter:drop-shadow(0 6px 10px rgba(0,0,0,0.35));" />
+                        </div>
                     }
                 </div>
             </div>
