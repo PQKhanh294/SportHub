@@ -135,7 +135,7 @@
                     {
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">@r.Comment</p>
                     }
-                    <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <span class="text-xs font-semibold @(r.IsVisible ? "text-emerald-600" : "text-slate-400")">
                             @(r.IsVisible ? (isEn ? "Visible" : "Hiển thị") : (isEn ? "Hidden" : "Đã ẩn"))
                         </span>
@@ -143,7 +143,7 @@
                             <input type="hidden" name="reviewId" value="@r.ReviewId" />
                             <input type="hidden" name="isVisible" value="@(!r.IsVisible).ToString().ToLower()" />
                             <button type="submit"
-                                    class="text-xs px-3 py-1.5 rounded-md border @(r.IsVisible ? "border-rose-200 text-rose-500 hover:bg-rose-50" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50") font-semibold transition-colors">
+                                    class="text-xs px-3 py-1 rounded-md border @(r.IsVisible ? "border-rose-200 text-rose-500 hover:bg-rose-50" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50") font-semibold transition-colors">
                                 @(r.IsVisible ? (isEn ? "Hide" : "Ẩn") : (isEn ? "Show" : "Hiện"))
                             </button>
                         </form>
