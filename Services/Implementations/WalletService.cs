@@ -53,7 +53,7 @@ namespace SportHub.Services.Implementations
                 newBalance = user.WalletBalance
             });
 
-            if (sendEmail && user.NotifyByEmail && !string.IsNullOrWhiteSpace(user.Email))
+            if (sendEmail && user.NotifyByEmail && user.NotifyWalletCredit && !string.IsNullOrWhiteSpace(user.Email))
                 await _emailService.SendWalletCreditedAsync(user.Email, user.FullName, amount, description);
         }
 

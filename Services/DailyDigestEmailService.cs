@@ -55,7 +55,7 @@ namespace SportHub.Services
                 var yesterdayEndUtc = TimeZoneInfo.ConvertTimeToUtc(nowVn.Date, _vnTz);
 
                 var usersToNotify = await db.Users
-                    .Where(u => u.NotifyByEmail && !string.IsNullOrEmpty(u.Email))
+                    .Where(u => u.NotifyByEmail && u.NotifyDailyDigest && !string.IsNullOrEmpty(u.Email))
                     .Select(u => new { u.UserID, u.Email, u.FullName })
                     .ToListAsync(ct);
                 if (usersToNotify.Count == 0) return;

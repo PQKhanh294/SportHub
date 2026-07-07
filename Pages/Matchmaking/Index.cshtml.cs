@@ -408,7 +408,7 @@ namespace SportHub.Pages.Matchmaking
                     playerUserId = userId
                 });
 
-                if (match.CreatedByUser?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(match.CreatedByUser.Email))
+                if (match.CreatedByUser?.NotifyByEmail == true && match.CreatedByUser.NotifyMatchJoinRequest && !string.IsNullOrWhiteSpace(match.CreatedByUser.Email))
                 {
                     var baseUrl = (_config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn/").TrimEnd('/');
                     await _emailService.SendMatchJoinRequestAsync(match.CreatedByUser.Email, match.CreatedByUser.FullName,

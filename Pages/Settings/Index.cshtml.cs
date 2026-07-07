@@ -22,6 +22,14 @@ namespace SportHub.Pages.Settings
         public string CurrentLanguage { get; set; } = "vi-VN";
         public bool IsAuthenticated { get; set; }
         public bool NotifyByEmail { get; set; } = true;
+        public bool NotifyWalletCredit { get; set; } = true;
+        public bool NotifyPromoCode { get; set; } = true;
+        public bool NotifyMatchApproved { get; set; } = true;
+        public bool NotifyMatchJoinRequest { get; set; } = true;
+        public bool NotifyMatchCancelled { get; set; } = true;
+        public bool NotifyMatchReminder { get; set; } = true;
+        public bool NotifyPaymentReminder { get; set; } = true;
+        public bool NotifyDailyDigest { get; set; } = true;
         public bool ShowContactToTeammates { get; set; } = true;
         public bool HasPassword { get; set; }
 
@@ -64,11 +72,24 @@ namespace SportHub.Pages.Settings
                 {
                     var user = await _context.Users
                         .Where(u => u.UserID == userId)
-                        .Select(u => new { u.NotifyByEmail, u.ShowContactToTeammates, u.PasswordHash })
+                        .Select(u => new {
+                            u.NotifyByEmail, u.NotifyWalletCredit, u.NotifyPromoCode, u.NotifyMatchApproved,
+                            u.NotifyMatchJoinRequest, u.NotifyMatchCancelled, u.NotifyMatchReminder,
+                            u.NotifyPaymentReminder, u.NotifyDailyDigest,
+                            u.ShowContactToTeammates, u.PasswordHash
+                        })
                         .FirstOrDefaultAsync();
                     if (user != null)
                     {
                         NotifyByEmail = user.NotifyByEmail;
+                        NotifyWalletCredit = user.NotifyWalletCredit;
+                        NotifyPromoCode = user.NotifyPromoCode;
+                        NotifyMatchApproved = user.NotifyMatchApproved;
+                        NotifyMatchJoinRequest = user.NotifyMatchJoinRequest;
+                        NotifyMatchCancelled = user.NotifyMatchCancelled;
+                        NotifyMatchReminder = user.NotifyMatchReminder;
+                        NotifyPaymentReminder = user.NotifyPaymentReminder;
+                        NotifyDailyDigest = user.NotifyDailyDigest;
                         ShowContactToTeammates = user.ShowContactToTeammates;
                         HasPassword = !string.IsNullOrEmpty(user.PasswordHash);
                     }
@@ -108,6 +129,31 @@ namespace SportHub.Pages.Settings
                 if (user != null)
                 {
                     user.NotifyByEmail = notifyByEmail;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostSetEmailPreferencesAsync(bool notifyByEmail, bool notifyWalletCredit,
+            bool notifyPromoCode, bool notifyMatchApproved, bool notifyMatchJoinRequest, bool notifyMatchCancelled,
+            bool notifyMatchReminder, bool notifyPaymentReminder, bool notifyDailyDigest)
+        {
+            var userId = GetCurrentUserId();
+            if (userId > 0)
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user != null)
+                {
+                    user.NotifyByEmail = notifyByEmail;
+                    user.NotifyWalletCredit = notifyWalletCredit;
+                    user.NotifyPromoCode = notifyPromoCode;
+                    user.NotifyMatchApproved = notifyMatchApproved;
+                    user.NotifyMatchJoinRequest = notifyMatchJoinRequest;
+                    user.NotifyMatchCancelled = notifyMatchCancelled;
+                    user.NotifyMatchReminder = notifyMatchReminder;
+                    user.NotifyPaymentReminder = notifyPaymentReminder;
+                    user.NotifyDailyDigest = notifyDailyDigest;
                     await _context.SaveChangesAsync();
                 }
             }

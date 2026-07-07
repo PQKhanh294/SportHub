@@ -143,14 +143,65 @@
                     <span class="material-symbols-outlined text-primary text-3xl">notifications</span>
                 </div>
 
-                <form method="post" asp-page-handler="SetNotify" id="notifyForm">
+                <form method="post" asp-page-handler="SetEmailPreferences" id="emailPrefsForm" class="space-y-4">
                     @Html.AntiForgeryToken()
                     <label class="flex items-center gap-3 p-4 rounded-md border-2 border-slate-100 dark:border-slate-800 cursor-pointer hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
-                        <input type="checkbox" name="notifyByEmail" value="true" @(Model.NotifyByEmail ? "checked" : "")
-                               onchange="document.getElementById('notifyForm').submit()"
+                        <input type="checkbox" id="notifyByEmailMaster" name="notifyByEmail" value="true" @(Model.NotifyByEmail ? "checked" : "")
                                class="w-5 h-5 rounded accent-primary shrink-0" />
                         <span class="font-semibold text-sm">@Localizer["NotifyEmailLabel"]</span>
                     </label>
+
+                    <div id="emailSubPrefs" class="pl-4 space-y-3 @(Model.NotifyByEmail ? "" : "opacity-40")">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">@Localizer["NotifyGroupWallet"]</p>
+                            <div class="space-y-1.5">
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyWalletCredit" value="true" @(Model.NotifyWalletCredit ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyWalletCreditLabel"]</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyPromoCode" value="true" @(Model.NotifyPromoCode ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyPromoCodeLabel"]</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">@Localizer["NotifyGroupMatch"]</p>
+                            <div class="space-y-1.5">
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyMatchApproved" value="true" @(Model.NotifyMatchApproved ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyMatchApprovedLabel"]</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyMatchJoinRequest" value="true" @(Model.NotifyMatchJoinRequest ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyMatchJoinRequestLabel"]</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyMatchCancelled" value="true" @(Model.NotifyMatchCancelled ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyMatchCancelledLabel"]</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyMatchReminder" value="true" @(Model.NotifyMatchReminder ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyMatchReminderLabel"]</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="notifyPaymentReminder" value="true" @(Model.NotifyPaymentReminder ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                    <span class="text-sm">@Localizer["NotifyPaymentReminderLabel"]</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">@Localizer["NotifyGroupDigest"]</p>
+                            <label class="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                <input type="checkbox" name="notifyDailyDigest" value="true" @(Model.NotifyDailyDigest ? "checked" : "") class="email-sub-pref w-4 h-4 rounded accent-primary shrink-0" />
+                                <span class="text-sm">@Localizer["NotifyDailyDigestLabel"]</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="px-5 py-2 bg-primary text-white rounded-md text-sm font-bold hover:bg-primary/90 transition-colors">
+                        @Localizer["NotifySaveBtn"]
+                    </button>
                 </form>
             </div>
 
@@ -275,5 +326,21 @@
             input.type = isHidden ? 'text' : 'password';
             icon.textContent = isHidden ? 'visibility_off' : 'visibility';
         }
+
+        (function () {
+            const master = document.getElementById('notifyByEmailMaster');
+            const subWrap = document.getElementById('emailSubPrefs');
+            if (!master || !subWrap) return;
+            function syncSubPrefs() {
+                // Chỉ làm mờ + khoá tương tác bằng trực quan — KHÔNG dùng thuộc tính
+                // disabled, vì input bị disabled sẽ không được submit cùng form, làm
+                // mất trạng thái đã lưu trước đó của từng tuỳ chọn con khi tắt tổng.
+                const on = master.checked;
+                subWrap.classList.toggle('opacity-40', !on);
+                subWrap.style.pointerEvents = on ? '' : 'none';
+            }
+            master.addEventListener('change', syncSubPrefs);
+            syncSubPrefs();
+        })();
     </script>
 }

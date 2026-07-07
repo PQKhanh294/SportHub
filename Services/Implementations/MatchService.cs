@@ -419,7 +419,7 @@ namespace SportHub.Services.Implementations
 
             await _context.SaveChangesAsync();
 
-            if (participant.User?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(participant.User.Email))
+            if (participant.User?.NotifyByEmail == true && participant.User.NotifyMatchApproved && !string.IsNullOrWhiteSpace(participant.User.Email))
             {
                 var baseUrl = (_config["App:BaseUrl"] ?? "https://sporthub-dn.id.vn").TrimEnd('/');
                 await _emailService.SendMatchApprovedAsync(participant.User.Email, participant.User.FullName,
@@ -535,7 +535,7 @@ namespace SportHub.Services.Implementations
                     $"/Matchmaking/Details/{matchId}");
 
                 var payer = await _context.Users.FindAsync(payment.PayerUserID);
-                if (payer?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(payer.Email))
+                if (payer?.NotifyByEmail == true && payer.NotifyMatchCancelled && !string.IsNullOrWhiteSpace(payer.Email))
                     await _emailService.SendMatchCancelledAsync(payer.Email, payer.FullName,
                         match.Title ?? "Trận đấu", reason, payment.Amount);
             }

@@ -23,7 +23,19 @@
   <data name="LangDesc" xml:space="preserve"><value>Chọn ngôn ngữ hiển thị chính.</value></data>
   <data name="NotifyTitle" xml:space="preserve"><value>Thông báo</value></data>
   <data name="NotifyDesc" xml:space="preserve"><value>Quản lý cách bạn nhận thông báo từ SportHub.</value></data>
-  <data name="NotifyEmailLabel" xml:space="preserve"><value>Nhận thông báo quan trọng qua email (trận được duyệt, bị hủy, khuyến mãi)</value></data>
+  <data name="NotifyEmailLabel" xml:space="preserve"><value>Nhận thông báo qua email (công tắc tổng — tắt sẽ tắt hết các loại bên dưới)</value></data>
+  <data name="NotifyGroupWallet" xml:space="preserve"><value>Ví &amp; khuyến mãi</value></data>
+  <data name="NotifyWalletCreditLabel" xml:space="preserve"><value>Ví được cộng tiền</value></data>
+  <data name="NotifyPromoCodeLabel" xml:space="preserve"><value>Mã khuyến mãi / voucher</value></data>
+  <data name="NotifyGroupMatch" xml:space="preserve"><value>Hoạt động trận đấu</value></data>
+  <data name="NotifyMatchApprovedLabel" xml:space="preserve"><value>Yêu cầu tham gia được duyệt</value></data>
+  <data name="NotifyMatchJoinRequestLabel" xml:space="preserve"><value>Có người xin tham gia trận (dành cho host)</value></data>
+  <data name="NotifyMatchCancelledLabel" xml:space="preserve"><value>Trận đấu bị hủy</value></data>
+  <data name="NotifyMatchReminderLabel" xml:space="preserve"><value>Nhắc lịch trận đấu</value></data>
+  <data name="NotifyPaymentReminderLabel" xml:space="preserve"><value>Nhắc thanh toán phí còn lại</value></data>
+  <data name="NotifyGroupDigest" xml:space="preserve"><value>Tổng hợp hằng ngày</value></data>
+  <data name="NotifyDailyDigestLabel" xml:space="preserve"><value>Email tổng hợp hằng ngày (7h sáng)</value></data>
+  <data name="NotifySaveBtn" xml:space="preserve"><value>Lưu thay đổi</value></data>
   <data name="PrivacyTitle" xml:space="preserve"><value>Quyền riêng tư</value></data>
   <data name="PrivacyDesc" xml:space="preserve"><value>Kiểm soát thông tin liên hệ của bạn được chia sẻ với ai.</value></data>
   <data name="PrivacyContactLabel" xml:space="preserve"><value>Hiển thị SĐT/Zalo cho người chơi cùng trận sau khi được duyệt</value></data>

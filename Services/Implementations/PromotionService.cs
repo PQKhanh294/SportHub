@@ -249,7 +249,7 @@ namespace SportHub.Services.Implementations
             );
 
             var user = await _context.Users.FindAsync(userId);
-            if (user?.NotifyByEmail == true && !string.IsNullOrWhiteSpace(user.Email))
+            if (user?.NotifyByEmail == true && user.NotifyPromoCode && !string.IsNullOrWhiteSpace(user.Email))
             {
                 var campaignName = campaignId.HasValue
                     ? (await _context.PromotionCampaigns.FindAsync(campaignId.Value))?.Name ?? "Voucher"

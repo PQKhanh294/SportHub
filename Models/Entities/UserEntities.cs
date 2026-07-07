@@ -24,6 +24,17 @@ namespace SportHub.Models.Entities
         public decimal WalletBalance { get; set; } = 0m;
         public int LoginCount { get; set; } = 0;
         public bool NotifyByEmail { get; set; } = true;
+
+        // Tuỳ chọn email theo từng loại — chỉ có tác dụng khi NotifyByEmail (công tắc tổng) đang bật
+        public bool NotifyWalletCredit { get; set; } = true;
+        public bool NotifyPromoCode { get; set; } = true;
+        public bool NotifyMatchApproved { get; set; } = true;
+        public bool NotifyMatchJoinRequest { get; set; } = true;
+        public bool NotifyMatchCancelled { get; set; } = true;
+        public bool NotifyMatchReminder { get; set; } = true;
+        public bool NotifyPaymentReminder { get; set; } = true;
+        public bool NotifyDailyDigest { get; set; } = true;
+
         public bool ShowContactToTeammates { get; set; } = true;
         public string? PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpiresAt { get; set; }

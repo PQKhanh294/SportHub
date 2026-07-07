@@ -83,7 +83,7 @@ namespace SportHub.Controllers
             var skipped = 0;
             foreach (var p in payments)
             {
-                if (p.Payer?.NotifyByEmail != true || string.IsNullOrWhiteSpace(p.Payer.Email))
+                if (p.Payer?.NotifyByEmail != true || p.Payer.NotifyPaymentReminder != true || string.IsNullOrWhiteSpace(p.Payer.Email))
                 {
                     skipped++;
                     continue;
