@@ -240,7 +240,7 @@
         }
         else
         {
-            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+            <div class="divide-y divide-slate-100 dark:divide-slate-800 max-h-[960px] overflow-y-auto">
                 @foreach (var tx in Model.Transactions)
                 {
                     var isCredit = tx.Amount > 0;

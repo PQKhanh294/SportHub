@@ -178,10 +178,10 @@ namespace SportHub.Services.Implementations
                 .CountAsync(mp => mp.UserID == userId && mp.JoinStatus == "Accepted");
         }
 
-        public async Task<int> GetTotalWinsAsync(int userId)
+        public async Task<int> GetTotalHostedMatchesAsync(int userId)
         {
-            return await _context.MatchParticipants
-                .CountAsync(mp => mp.UserID == userId && mp.JoinStatus == "Accepted" && mp.Match.Status == "Completed");
+            return await _context.Matches
+                .CountAsync(m => m.CreatedByUserID == userId);
         }
 
         public async Task<int> GetTotalBookingsAsync(int userId)
