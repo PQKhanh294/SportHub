@@ -28,7 +28,7 @@ namespace SportHub.Services.Implementations
             return user?.WalletBalance ?? 0m;
         }
 
-        public async Task CreditAsync(int userId, decimal amount, string description, int? matchId = null, string type = "AdminCredit")
+        public async Task CreditAsync(int userId, decimal amount, string description, int? matchId = null, string type = "AdminCredit", bool sendEmail = true)
         {
             var user = await _context.Users.FindAsync(userId)
                 ?? throw new InvalidOperationException($"User {userId} not found");
@@ -53,7 +53,7 @@ namespace SportHub.Services.Implementations
                 newBalance = user.WalletBalance
             });
 
-            if (user.NotifyByEmail && !string.IsNullOrWhiteSpace(user.Email))
+            if (sendEmail && user.NotifyByEmail && !string.IsNullOrWhiteSpace(user.Email))
                 await _emailService.SendWalletCreditedAsync(user.Email, user.FullName, amount, description);
         }
 

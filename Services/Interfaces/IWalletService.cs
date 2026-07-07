@@ -5,7 +5,7 @@ namespace SportHub.Services.Interfaces
     public interface IWalletService
     {
         Task<decimal> GetBalanceAsync(int userId);
-        Task CreditAsync(int userId, decimal amount, string description, int? matchId = null, string type = "AdminCredit");
+        Task CreditAsync(int userId, decimal amount, string description, int? matchId = null, string type = "AdminCredit", bool sendEmail = true);
         Task<bool> DeductAsync(int userId, decimal amount, string description, int? matchId = null, string type = "Deduction");
         Task<List<WalletTransaction>> GetHistoryAsync(int userId, int limit = 20);
 
