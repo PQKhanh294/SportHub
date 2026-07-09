@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Notifications.IndexModel
 @{
     ViewData["Title"] = "Notifications";
@@ -55,7 +55,7 @@
                         <div class="flex-1 min-w-0">
                             <p class="font-semibold text-slate-900 dark:text-white">@n.Title</p>
                             <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5 max-w-prose">@n.Message</p>
-                            <p class="text-xs text-slate-400 mt-1">@n.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
+                            <p class="text-xs text-slate-400 mt-1">@n.CreatedAt.ToVietnamTime().ToString("HH:mm dd/MM/yyyy")</p>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(n.LinkUrl))
                         {

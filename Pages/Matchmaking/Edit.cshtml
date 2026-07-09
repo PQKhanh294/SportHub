@@ -14,6 +14,14 @@
         <input asp-for="Input.MatchId" type="hidden" />
         <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
 
+        @if (Model.IsLocked)
+        {
+            <div class="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm px-4 py-3">
+                Trận đã có cọc hoặc người tham gia nên <strong>không thể đổi</strong> Môn thể thao, Ngày/giờ, Sân, Loại trận, Trình độ yêu cầu.
+                Số người tối đa luôn bị khóa từ lúc tạo trận. Hủy trận và tạo trận mới nếu cần thay đổi lớn.
+            </div>
+        }
+
         <div>
             <label class="block text-sm font-semibold mb-2">Tên trận đấu</label>
             <input asp-for="Input.Title" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
@@ -23,13 +31,17 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Sân (ID, tùy chọn)</label>
-                <input asp-for="Input.CourtId" type="number" min="1" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Nhập ID sân (để trống nếu không chọn)" />
+                <input asp-for="Input.CourtId" type="number" min="1" readonly="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")" placeholder="Nhập ID sân (để trống nếu không chọn)" />
                 <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Mẹo: vào <a asp-page="/Courts/Search" class="text-primary font-semibold hover:underline">Tìm sân</a> để tìm ID sân.</p>
                 <span asp-validation-for="Input.CourtId" class="text-xs text-red-500"></span>
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-2">Môn thể thao <span class="text-red-500">*</span></label>
-                <select asp-for="Input.SportId" asp-items="Model.SportOptions" id="sportSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+                @if (Model.IsLocked)
+                {
+                    <input type="hidden" name="Input.SportId" value="@Model.Input.SportId" />
+                }
+                <select asp-for="Input.SportId" asp-items="Model.SportOptions" id="sportSelect" disabled="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
                     <option value="">Chọn môn</option>
                 </select>
                 <span asp-validation-for="Input.SportId" class="text-xs text-red-500"></span>
@@ -62,17 +74,17 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Ngày thi đấu</label>
-                <input asp-for="Input.MatchDate" type="date" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.MatchDate" type="date" readonly="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")" />
                 <span asp-validation-for="Input.MatchDate" class="text-xs text-red-500"></span>
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-2">Giờ bắt đầu</label>
-                <input asp-for="Input.StartTime" type="time" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.StartTime" type="time" readonly="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")" />
                 <span asp-validation-for="Input.StartTime" class="text-xs text-red-500"></span>
             </div>
             <div>
                 <label class="block text-sm font-semibold mb-2">Giờ kết thúc</label>
-                <input asp-for="Input.EndTime" type="time" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.EndTime" type="time" readonly="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")" />
                 <span asp-validation-for="Input.EndTime" class="text-xs text-red-500"></span>
             </div>
         </div>
@@ -83,13 +95,13 @@
                 Loại trận <span class="text-red-500">*</span>
                 <span id="sport-warn-matchtype" class="hidden text-amber-700 dark:text-amber-400 text-xs font-normal ml-1">⚠ Vui lòng chọn môn thể thao trước</span>
             </label>
-            <select id="matchTypeSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+            <select id="matchTypeSelect" disabled="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
             </select>
             <div id="matchTypeCheckboxes" class="hidden flex flex-wrap gap-2">
                 @foreach (var mt in new[] { "Đơn Nam", "Đơn Nữ", "Đôi Nam", "Đôi Nữ", "Đôi Hỗn hợp" })
                 {
-                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
-                        <input type="checkbox" class="mt-type-cb" style="accent-color:#50A5B1" value="@mt" />
+                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
+                        <input type="checkbox" class="mt-type-cb" disabled="@Model.IsLocked" style="accent-color:#50A5B1" value="@mt" />
                         <span>@mt</span>
                     </label>
                 }
@@ -104,7 +116,7 @@
                 Trình độ yêu cầu
                 <span id="sport-warn-skill" class="hidden text-amber-700 dark:text-amber-400 text-xs font-normal ml-1">⚠ Vui lòng chọn môn thể thao trước</span>
             </label>
-            <select id="skillSelect" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+            <select id="skillSelect" disabled="@Model.IsLocked" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
             </select>
             <!-- Cầu lông: Nam/Nữ checkbox groups -->
             <div id="skillBadmintonSection" class="hidden space-y-3 mt-1">
@@ -119,8 +131,8 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach (var sk in badmintonSkills)
                         {
-                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
-                                <input type="checkbox" class="skill-male-cb" style="accent-color:#50A5B1" value="@sk.Val" />
+                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
+                                <input type="checkbox" class="skill-male-cb" disabled="@Model.IsLocked" style="accent-color:#50A5B1" value="@sk.Val" />
                                 <span>@sk.Label</span>
                             </label>
                         }
@@ -131,8 +143,8 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach (var sk in badmintonSkills)
                         {
-                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
-                                <input type="checkbox" class="skill-female-cb" style="accent-color:#50A5B1" value="@sk.Val" />
+                            <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors @(Model.IsLocked ? "opacity-60 cursor-not-allowed" : "")">
+                                <input type="checkbox" class="skill-female-cb" disabled="@Model.IsLocked" style="accent-color:#50A5B1" value="@sk.Val" />
                                 <span>@sk.Label</span>
                             </label>
                         }
@@ -146,7 +158,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-semibold mb-2">Số người tối đa</label>
-                <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" id="maxParticipantsInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" />
+                <input asp-for="Input.MaxParticipants" type="number" min="2" max="20" readonly id="maxParticipantsInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 opacity-60 cursor-not-allowed" />
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Không thể đổi sau khi tạo trận (đã chốt tiền cọc theo số người này).</p>
                 <span asp-validation-for="Input.MaxParticipants" class="text-xs text-red-500"></span>
             </div>
             <div class="space-y-2">

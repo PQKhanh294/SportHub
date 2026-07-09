@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -29,6 +30,9 @@ namespace SportHub.Pages.Matchmaking
         public InputModel Input { get; set; } = new();
 
         public List<SelectListItem> SportOptions { get; set; } = new();
+
+        // Khóa Môn/Ngày/Giờ/Sân/Loại trận/Trình độ khi đã có cọc hoặc người tham gia (MaxParticipants luôn khóa từ lúc tạo).
+        public bool IsLocked { get; set; }
 
         public class InputModel
         {
@@ -92,6 +96,8 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage("/Matchmaking/Index");
             }
 
+            IsLocked = match.DepositStatus == "Paid" || match.Participants.Any(p => p.JoinStatus is "Accepted" or "Approved");
+
             Input = new InputModel
             {
                 MatchId = match.MatchID,
@@ -121,7 +127,7 @@ namespace SportHub.Pages.Matchmaking
             ViewData["ActivePage"] = "Matchmaking";
             await LoadSelectionsAsync();
 
-            var now = DateTime.Now;
+            var now = VietnamTime.Now;
             if (Input.MatchDate.Date < now.Date)
             {
                 ModelState.AddModelError("Input.MatchDate", "Match date cannot be in the past.");
@@ -166,6 +172,10 @@ namespace SportHub.Pages.Matchmaking
                 }
             }
 
+            var existingMatch = await _matchService.GetMatchDetailsAsync(Input.MatchId);
+            IsLocked = existingMatch != null
+                && (existingMatch.DepositStatus == "Paid" || existingMatch.Participants.Any(p => p.JoinStatus is "Accepted" or "Approved"));
+
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -176,6 +186,10 @@ namespace SportHub.Pages.Matchmaking
             {
                 return RedirectToPage("/Auth/Login");
             }
+
+            // Sanitize coordinates — invalid values (e.g. browser autofill) crash decimal(10,8)/(11,8) columns
+            if (Input.Latitude is < -90 or > 90) Input.Latitude = null;
+            if (Input.Longitude is < -180 or > 180) Input.Longitude = null;
 
             var updatedMatch = new Match
             {
@@ -197,10 +211,8 @@ namespace SportHub.Pages.Matchmaking
                 IsSplitFee = Input.IsSplitFee
             };
 
-            var updated = await _matchService.UpdateMatchAsync(Input.MatchId, userId, updatedMatch);
-            TempData[updated ? "SuccessMessage" : "ErrorMessage"] = updated
-                ? "Match updated successfully."
-                : "Unable to update this match.";
+            var (updated, message) = await _matchService.UpdateMatchAsync(Input.MatchId, userId, updatedMatch);
+            TempData[updated ? "SuccessMessage" : "ErrorMessage"] = message;
 
             return RedirectToPage("/Matchmaking/Details", new { id = Input.MatchId });
         }

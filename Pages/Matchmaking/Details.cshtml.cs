@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using SportHub.Common;
 using SportHub.Hubs;
 using SportHub.Services.Interfaces;
 
@@ -277,7 +278,7 @@ namespace SportHub.Pages.Matchmaking
                 if (participant != null)
                 {
                     var deadlineStr = participant.PlayerFeeDeadline.HasValue
-                        ? participant.PlayerFeeDeadline.Value.ToLocalTime().ToString("HH:mm dd/MM")
+                        ? participant.PlayerFeeDeadline.Value.ToVietnamTime().ToString("HH:mm dd/MM")
                         : "1 giờ tới";
                     await _notificationService.CreateAsync(
                         participant.UserID,

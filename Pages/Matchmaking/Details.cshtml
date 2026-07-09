@@ -204,7 +204,7 @@ else
                             <div class="flex-1 min-w-0">
                                 <a href="/Users/Profile/@pending.UserId" class="font-bold text-slate-900 dark:text-white hover:text-primary transition-colors block">@pending.FullName</a>
                                 <p class="text-xs text-slate-500">Trình độ: @pending.SkillLevel</p>
-                                <p class="text-xs text-slate-400">Đăng ký lúc: @pending.JoinedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</p>
+                                <p class="text-xs text-slate-400">Đăng ký lúc: @pending.JoinedAt.ToVietnamTime().ToString("HH:mm dd/MM/yyyy")</p>
                             </div>
                             <div class="flex gap-2 flex-shrink-0">
                                 <form method="post" asp-page-handler="Approve">
@@ -270,8 +270,8 @@ else
             }
             else if (item.IsApproved)
             {
-                var feeDeadline = item.PlayerFeeDeadline?.ToLocalTime();
-                var minsLeft = feeDeadline.HasValue ? (int)(feeDeadline.Value - DateTime.Now).TotalMinutes : 0;
+                var feeDeadline = item.PlayerFeeDeadline?.ToVietnamTime();
+                var minsLeft = feeDeadline.HasValue ? (int)(feeDeadline.Value - VietnamTime.Now).TotalMinutes : 0;
                 var urgent = minsLeft < 15 && minsLeft >= 0;
                 <div class="mb-5 p-4 @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800") rounded-md">
                     <div class="flex items-center gap-3 mb-3">
@@ -572,7 +572,7 @@ else
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
-                                    <span class="text-xs text-slate-400">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                    <span class="text-xs text-slate-400">@review.CreatedAt.ToVietnamTime().ToString("dd/MM/yyyy")</span>
                                 </div>
                                 <!-- Stars display -->
                                 <div class="flex items-center gap-0.5 mb-2">

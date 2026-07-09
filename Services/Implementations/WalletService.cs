@@ -162,6 +162,19 @@ namespace SportHub.Services.Implementations
             var user = await _context.Users.FindAsync(userId);
             if (user == null || user.WalletBalance < payment.Amount) return false;
 
+            // Bọc claim + trừ ví + side-effect trong 1 transaction: nếu SaveChanges phía dưới lỗi giữa chừng,
+            // toàn bộ (kể cả claim) sẽ rollback thay vì để lại state nửa vời (payment Confirmed nhưng ví chưa trừ).
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Atomic claim: chỉ 1 trong nhiều request đồng thời (webhook SePay/Casso, double-click)
+            // có thể chuyển Pending -> Confirmed. Nếu thua race (claimed == 0), dừng ngay, không đụng ví.
+            var claimed = await _context.MatchPayments
+                .Where(p => p.MatchPaymentID == payment.MatchPaymentID && p.Status == "Pending")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.Status, "Confirmed")
+                    .SetProperty(p => p.ConfirmedAt, DateTime.UtcNow));
+            if (claimed == 0) return false;
+
             // Deduct wallet
             user.WalletBalance -= payment.Amount;
             _context.WalletTransactions.Add(new WalletTransaction
@@ -173,10 +186,6 @@ namespace SportHub.Services.Implementations
                 RelatedMatchID = matchId,
                 CreatedAt = DateTime.UtcNow
             });
-
-            // Mark payment confirmed (bypasses admin)
-            payment.Status = "Confirmed";
-            payment.ConfirmedAt = DateTime.UtcNow;
 
             // Apply same side-effects as MatchPaymentService.ConfirmPaymentAsync
             var match = await _context.Matches
@@ -210,6 +219,7 @@ namespace SportHub.Services.Implementations
             }
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return true;
         }
     }

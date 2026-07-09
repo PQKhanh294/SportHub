@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
+using SportHub.Services.Implementations;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Services
@@ -9,8 +11,10 @@ namespace SportHub.Services
     /// Chạy nền mỗi 5 phút để xử lý:
     /// 1. Hủy yêu cầu Pending quá 1 giờ chưa được host duyệt
     /// 2. Hủy chỗ Approved quá hạn 1 giờ chưa thanh toán phí 5K
-    /// 3. Thông báo host hoàn thành 50% phí còn lại khi trận bắt đầu
-    /// 4. Tự động chuyển trận sang Completed khi đã qua giờ kết thúc + gửi nhắc đánh giá
+    /// 3. Nhắc host thanh toán phí còn lại (HostRemaining) đang Pending — 24h + 4h khẩn
+    /// 4. Tự động chuyển trận sang Completed khi đã qua giờ kết thúc; quyết toán phí host theo số người chơi
+    ///    THỰC TẾ (5.000 xu/người) so với cọc đã đóng — thừa thì hoàn ví, thiếu thì tự trừ ví/thông báo thu thêm;
+    ///    gửi nhắc đánh giá
     /// 5. Gửi email nhắc nhở người chơi ~2h trước giờ trận bắt đầu
     /// </summary>
     public class PendingJoinExpiryHostedService : BackgroundService
@@ -100,9 +104,8 @@ namespace SportHub.Services
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
-            var nowUtc = DateTime.UtcNow;
-            // Vietnam is UTC+7; match end time stored as local time, so we compare with nowUtc + 7h
-            var nowLocal = nowUtc.AddHours(7);
+            // Vietnam is UTC+7; match end time stored as local time, so we compare with giờ Việt Nam
+            var nowLocal = VietnamTime.Now;
             var todayDate = DateOnly.FromDateTime(nowLocal);
 
             var endedMatches = await db.Matches
@@ -119,40 +122,95 @@ namespace SportHub.Services
                 var acceptedPlayers = match.Participants.Where(p => p.JoinStatus == "Accepted").ToList();
                 var matchTitle = match.Title ?? match.MatchType;
 
-                // Auto-refund host deposit when no players joined
-                if (acceptedPlayers.Count == 0 && match.DepositStatus == "Paid")
+                // Quyết toán phí host theo số người chơi THỰC TẾ đã tham gia (5.000 xu/người), so với tiền cọc
+                // đã đóng trước đó (nửa giá theo sức chứa lúc tạo trận): thừa thì hoàn, thiếu thì thu thêm.
+                // Trước đây "phí còn lại" được tính cố định theo MaxParticipants ngay khi trận BẮT ĐẦU, sai
+                // lệch với số người chơi thực tế cuối cùng — nay dời hẳn về lúc KẾT THÚC trận cho chính xác.
+                if (match.DepositStatus == "Paid")
                 {
                     var deposit = await db.MatchPayments
                         .FirstOrDefaultAsync(p => p.MatchID == match.MatchID
                             && p.PaymentType == "HostDeposit"
                             && p.Status == "Confirmed", ct);
 
-                    if (deposit != null)
-                    {
-                        // Dedup: check if refund already issued for this match
-                        var alreadyRefunded = await db.WalletTransactions
-                            .AnyAsync(t => t.UserID == match.CreatedByUserID
-                                && t.RelatedMatchID == match.MatchID
-                                && t.Type == "Refund", ct);
+                    // Dedup: nếu đã hoàn tiền hoặc đã tạo payment HostRemaining cho trận này rồi thì bỏ qua
+                    // (phòng trường hợp job bị restart giữa chừng sau khi CreditAsync/tạo payment đã lưu xong
+                    // nhưng match.Status = "Completed" chưa kịp lưu ở batch cuối).
+                    var alreadySettled = deposit != null && (
+                        await db.WalletTransactions.AnyAsync(t => t.RelatedMatchID == match.MatchID && t.Type == "Refund", ct) ||
+                        await db.MatchPayments.AnyAsync(p => p.MatchID == match.MatchID && p.PaymentType == "HostRemaining", ct));
 
-                        if (!alreadyRefunded)
+                    if (deposit != null && !alreadySettled)
+                    {
+                        var actualFee = acceptedPlayers.Count * MatchPaymentService.PlayerFeeAmount;
+                        var diff = actualFee - deposit.Amount;
+
+                        if (diff < 0)
                         {
+                            var refundAmount = -diff;
                             await walletService.CreditAsync(
                                 match.CreatedByUserID,
-                                deposit.Amount,
-                                $"Hoàn đặt cọc — trận \"{matchTitle}\" không có người tham gia",
+                                refundAmount,
+                                acceptedPlayers.Count == 0
+                                    ? $"Hoàn đặt cọc — trận \"{matchTitle}\" không có người tham gia"
+                                    : $"Hoàn chênh lệch cọc — trận \"{matchTitle}\" chỉ có {acceptedPlayers.Count} người tham gia",
                                 match.MatchID,
                                 "Refund");
 
                             await notificationService.CreateAsync(
                                 match.CreatedByUserID,
                                 "WalletCredit",
-                                "Hoàn tiền đặt cọc",
-                                $"Trận \"{matchTitle}\" kết thúc mà không có người tham gia. {deposit.Amount:N0} xu đã được hoàn vào ví.",
+                                "Hoàn tiền cọc",
+                                $"Trận \"{matchTitle}\" kết thúc với {acceptedPlayers.Count} người tham gia. Đã hoàn {refundAmount:N0} xu vào ví.",
                                 "/Wallet");
 
-                            _logger.LogInformation("Refunded {Amount} to host {HostId} for empty match {MatchId}.",
-                                deposit.Amount, match.CreatedByUserID, match.MatchID);
+                            match.RemainingFeeStatus = "Paid";
+                            _logger.LogInformation("Refunded {Amount} to host {HostId} for match {MatchId} ({Count} players).",
+                                refundAmount, match.CreatedByUserID, match.MatchID, acceptedPlayers.Count);
+                        }
+                        else if (diff > 0)
+                        {
+                            db.MatchPayments.Add(new MatchPayment
+                            {
+                                MatchID = match.MatchID,
+                                PayerUserID = match.CreatedByUserID,
+                                PaymentType = "HostRemaining",
+                                Amount = diff,
+                                Status = "Pending",
+                                TransactionRef = $"REMAINING-{match.MatchID}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                                CreatedAt = DateTime.UtcNow,
+                                ExpiresAt = DateTime.UtcNow.AddHours(48)
+                            });
+                            match.RemainingFeeStatus = "Notified";
+                            // Lưu trước để GetActivePaymentAsync (dùng trong PayMatchFeeFromWalletAsync) tìm thấy payment vừa tạo
+                            await db.SaveChangesAsync(ct);
+
+                            var autoPaid = await walletService.PayMatchFeeFromWalletAsync(match.CreatedByUserID, match.MatchID, "HostRemaining");
+                            if (autoPaid)
+                            {
+                                await notificationService.CreateAsync(
+                                    match.CreatedByUserID,
+                                    "MatchPaymentConfirmed",
+                                    "Đã tự động thanh toán phí còn lại",
+                                    $"Trận \"{matchTitle}\" có {acceptedPlayers.Count} người tham gia — đã tự động trừ {diff:N0} xu phí còn lại từ ví.",
+                                    $"/Matchmaking/Details?id={match.MatchID}");
+                            }
+                            else
+                            {
+                                await notificationService.CreateAsync(
+                                    match.CreatedByUserID,
+                                    "MatchRemainingFeeRequired",
+                                    "Trận đã kết thúc — hoàn thành phí còn lại",
+                                    $"Trận \"{matchTitle}\" có {acceptedPlayers.Count} người tham gia — vui lòng thanh toán thêm {diff:N0} xu phí dịch vụ.",
+                                    $"/Matchmaking/Payment?matchId={match.MatchID}&type=remaining");
+                            }
+
+                            _logger.LogInformation("Charged extra {Amount} to host {HostId} for match {MatchId} ({Count} players, autoPaid={AutoPaid}).",
+                                diff, match.CreatedByUserID, match.MatchID, acceptedPlayers.Count, autoPaid);
+                        }
+                        else
+                        {
+                            match.RemainingFeeStatus = "Paid";
                         }
                     }
                 }
@@ -191,7 +249,7 @@ namespace SportHub.Services
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-            var nowLocal = DateTime.UtcNow.AddHours(7);
+            var nowLocal = VietnamTime.Now;
             var windowStart = nowLocal.AddHours(2);
             var windowEnd = windowStart.Add(CheckInterval);
 
@@ -283,30 +341,17 @@ namespace SportHub.Services
                     if (expiredFees.Count > 0)
                         _logger.LogInformation("Expired {Count} player fee deadline(s).", expiredFees.Count);
 
-                    // 3. Thông báo host hoàn thành phí còn lại khi trận bắt đầu
-                    var remainingFeeMatches = await matchPaymentService.NotifyRemainingFeeAsync(stoppingToken);
-                    foreach (var (matchId, hostUserId, matchTitle, remaining) in remainingFeeMatches)
-                    {
-                        await notificationService.CreateAsync(
-                            hostUserId,
-                            "MatchRemainingFeeRequired",
-                            "Trận đã bắt đầu — hoàn thành phí còn lại",
-                            $"Trận \"{matchTitle}\" đã bắt đầu. Vui lòng hoàn thành {remaining:N0} xu phí dịch vụ còn lại.",
-                            $"/Matchmaking/Payment?matchId={matchId}&type=remaining");
-                    }
-                    if (remainingFeeMatches.Count > 0)
-                        _logger.LogInformation("Sent {Count} remaining fee notification(s).", remainingFeeMatches.Count);
-
-                    // 4. Remind host to pay HostRemaining fee (24h warning + 4h urgent)
+                    // 3. Remind host to pay HostRemaining fee (24h warning + 4h urgent)
                     await RemindRemainingFeesAsync(scope, notificationService, emailService, stoppingToken);
 
-                    // 5. Auto-complete matches that have ended + send review reminders
+                    // 4. Auto-complete matches that have ended: quyết toán phí host theo số người chơi
+                    // THỰC TẾ (không phải theo sức chứa) + gửi nhắc đánh giá
                     await AutoCompleteMatchesAsync(scope, notificationService, stoppingToken);
 
-                    // 6. Send match reminder emails ~2h before start
+                    // 5. Send match reminder emails ~2h before start
                     await SendMatchRemindersAsync(scope, stoppingToken);
 
-                    // 7. AI analysis cho khiếu nại quá hạn nhân chứng 48h
+                    // 6. AI analysis cho khiếu nại quá hạn nhân chứng 48h
                     var disputeService = scope.ServiceProvider.GetRequiredService<IDisputeService>();
                     await disputeService.ProcessPendingAiAnalysisAsync(stoppingToken);
                 }

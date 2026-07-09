@@ -15,8 +15,7 @@ namespace SportHub.Services.Interfaces
         Task<JoinMatchResult> JoinMatchAsync(int matchId, int userId);
         Task<bool> SkipMatchAsync(int matchId, int userId);
         Task<int> CreateMatchAsync(Match match, int createdByUserId, bool hostJoins = false);
-        Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
-        Task<bool> DeleteMatchAsync(int matchId, int userId);
+        Task<(bool Success, string Message)> UpdateMatchAsync(int matchId, int userId, Match updatedMatch);
         Task<bool> ApproveParticipantAsync(int matchId, int participantId, int hostUserId);
         Task<bool> RejectParticipantAsync(int matchId, int participantId, int hostUserId);
         Task<bool> LeaveMatchAsync(int matchId, int userId);
@@ -334,13 +333,36 @@ namespace SportHub.Services.Implementations
             return match.MatchID;
         }
 
-        public async Task<bool> UpdateMatchAsync(int matchId, int userId, Match updatedMatch)
+        public async Task<(bool Success, string Message)> UpdateMatchAsync(int matchId, int userId, Match updatedMatch)
         {
             var match = await _context.Matches
+                .Include(m => m.Participants)
                 .FirstOrDefaultAsync(m => m.MatchID == matchId);
 
             if (match == null || match.CreatedByUserID != userId)
-                return false;
+                return (false, "Không tìm thấy trận hoặc bạn không có quyền sửa.");
+
+            // MaxParticipants khóa vĩnh viễn từ lúc tạo trận: CreateHostDepositAsync chốt số tiền cọc
+            // ngay trong request tạo trận, nên nếu cho sửa Max sau đó (kể cả trước khi đóng cọc), host
+            // có thể đổi Max để né phí cọc/phí còn lại đã được tính theo Max cũ.
+            if (updatedMatch.MaxParticipants != match.MaxParticipants)
+                return (false, "Không thể thay đổi số người tối đa sau khi tạo trận (đã chốt tiền cọc theo số người này). Hãy hủy trận và tạo trận mới nếu cần đổi.");
+
+            var hasCommittedPlayers = match.Participants.Any(p => p.JoinStatus is "Accepted" or "Approved");
+            if (match.DepositStatus == "Paid" || hasCommittedPlayers)
+            {
+                var structuralChanged =
+                    updatedMatch.SportID != match.SportID ||
+                    updatedMatch.MatchDate != match.MatchDate ||
+                    updatedMatch.StartTime != match.StartTime ||
+                    updatedMatch.EndTime != match.EndTime ||
+                    updatedMatch.CourtID != match.CourtID ||
+                    !string.Equals(updatedMatch.MatchType, match.MatchType, StringComparison.Ordinal) ||
+                    !string.Equals(updatedMatch.SkillRequired, match.SkillRequired, StringComparison.Ordinal);
+
+                if (structuralChanged)
+                    return (false, "Không thể đổi môn thể thao, ngày/giờ, sân hoặc trình độ yêu cầu sau khi đã có cọc/người tham gia. Hãy hủy trận và tạo trận mới nếu cần đổi.");
+            }
 
             match.CourtID = updatedMatch.CourtID;
             match.SportID = updatedMatch.SportID;
@@ -349,7 +371,6 @@ namespace SportHub.Services.Implementations
             match.EndTime = updatedMatch.EndTime;
             match.MatchType = updatedMatch.MatchType;
             match.SkillRequired = updatedMatch.SkillRequired;
-            match.MaxParticipants = updatedMatch.MaxParticipants;
             match.Title = updatedMatch.Title;
             match.Description = updatedMatch.Description;
             match.CustomCourtName = updatedMatch.CustomCourtName;
@@ -361,19 +382,7 @@ namespace SportHub.Services.Implementations
             match.RequiresApproval = true;
 
             await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> DeleteMatchAsync(int matchId, int userId)
-        {
-            var match = await _context.Matches
-                .FirstOrDefaultAsync(m => m.MatchID == matchId && m.CreatedByUserID == userId);
-
-            if (match == null) return false;
-
-            _context.Matches.Remove(match);
-            await _context.SaveChangesAsync();
-            return true;
+            return (true, "Cập nhật trận thành công.");
         }
 
         public async Task<bool> ApproveParticipantAsync(int matchId, int participantId, int hostUserId)
@@ -391,14 +400,26 @@ namespace SportHub.Services.Implementations
             if (await CheckSkillAsync(match, participant.User) == SkillCheck.TooLow)
                 return false;
 
-            var filledCount = match.Participants.Count(p => p.JoinStatus == "Accepted" || p.JoinStatus == "Approved");
-            if (filledCount >= match.MaxParticipants) return false; // Hết chỗ
-
             // Approved = chờ player thanh toán 5K trong 1 giờ
             var deadline = DateTime.UtcNow.AddHours(1);
-            participant.JoinStatus = "Approved";
-            participant.PlayerFeeStatus = "AwaitingPayment";
-            participant.PlayerFeeDeadline = deadline;
+
+            // Bọc claim + tạo payment trong 1 transaction: nếu SaveChanges phía dưới lỗi giữa chừng,
+            // toàn bộ (kể cả claim) sẽ rollback thay vì để participant "Approved" mà không có payment PlayerFee.
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Atomic claim: đếm chỗ trống + duyệt trong CÙNG 1 câu UPDATE để 2 request duyệt song song
+            // (VD host mở 2 tab, hoặc double-click) không thể cùng vượt quá MaxParticipants.
+            var claimed = await _context.MatchParticipants
+                .Where(p => p.ParticipantID == participantId
+                    && p.JoinStatus == "Pending"
+                    && _context.MatchParticipants.Count(x => x.MatchID == matchId
+                        && (x.JoinStatus == "Accepted" || x.JoinStatus == "Approved")) < match.MaxParticipants)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.JoinStatus, "Approved")
+                    .SetProperty(p => p.PlayerFeeStatus, "AwaitingPayment")
+                    .SetProperty(p => p.PlayerFeeDeadline, deadline));
+
+            if (claimed == 0) return false; // Hết chỗ hoặc đã bị xử lý bởi request khác
 
             // Tạo bản ghi thanh toán PlayerFee
             _context.MatchPayments.Add(new MatchPayment
@@ -413,11 +434,14 @@ namespace SportHub.Services.Implementations
                 CreatedAt = DateTime.UtcNow
             });
 
-            // Tự động Full nếu (Accepted + Approved) đủ
-            if (filledCount + 1 >= match.MaxParticipants)
+            // Tự động Full nếu (Accepted + Approved) đủ — đếm lại sau khi claim để chính xác
+            var filledAfter = await _context.MatchParticipants
+                .CountAsync(p => p.MatchID == matchId && (p.JoinStatus == "Accepted" || p.JoinStatus == "Approved"));
+            if (filledAfter >= match.MaxParticipants)
                 match.Status = "Full";
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             if (participant.User?.NotifyByEmail == true && participant.User.NotifyMatchApproved && !string.IsNullOrWhiteSpace(participant.User.Email))
             {

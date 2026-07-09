@@ -125,7 +125,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@sub.BillingCycle</td>
-                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@sub.EndAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@sub.EndAt.ToVietnamTime().ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="px-4 py-3 text-center">
                                 <form method="post" asp-page-handler="Cancel" style="display:inline">
                                     <input type="hidden" name="subscriptionId" value="@sub.UserSubscriptionID" />
@@ -176,7 +176,7 @@
                                     @(order.Status switch { "Confirmed" => "Đã xác nhận", "Expired" => "Hết hạn", "Pending" => "Đang chờ", _ => order.Status })
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-slate-500 text-xs">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-4 py-3 text-slate-500 text-xs">@order.CreatedAt.ToVietnamTime().ToString("dd/MM/yyyy HH:mm")</td>
                         </tr>
                     }
                     @if (!Model.RecentOrders.Any())

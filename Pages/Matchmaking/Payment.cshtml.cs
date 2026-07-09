@@ -119,11 +119,24 @@ namespace SportHub.Pages.Matchmaking
                 return RedirectToPage(new { matchId, type });
             }
 
+            var activePayment = await _matchPaymentService.GetActivePaymentAsync(matchId, userId, paymentType);
+            if (activePayment == null)
+            {
+                TempData["ErrorMessage"] = "Giao dịch này không còn hiệu lực (có thể đã được xác nhận qua chuyển khoản hoặc đã hết hạn). Vui lòng tải lại trang.";
+                return RedirectToPage(new { matchId, type });
+            }
+
+            var balance = await _walletService.GetBalanceAsync(userId);
+            if (balance < activePayment.Amount)
+            {
+                TempData["ErrorMessage"] = $"Số dư ví không đủ. Số dư hiện tại: {balance:N0} xu, cần {activePayment.Amount:N0} xu. Vui lòng nạp thêm hoặc thanh toán bằng QR.";
+                return RedirectToPage(new { matchId, type });
+            }
+
             var success = await _walletService.PayMatchFeeFromWalletAsync(userId, matchId, paymentType);
             if (!success)
             {
-                var balance = await _walletService.GetBalanceAsync(userId);
-                TempData["ErrorMessage"] = $"Thanh toán từ ví thất bại. Số dư hiện tại: {balance:N0} xu. Vui lòng nạp thêm hoặc thanh toán bằng QR.";
+                TempData["ErrorMessage"] = "Không thể xử lý thanh toán lúc này (giao dịch có thể vừa được xác nhận bởi chuyển khoản). Vui lòng tải lại trang để kiểm tra.";
                 return RedirectToPage(new { matchId, type });
             }
 

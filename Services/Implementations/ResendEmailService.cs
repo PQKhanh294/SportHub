@@ -1,7 +1,8 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -133,7 +134,7 @@ namespace SportHub.Services.Implementations
                 return (false, "Resend:ApiKey chưa được cấu hình trong appsettings.json");
 
             var html = Layout("Email test từ SportHub 📨",
-                $"<p>Đây là email test được gửi lúc <strong>{DateTime.UtcNow.AddHours(7):HH:mm:ss dd/MM/yyyy}</strong> (giờ VN).</p>" +
+                $"<p>Đây là email test được gửi lúc <strong>{VietnamTime.Now:HH:mm:ss dd/MM/yyyy}</strong> (giờ VN).</p>" +
                 Callout("info", "Nếu bạn nhận được email này với đầy đủ logo và định dạng, cấu hình Resend + domain đã hoạt động tốt."));
 
             var payload = JsonSerializer.Serialize(new { from = _from, to, subject = "[SportHub] Test email", html });
@@ -201,7 +202,7 @@ namespace SportHub.Services.Implementations
                     $@"<p>Xin chào <strong>{fullName}</strong>,</p>
                        <p>Bạn nhận được mã khuyến mãi từ chiến dịch <em>{campaignName}</em>:</p>
                        {Callout("info", $"<strong style='font-size:20px;letter-spacing:2px;'>{code}</strong><br/>" +
-                            $"Giá trị: <strong>+{amount:N0}đ</strong>{(expiresAt.HasValue ? $" · HSD {expiresAt.Value.ToLocalTime():dd/MM/yyyy}" : "")}")}",
+                            $"Giá trị: <strong>+{amount:N0}đ</strong>{(expiresAt.HasValue ? $" · HSD {expiresAt.Value.ToVietnamTime():dd/MM/yyyy}" : "")}")}",
                     "Dùng mã ngay →", $"{_baseUrl}/Wallet"));
 
         public Task SendMatchReminderAsync(string toEmail, string fullName, string matchTitle, string matchDate, string venue) =>
@@ -272,7 +273,7 @@ namespace SportHub.Services.Implementations
                 Layout(headline,
                     $@"<p>Xin chào <strong>{fullName}</strong>,</p>
                        <p>Trận <strong>{matchTitle}</strong> của bạn còn khoản {paymentLabel} chưa hoàn tất:</p>
-                       {Callout(calloutType, $"<strong style='font-size:18px;'>{amount:N0}đ</strong><br/>Hạn chót: <strong>{expiresAt.ToLocalTime():HH:mm dd/MM/yyyy}</strong>")}",
+                       {Callout(calloutType, $"<strong style='font-size:18px;'>{amount:N0}đ</strong><br/>Hạn chót: <strong>{expiresAt.ToVietnamTime():HH:mm dd/MM/yyyy}</strong>")}",
                     "Thanh toán ngay →", payUrl));
         }
 

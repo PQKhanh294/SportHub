@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services;
@@ -21,14 +22,16 @@ namespace SportHub.Pages.Matchmaking
         private readonly ApplicationDbContext _context;
         private readonly IGeocodingService _geocodingService;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IWalletService _walletService;
 
-        public CreateModel(IMatchService matchService, IMatchPaymentService matchPaymentService, ApplicationDbContext context, IGeocodingService geocodingService, ISubscriptionService subscriptionService)
+        public CreateModel(IMatchService matchService, IMatchPaymentService matchPaymentService, ApplicationDbContext context, IGeocodingService geocodingService, ISubscriptionService subscriptionService, IWalletService walletService)
         {
             _matchService = matchService;
             _matchPaymentService = matchPaymentService;
             _context = context;
             _geocodingService = geocodingService;
             _subscriptionService = subscriptionService;
+            _walletService = walletService;
         }
 
         public string? SubscriptionLimitMessage { get; set; }
@@ -111,7 +114,7 @@ namespace SportHub.Pages.Matchmaking
             ViewData["ActivePage"] = "Matchmaking";
             await LoadSelectionsAsync();
 
-            var now = DateTime.Now;
+            var now = VietnamTime.Now;
             if (Input.MatchDate.Date < now.Date)
             {
                 ModelState.AddModelError("Input.MatchDate", "Match date cannot be in the past.");
@@ -225,7 +228,18 @@ namespace SportHub.Pages.Matchmaking
             var matchId = await _matchService.CreateMatchAsync(match, userId, Input.HostJoins);
             await _matchPaymentService.CreateHostDepositAsync(matchId, userId);
             await _subscriptionService.RecordCreateAsync(userId);
-            TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {_matchPaymentService.CalculateHostDeposit(Input.MaxParticipants):N0} xu để đăng trận.";
+
+            var depositAmount = _matchPaymentService.CalculateHostDeposit(Input.MaxParticipants);
+
+            // Tự động trừ ví nếu số dư đủ — chỉ hiện trang thanh toán (QR/chuyển khoản) khi ví không đủ tiền.
+            var autoPaid = await _walletService.PayMatchFeeFromWalletAsync(userId, matchId, "HostDeposit");
+            if (autoPaid)
+            {
+                TempData["SuccessMessage"] = $"Trận được tạo! Đã tự động trừ {depositAmount:N0} xu tiền cọc từ ví. Trận đã sẵn sàng!";
+                return RedirectToPage("/Matchmaking/Details", new { id = matchId });
+            }
+
+            TempData["SuccessMessage"] = $"Trận được tạo! Đặt cọc {depositAmount:N0} xu để đăng trận.";
             return RedirectToPage("/Matchmaking/Payment", new { matchId, type = "deposit" });
         }
 
