@@ -102,7 +102,8 @@
 
         @* --- Sport Skills Section --- *@
         <div>
-            <label class="block text-sm font-semibold mb-3">Bộ môn & Trình độ</label>
+            <label class="block text-sm font-semibold mb-1">Bộ môn & Trình độ</label>
+            <p id="sportSkillError" class="text-xs text-red-500 mb-2"></p>
             <div id="sport-skills-container" class="space-y-3">
                 @for (int i = 0; i < Model.Input.SportSkills.Count; i++)
                 {
@@ -253,4 +254,76 @@
 
         container.appendChild(clone);
     });
+
+    // --- Validate ngay khi người dùng rời khỏi từng ô (real-time, vanilla JS — không có jQuery unobtrusive) ---
+    (function () {
+        var form = document.querySelector('form[method="post"]');
+        var fullNameInput = document.getElementById('Input_FullName');
+        var phoneInput = document.getElementById('Input_PhoneNumber');
+        var zaloInput = document.getElementById('Input_ZaloContact');
+        var PHONE_RE = /^0(3[2-9]|5[25689]|7[06789]|8[1-9]|9[0-9])\d{7}$/;
+
+        function setFieldError(el, message) {
+            if (!el) return;
+            var span = document.querySelector('[data-valmsg-for="' + el.name + '"]');
+            if (span) span.textContent = message || '';
+            el.classList.toggle('border-red-500', !!message);
+        }
+
+        function validateFullName() {
+            var ok = fullNameInput.value.trim().length > 0;
+            setFieldError(fullNameInput, ok ? '' : 'Vui lòng nhập họ và tên.');
+            return ok;
+        }
+
+        function validatePhoneLike(el, label) {
+            var v = el.value.trim();
+            if (!v) { setFieldError(el, ''); return true; }
+            var ok = PHONE_RE.test(v);
+            setFieldError(el, ok ? '' : label + ' không hợp lệ. Nhập số di động 10 số (VD: 0901234567).');
+            return ok;
+        }
+
+        function validateSportSkillRows() {
+            var firstBadRow = null;
+            document.querySelectorAll('.sport-skill-row').forEach(function (row) {
+                var sportSel = row.querySelector('select[name$=".SportId"]');
+                var skillSel = row.querySelector('select[name$=".SkillLevel"]');
+                if (!sportSel || !skillSel) return;
+                var hasSport = sportSel.value !== '0' && sportSel.value !== '';
+                var hasSkill = skillSel.value !== '';
+                var bad = hasSport !== hasSkill;
+                sportSel.classList.toggle('border-red-500', bad);
+                skillSel.classList.toggle('border-red-500', bad);
+                if (bad && !firstBadRow) firstBadRow = sportSel;
+            });
+            var errEl = document.getElementById('sportSkillError');
+            if (errEl) errEl.textContent = firstBadRow ? 'Mỗi bộ môn cần chọn đủ cả môn thể thao và trình độ tương ứng.' : '';
+            return !firstBadRow;
+        }
+
+        if (fullNameInput) fullNameInput.addEventListener('blur', validateFullName);
+        if (phoneInput) phoneInput.addEventListener('blur', function () { validatePhoneLike(phoneInput, 'Số điện thoại'); });
+        if (zaloInput) zaloInput.addEventListener('blur', function () { validatePhoneLike(zaloInput, 'Số Zalo'); });
+        document.getElementById('sport-skills-container').addEventListener('change', function (e) {
+            if (e.target.tagName === 'SELECT') validateSportSkillRows();
+        });
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                var validName = validateFullName();
+                var validPhone = validatePhoneLike(phoneInput, 'Số điện thoại');
+                var validZalo = validatePhoneLike(zaloInput, 'Số Zalo');
+                var validRows = validateSportSkillRows();
+                if (!validName || !validPhone || !validZalo || !validRows) {
+                    e.preventDefault();
+                    var firstInvalid = !validName ? fullNameInput : !validPhone ? phoneInput : !validZalo ? zaloInput : document.querySelector('.border-red-500');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstInvalid.focus();
+                    }
+                }
+            });
+        }
+    })();
 </script>

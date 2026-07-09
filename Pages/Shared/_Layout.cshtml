@@ -88,6 +88,17 @@
     [data-theme="dark-3"] .dark\:bg-slate-900       { background-color: #080808 !important; }
     [data-theme="dark-3"] .dark\:bg-slate-800       { background-color: #101010 !important; }
     [data-theme="dark-3"] .dark\:border-slate-800   { border-color: #1a1a1a !important; }
+
+    /* Logo footer — nảy như quả bóng khi hover/chạm vào */
+    @@keyframes sh-logo-ball-bounce {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25%      { transform: translateY(-7px) rotate(-18deg); }
+        50%      { transform: translateY(0) rotate(0deg); }
+        75%      { transform: translateY(-3px) rotate(18deg); }
+    }
+    .footer-logo-ball { cursor: pointer; transition: transform 0.15s ease; }
+    .footer-logo-ball:hover,
+    .footer-logo-ball:active { animation: sh-logo-ball-bounce 0.6s ease-in-out infinite; }
     </style>
 
     @* Cho phép từng trang thêm CSS riêng *@
@@ -612,7 +623,7 @@ else
 
             <!-- Logo -->
             <div class="flex items-center gap-2">
-                <img src="/images/LOGO SPORTHUB 2.png" alt="Sport Hub" class="h-9 w-9 object-contain" />
+                <img src="/images/LOGO SPORTHUB 2.png" alt="Sport Hub" class="h-9 w-9 object-contain footer-logo-ball" />
                 <span class="font-sport text-2xl font-bold tracking-widest uppercase text-slate-900 dark:text-white">SportHub</span>
             </div>
 

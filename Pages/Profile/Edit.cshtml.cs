@@ -10,6 +10,7 @@ using SportHub.Models.Entities;
 using SportHub.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using SportHub.Common;
 
 namespace SportHub.Pages.Profile
 {
@@ -121,6 +122,8 @@ namespace SportHub.Pages.Profile
             ViewData["ActivePage"] = "Profile";
             NormalizeLocationCoordinatesFromForm();
             ValidateAvatarInput();
+            ValidatePhoneFields();
+            ValidateSportSkillPairs();
             if (!ModelState.IsValid)
             {
                 await LoadOptionsAsync();
@@ -256,6 +259,33 @@ namespace SportHub.Pages.Profile
                 if (!isHttpUrl && !isLocalUploadPath)
                 {
                     ModelState.AddModelError("Input.AvatarUrl", "Avatar URL must be a valid http/https link.");
+                }
+            }
+        }
+
+        private void ValidatePhoneFields()
+        {
+            if (!string.IsNullOrWhiteSpace(Input.PhoneNumber) && !PhoneValidator.IsValidVietnamesePhone(Input.PhoneNumber))
+            {
+                ModelState.AddModelError("Input.PhoneNumber", "Số điện thoại không hợp lệ. Vui lòng nhập số di động 10 số (VD: 0901234567).");
+            }
+
+            if (!string.IsNullOrWhiteSpace(Input.ZaloContact) && !PhoneValidator.IsValidVietnamesePhone(Input.ZaloContact))
+            {
+                ModelState.AddModelError("Input.ZaloContact", "Số Zalo không hợp lệ. Vui lòng nhập số di động 10 số (VD: 0901234567).");
+            }
+        }
+
+        private void ValidateSportSkillPairs()
+        {
+            foreach (var skill in Input.SportSkills)
+            {
+                var hasSport = skill.SportId > 0;
+                var hasSkill = !string.IsNullOrWhiteSpace(skill.SkillLevel);
+                if (hasSport != hasSkill)
+                {
+                    ModelState.AddModelError(string.Empty, "Mỗi bộ môn đã chọn cần có trình độ tương ứng — vui lòng hoàn thiện hoặc xóa dòng còn thiếu.");
+                    break;
                 }
             }
         }

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 
@@ -62,6 +63,9 @@ namespace SportHub.Controllers
                 .GroupBy(s => s.SportId).Select(g => g.First()).ToList();
             if (validSports.Count == 0)
                 return BadRequest(new { success = false, message = "Chọn ít nhất 1 môn thể thao và trình độ." });
+
+            if (!string.IsNullOrWhiteSpace(req.PhoneNumber) && !PhoneValidator.IsValidVietnamesePhone(req.PhoneNumber))
+                return BadRequest(new { success = false, message = "Số điện thoại không hợp lệ. Vui lòng nhập số di động 10 số (VD: 0901234567)." });
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return Unauthorized();

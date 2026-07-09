@@ -65,6 +65,7 @@
                         <input type="tel" id="onboardPhone" name="phoneNumber" autocomplete="tel"
                                class="w-full h-11 px-4 rounded-md border border-white/15 bg-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-primary transition-colors"
                                placeholder="0901234567" />
+                        <p id="onboardPhoneError" class="hidden text-xs text-red-400 mt-1"></p>
                         <p class="text-xs text-white/40 mt-1">Để người cùng trận liên hệ trước giờ đấu.</p>
                     </div>
                 </div>
@@ -202,8 +203,28 @@ function buildSkillStep() {
     });
 })();
 
+// Validate SĐT ngay khi rời khỏi ô, và chặn submit nếu SĐT nhập sai định dạng
+const PHONE_RE = /^0(3[2-9]|5[25689]|7[06789]|8[1-9]|9[0-9])\d{7}$/;
+function validateOnboardPhone() {
+    const input = document.getElementById('onboardPhone');
+    const errEl = document.getElementById('onboardPhoneError');
+    const v = input.value.trim();
+    if (!v) { errEl.classList.add('hidden'); input.classList.remove('border-red-400'); return true; }
+    const ok = PHONE_RE.test(v);
+    errEl.textContent = ok ? '' : 'Số điện thoại không hợp lệ. Nhập số di động 10 số (VD: 0901234567).';
+    errEl.classList.toggle('hidden', ok);
+    input.classList.toggle('border-red-400', !ok);
+    return ok;
+}
+document.getElementById('onboardPhone').addEventListener('blur', validateOnboardPhone);
+
 // On final submit, populate hidden inputs
-document.getElementById('onboardForm').addEventListener('submit', function() {
+document.getElementById('onboardForm').addEventListener('submit', function(e) {
+    if (!validateOnboardPhone()) {
+        e.preventDefault();
+        document.getElementById('onboardPhone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
     const container = document.getElementById('hiddenInputs');
     container.innerHTML = '';
     selectedSports.forEach((s, i) => {
