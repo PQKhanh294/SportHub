@@ -127,7 +127,7 @@
                                 <div class="flex items-center gap-2 flex-wrap mb-2">
                                     <span class="text-xs font-bold px-2 py-0.5 rounded-md @StatusBadge(d.Status)">@StatusLabel(d.Status)</span>
                                     <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">@TypeLabel(d.DisputeType)</span>
-                                    <span class="text-xs text-slate-400">#@d.Id · @d.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                    <span class="text-xs text-slate-400">#@d.Id · @d.CreatedAt.ToVietnamTime().ToString("dd/MM/yyyy HH:mm")</span>
                                 </div>
                                 <p class="font-bold text-slate-800 dark:text-white truncate">
                                     <a asp-page="/Matchmaking/Details" asp-route-id="@d.MatchId" class="hover:text-primary transition-colors">

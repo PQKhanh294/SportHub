@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model SportHub.Pages.Profile.ReviewsModel
 @{
     ViewData["Title"] = "Đánh giá";
@@ -118,7 +118,7 @@
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">@review.ReviewerName</span>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded-md @typeBg">@typeLabel</span>
-                                <span class="text-xs text-slate-400 ml-auto">@review.CreatedAt.ToLocalTime().ToString("dd/MM/yy")</span>
+                                <span class="text-xs text-slate-400 ml-auto">@review.CreatedAt.ToVietnamTime().ToString("dd/MM/yy")</span>
                             </div>
                             <p class="text-[11px] text-slate-400 mb-1">@review.MatchTitle • @review.MatchDate.ToString("dd/MM/yyyy")</p>
                             <div class="flex items-center gap-0.5 mb-1">

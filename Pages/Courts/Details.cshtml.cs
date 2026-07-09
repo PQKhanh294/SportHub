@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SportHub.Common;
 using SportHub.Services.Interfaces;
 
 namespace SportHub.Pages.Courts
@@ -238,7 +239,7 @@ namespace SportHub.Pages.Courts
             var dayType = (dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday)
                 ? "Weekend" : "Weekday";
 
-            var vietnamTime = DateTime.UtcNow.AddHours(7);
+            var vietnamTime = VietnamTime.Now;
             var today = vietnamTime.Date;
 
             AvailableSlots = slots.Select(s =>

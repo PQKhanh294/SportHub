@@ -104,10 +104,10 @@
                             <p class="text-sm text-slate-500">@(isEn ? "Payer" : "Người thanh toán"): <span class="font-semibold text-slate-700 dark:text-slate-300">@p.PayerName</span></p>
                             <p class="text-sm text-slate-500 mt-1">
                                 Số tiền: <span class="font-bold text-primary">@p.Amount.ToString("N0") xu</span>
-                                <span class="ml-2 text-xs">• Gửi lúc @p.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                <span class="ml-2 text-xs">• Gửi lúc @p.CreatedAt.ToVietnamTime().ToString("HH:mm dd/MM")</span>
                                 @if (p.ExpiresAt.HasValue)
                                 {
-                                    <span class="ml-2 text-xs text-amber-700 dark:text-amber-400">• Hết hạn lúc @p.ExpiresAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                    <span class="ml-2 text-xs text-amber-700 dark:text-amber-400">• Hết hạn lúc @p.ExpiresAt.Value.ToVietnamTime().ToString("HH:mm dd/MM")</span>
                                 }
                             </p>
                         </div>

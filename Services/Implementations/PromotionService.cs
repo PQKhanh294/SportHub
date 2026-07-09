@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -244,7 +245,7 @@ namespace SportHub.Services.Implementations
                 userId,
                 "Voucher",
                 "Bạn nhận được voucher mới!",
-                $"Voucher {code} — {amount:N0} xu{(expiresAt.HasValue ? $", hết hạn {expiresAt.Value.ToLocalTime():dd/MM/yyyy}" : "")}",
+                $"Voucher {code} — {amount:N0} xu{(expiresAt.HasValue ? $", hết hạn {expiresAt.Value.ToVietnamTime():dd/MM/yyyy}" : "")}",
                 "/Wallet"
             );
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 using SportHub.Services.Interfaces;
@@ -138,13 +139,21 @@ namespace SportHub.Services.Implementations
 
         public async Task<bool> ConfirmPaymentAsync(int paymentId)
         {
+            // Bọc claim + side-effect trong 1 transaction: nếu SaveChanges phía dưới lỗi giữa chừng,
+            // toàn bộ (kể cả claim) sẽ rollback thay vì để lại state nửa vời.
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // Atomic claim: chặn 2 nguồn xác nhận cùng lúc (webhook SePay/Casso, admin, ví) xử lý trùng 1 payment.
+            var claimed = await _context.MatchPayments
+                .Where(p => p.MatchPaymentID == paymentId && p.Status == "Pending")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.Status, "Confirmed")
+                    .SetProperty(p => p.ConfirmedAt, DateTime.UtcNow));
+            if (claimed == 0) return false;
+
             var payment = await _context.MatchPayments
                 .Include(p => p.Match)
-                .FirstOrDefaultAsync(p => p.MatchPaymentID == paymentId && p.Status == "Pending");
-            if (payment == null) return false;
-
-            payment.Status = "Confirmed";
-            payment.ConfirmedAt = DateTime.UtcNow;
+                .FirstAsync(p => p.MatchPaymentID == paymentId);
 
             switch (payment.PaymentType)
             {
@@ -177,6 +186,7 @@ namespace SportHub.Services.Implementations
             }
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return true;
         }
 
@@ -186,15 +196,51 @@ namespace SportHub.Services.Implementations
                 .FirstOrDefaultAsync(p => p.MatchPaymentID == paymentId && p.Status == "Pending");
             if (payment == null) return false;
             payment.Status = "Refunded";
+
+            // Tạo lại 1 payment Pending mới cùng loại/số tiền — nếu không, Match.RemainingFeeStatus/DepositStatus
+            // vẫn ở "Notified"/"NotPaid" (không đổi khi reject) nhưng GetActivePaymentAsync (chỉ khớp "Pending")
+            // sẽ không bao giờ tìm thấy giao dịch nào nữa => nút "Thanh toán ngay bằng ví" thất bại vĩnh viễn.
+            DateTime? newExpiresAt = payment.ExpiresAt;
+
+            if (payment.PaymentType == "PlayerFee")
+            {
+                var participant = await _context.MatchParticipants
+                    .FirstOrDefaultAsync(p => p.MatchID == payment.MatchID
+                        && p.UserID == payment.PayerUserID
+                        && p.JoinStatus == "Approved");
+                if (participant == null)
+                {
+                    // Người chơi đã bị hủy chỗ (hết hạn/rời trận) trong lúc admin xử lý — không tạo lại phí
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                newExpiresAt = DateTime.UtcNow.AddHours(1);
+                participant.PlayerFeeDeadline = newExpiresAt;
+            }
+
+            _context.MatchPayments.Add(new MatchPayment
+            {
+                MatchID = payment.MatchID,
+                PayerUserID = payment.PayerUserID,
+                PaymentType = payment.PaymentType,
+                Amount = payment.Amount,
+                Status = "Pending",
+                TransactionRef = $"{payment.PaymentType.ToUpperInvariant()}-RETRY-{payment.MatchID}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = newExpiresAt
+            });
+
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<AdminRevenueStats> GetRevenueStatsAsync()
         {
-            var now = DateTime.UtcNow;
-            var todayStart = now.Date;
-            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            // Quy đổi mốc "hôm nay/tháng này" theo giờ Việt Nam rồi trừ lại 7h để so sánh đúng với
+            // ConfirmedAt (lưu dạng UTC) — tránh lệch ranh giới ngày/tháng nếu server chạy timezone khác VN.
+            var nowVn = VietnamTime.Now;
+            var todayStart = nowVn.Date.AddHours(-7);
+            var monthStart = new DateTime(nowVn.Year, nowVn.Month, 1).AddHours(-7);
 
             var confirmed = await _context.MatchPayments
                 .Where(p => p.Status == "Confirmed")
@@ -295,57 +341,20 @@ namespace SportHub.Services.Implementations
             return result;
         }
 
-        public async Task<List<(int MatchId, int HostUserId, string MatchTitle, decimal RemainingAmount)>> NotifyRemainingFeeAsync(CancellationToken ct = default)
-        {
-            var now = DateTime.Now;
-
-            var candidates = await _context.Matches
-                .Where(m => m.RemainingFeeStatus == "NotDue" && m.DepositStatus == "Paid")
-                .ToListAsync(ct);
-
-            var result = new List<(int, int, string, decimal)>();
-            foreach (var m in candidates)
-            {
-                var matchStart = m.MatchDate.Date + m.StartTime;
-                if (matchStart <= now)
-                {
-                    m.RemainingFeeStatus = "Notified";
-
-                    // Create HostRemaining payment record with 48h deadline
-                    var remaining = CalculateHostDeposit(m.MaxParticipants);
-                    _context.MatchPayments.Add(new MatchPayment
-                    {
-                        MatchID = m.MatchID,
-                        PayerUserID = m.CreatedByUserID,
-                        PaymentType = "HostRemaining",
-                        Amount = remaining,
-                        Status = "Pending",
-                        TransactionRef = $"REMAINING-{m.MatchID}-{DateTime.UtcNow:yyyyMMddHHmmss}",
-                        CreatedAt = DateTime.UtcNow,
-                        ExpiresAt = DateTime.UtcNow.AddHours(48)
-                    });
-
-                    var title = string.IsNullOrWhiteSpace(m.Title) ? m.MatchType : m.Title;
-                    result.Add((m.MatchID, m.CreatedByUserID, title ?? "Trận đấu", remaining));
-                }
-            }
-
-            if (result.Count > 0)
-                await _context.SaveChangesAsync(ct);
-
-            return result;
-        }
-
         public async Task<List<DailyRevenue>> GetDailyRevenueAsync(int days = 7)
         {
-            var since = DateTime.UtcNow.Date.AddDays(-(days - 1));
+            // Gom nhóm theo ngày giờ Việt Nam: cộng 7h trước khi lấy .Date để tránh payment lúc
+            // 23h-06h VN (tức 16h-23h UTC ngày trước) bị tính nhầm sang ngày UTC trước đó.
+            var sinceVn = VietnamTime.Now.Date.AddDays(-(days - 1));
+            var sinceUtc = sinceVn.AddHours(-7);
+
             var payments = await _context.MatchPayments
-                .Where(p => p.Status == "Confirmed" && p.ConfirmedAt >= since)
-                .Select(p => new { p.PaymentType, p.Amount, Date = p.ConfirmedAt!.Value.Date })
+                .Where(p => p.Status == "Confirmed" && p.ConfirmedAt >= sinceUtc)
+                .Select(p => new { p.PaymentType, p.Amount, Date = p.ConfirmedAt!.Value.AddHours(7).Date })
                 .ToListAsync();
 
             return Enumerable.Range(0, days)
-                .Select(i => since.AddDays(i))
+                .Select(i => sinceVn.AddDays(i))
                 .Select(date => new DailyRevenue
                 {
                     Date = date,

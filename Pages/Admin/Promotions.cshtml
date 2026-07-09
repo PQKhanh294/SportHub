@@ -175,7 +175,7 @@
                                     <span>Đã dùng: @c.RedemptionCount@(c.MaxRedemptions.HasValue ? $"/{c.MaxRedemptions}" : "") lượt</span>
                                     @if (c.EndDate.HasValue)
                                     {
-                                        <span>Hết hạn: @c.EndDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                        <span>Hết hạn: @c.EndDate.Value.ToVietnamTime().ToString("dd/MM/yyyy")</span>
                                     }
                                 </div>
                             </div>
@@ -319,7 +319,7 @@
                                         <span class="flex-1 text-slate-400 text-xs">
                                             @p.UseCount@(p.MaxUses.HasValue ? $"/{p.MaxUses}" : "/∞") lượt
                                             @if (p.ExpiresAt.HasValue)
-                                            { <text> · HSD @p.ExpiresAt.Value.ToLocalTime().ToString("dd/MM/yy")</text> }
+                                            { <text> · HSD @p.ExpiresAt.Value.ToVietnamTime().ToString("dd/MM/yy")</text> }
                                         </span>
                                         @if (expired)
                                         {
@@ -466,7 +466,7 @@
                                     <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@(r.Campaign?.Name ?? "—")</td>
                                     <td class="px-4 py-3 text-slate-500 text-xs font-mono">@redeemType</td>
                                     <td class="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">+@r.AmountCredited.ToString("N0")đ</td>
-                                    <td class="px-4 py-3 text-right text-xs text-slate-400">@r.RedeemedAt.ToLocalTime().ToString("HH:mm dd/MM/yy")</td>
+                                    <td class="px-4 py-3 text-right text-xs text-slate-400">@r.RedeemedAt.ToVietnamTime().ToString("HH:mm dd/MM/yy")</td>
                                 </tr>
                             }
                         </tbody>

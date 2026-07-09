@@ -51,7 +51,7 @@
                 <span class="px-3 py-1 rounded-md text-sm font-bold @BadgeClass(Model.CurrentPlan.PlanKey)">@Model.CurrentPlan.Name</span>
                 @if (Model.ActiveSub != null)
                 {
-                    <span class="text-sm text-slate-500">Hết hạn: @Model.ActiveSub.EndAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                    <span class="text-sm text-slate-500">Hết hạn: @Model.ActiveSub.EndAt.ToVietnamTime().ToString("dd/MM/yyyy")</span>
                 }
             </div>
             <div class="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">

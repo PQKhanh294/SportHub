@@ -49,8 +49,8 @@ else
 
         @if (item.Deadline.HasValue)
         {
-            var deadline = item.Deadline.Value.ToLocalTime();
-            var remaining = deadline - DateTime.Now;
+            var deadline = item.Deadline.Value.ToVietnamTime();
+            var remaining = deadline - VietnamTime.Now;
             var urgent = remaining.TotalMinutes < 15;
             <div class="mt-3 flex items-center gap-2 p-3 rounded-md @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800")">
                 <span class="material-symbols-outlined text-sm @(urgent ? "text-rose-500" : "text-amber-500")">timer</span>

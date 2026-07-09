@@ -58,8 +58,8 @@
     else
     {
         var req = Model.PendingRequest;
-        var expVn = req.ExpiresAt.ToLocalTime();
-        var remaining = expVn - DateTime.Now;
+        var expVn = req.ExpiresAt.ToVietnamTime();
+        var remaining = expVn - VietnamTime.Now;
 
         <!-- QR display -->
         <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-6 shadow-sm text-center">

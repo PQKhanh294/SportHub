@@ -84,7 +84,6 @@ namespace SportHub.Services.Interfaces
         Task<AdminRevenueStats> GetRevenueStatsAsync();
         Task<List<TransactionHistoryItem>> GetTransactionHistoryAsync();
         Task<List<ExpiredPlayerFee>> ExpirePlayerFeesAsync(CancellationToken ct = default);
-        Task<List<(int MatchId, int HostUserId, string MatchTitle, decimal RemainingAmount)>> NotifyRemainingFeeAsync(CancellationToken ct = default);
         Task<List<DailyRevenue>> GetDailyRevenueAsync(int days = 7);
         Task<List<UnpaidRemainingFee>> GetUnpaidRemainingFeesAsync();
     }

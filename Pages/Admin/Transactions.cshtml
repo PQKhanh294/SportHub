@@ -85,7 +85,7 @@
                                class="font-bold text-sm text-slate-900 dark:text-white hover:text-primary transition-colors line-clamp-1">
                                 @tx.MatchTitle
                             </a>
-                            <p class="text-xs text-slate-400 mt-0.5">#@tx.PaymentId · @tx.ConfirmedAt.ToLocalTime().ToString("HH:mm dd/MM")</p>
+                            <p class="text-xs text-slate-400 mt-0.5">#@tx.PaymentId · @tx.ConfirmedAt.ToVietnamTime().ToString("HH:mm dd/MM")</p>
                         </div>
                         <span class="px-2 py-0.5 rounded-md text-xs font-bold shrink-0 @typeColor">@tx.TypeLabel</span>
                     </div>
@@ -148,7 +148,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-600 dark:text-slate-400">@tx.PayerName</td>
                                 <td class="px-4 py-3 text-right font-bold text-primary">+@tx.Amount.ToString("N0") xu</td>
-                                <td class="px-4 py-3 text-slate-500 text-xs">@tx.ConfirmedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</td>
+                                <td class="px-4 py-3 text-slate-500 text-xs">@tx.ConfirmedAt.ToVietnamTime().ToString("HH:mm dd/MM/yyyy")</td>
                                 <td class="px-4 py-3 text-center">
                                     @if (!string.IsNullOrWhiteSpace(tx.ReceiptUrl))
                                     {
