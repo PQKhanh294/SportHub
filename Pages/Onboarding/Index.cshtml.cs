@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using SportHub.Common;
 using SportHub.Data;
 using SportHub.Models.Entities;
 
@@ -91,7 +92,9 @@ namespace SportHub.Pages.Onboarding
                 if (lat is >= -90 and <= 90) user.DefaultLatitude = lat;
                 if (lon is >= -180 and <= 180) user.DefaultLongitude = lon;
             }
-            if (!string.IsNullOrWhiteSpace(phone))
+            // Client-side đã chặn SĐT sai định dạng trước khi submit — đây chỉ là lớp phòng vệ
+            // nếu request bị chỉnh sửa bỏ qua JS; bỏ qua giá trị SĐT lỗi thay vì chặn cả luồng onboarding.
+            if (!string.IsNullOrWhiteSpace(phone) && PhoneValidator.IsValidVietnamesePhone(phone))
                 user.PhoneNumber = phone.Trim();
         }
 
