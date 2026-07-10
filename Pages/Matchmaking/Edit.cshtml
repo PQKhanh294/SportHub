@@ -163,17 +163,38 @@
                 <span asp-validation-for="Input.MaxParticipants" class="text-xs text-red-500"></span>
             </div>
             <div class="space-y-2">
-                <label class="block text-sm font-semibold mb-2">Tổng chi phí sân (xu, tùy chọn)</label>
-                <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" id="priceVndInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 200000" />
-                <span asp-validation-for="Input.PriceVnd" class="text-xs text-red-500"></span>
-                <div id="splitFeeSection" class="hidden pt-1">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="splitFeeChk" style="accent-color:#50A5B1;width:16px;height:16px" @(Model.Input.IsSplitFee ? "checked" : "") />
-                        <span class="text-sm font-medium">Phí chia đều <span class="font-normal text-slate-500">(tổng / số người)</span></span>
+                <label id="priceVndLabel" class="block text-sm font-semibold mb-2">Tổng chi phí sân (xu, tùy chọn)</label>
+                <!-- Bộ chọn kiểu giá — chỉ hiện với Cầu lông -->
+                <div id="priceModeSection" class="hidden flex flex-wrap gap-2 pb-1">
+                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                        <input type="radio" name="priceModeRadio" value="PerPerson" @(Model.Input.PriceMode == "PerPerson" ? "checked" : "") style="accent-color:#50A5B1" />
+                        <span>Giá mỗi người</span>
                     </label>
+                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                        <input type="radio" name="priceModeRadio" value="SplitEven" @(Model.Input.PriceMode == "SplitEven" ? "checked" : "") style="accent-color:#50A5B1" />
+                        <span>Giá chia đều</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 text-sm cursor-pointer border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 hover:border-primary transition-colors">
+                        <input type="radio" name="priceModeRadio" value="ByGender" @(Model.Input.PriceMode == "ByGender" ? "checked" : "") style="accent-color:#50A5B1" />
+                        <span>Giá Nam & Nữ</span>
+                    </label>
+                </div>
+                <div id="singlePriceBlock">
+                    <input asp-for="Input.PriceVnd" type="number" min="0" step="1000" id="priceVndInput" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 200000" />
+                    <span asp-validation-for="Input.PriceVnd" class="text-xs text-red-500"></span>
                     <p id="splitFeePreview" class="hidden text-xs text-primary mt-1 font-medium"></p>
                 </div>
-                <input type="hidden" name="Input.IsSplitFee" id="isSplitFeeHidden" value="@Model.Input.IsSplitFee.ToString().ToLower()" />
+                <div id="genderPriceBlock" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Giá Nam (xu)</label>
+                        <input asp-for="Input.PriceMaleVnd" type="number" min="0" step="1000" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 45000" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Giá Nữ (xu)</label>
+                        <input asp-for="Input.PriceFemaleVnd" type="number" min="0" step="1000" class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" placeholder="Ví dụ: 35000" />
+                    </div>
+                </div>
+                <input type="hidden" name="Input.PriceMode" id="priceModeHidden" value="@Model.Input.PriceMode" />
             </div>
         </div>
 
@@ -288,10 +309,13 @@
         const skillBadmintonSection= document.getElementById('skillBadmintonSection');
         const skillRequiredHidden  = document.getElementById('skillRequiredHidden');
         const sportWarnSkill       = document.getElementById('sport-warn-skill');
-        const splitFeeSection      = document.getElementById('splitFeeSection');
-        const splitFeeChk          = document.getElementById('splitFeeChk');
+        const priceModeSection     = document.getElementById('priceModeSection');
+        const priceModeHidden      = document.getElementById('priceModeHidden');
+        const priceModeRadios      = document.querySelectorAll('input[name="priceModeRadio"]');
+        const singlePriceBlock     = document.getElementById('singlePriceBlock');
+        const genderPriceBlock     = document.getElementById('genderPriceBlock');
+        const priceVndLabel        = document.getElementById('priceVndLabel');
         const splitFeePreview      = document.getElementById('splitFeePreview');
-        const isSplitFeeHidden     = document.getElementById('isSplitFeeHidden');
         const priceVndInput        = document.getElementById('priceVndInput');
         const maxParticipantsInput = document.getElementById('maxParticipantsInput');
 
@@ -344,19 +368,35 @@
             }
         }
 
-        function updateSplitFeeVisibility() {
+        function getPriceMode() {
+            const checked = document.querySelector('input[name="priceModeRadio"]:checked');
+            return checked ? checked.value : 'PerPerson';
+        }
+
+        function updatePriceModeVisibility() {
             if (isBadminton()) {
-                splitFeeSection.classList.remove('hidden');
+                priceModeSection.classList.remove('hidden');
+                applyPriceMode(getPriceMode());
             } else {
-                splitFeeSection.classList.add('hidden');
-                splitFeeChk.checked = false;
-                isSplitFeeHidden.value = 'false';
-                splitFeePreview.classList.add('hidden');
+                priceModeSection.classList.add('hidden');
+                priceModeRadios.forEach(r => { r.checked = r.value === 'PerPerson'; });
+                applyPriceMode('PerPerson');
+                priceVndLabel.textContent = 'Tổng chi phí sân (xu, tùy chọn)';
             }
         }
 
+        function applyPriceMode(mode) {
+            priceModeHidden.value = mode;
+            singlePriceBlock.classList.toggle('hidden', mode === 'ByGender');
+            genderPriceBlock.classList.toggle('hidden', mode !== 'ByGender');
+            if (mode === 'PerPerson') priceVndLabel.textContent = isBadminton() ? 'Giá mỗi người (xu)' : 'Tổng chi phí sân (xu, tùy chọn)';
+            else if (mode === 'SplitEven') priceVndLabel.textContent = 'Tổng chi phí sân (xu) — chia đều';
+            else priceVndLabel.textContent = 'Giá theo giới tính (xu)';
+            updateSplitFeePreview();
+        }
+
         function updateSplitFeePreview() {
-            if (!splitFeeChk.checked) { splitFeePreview.classList.add('hidden'); return; }
+            if (getPriceMode() !== 'SplitEven') { splitFeePreview.classList.add('hidden'); return; }
             const total = parseFloat(priceVndInput.value) || 0;
             const people = parseInt(maxParticipantsInput.value) || 1;
             if (total > 0 && people > 0) {
@@ -398,17 +438,18 @@
                 });
             }
 
-            // SplitFee init
-            if (splitFeeChk.checked) {
-                isSplitFeeHidden.value = 'true';
-                updateSplitFeePreview();
-            }
+            // Price mode init — highlight radio đang chọn
+            priceModeRadios.forEach(r => {
+                const lbl = r.closest('label');
+                if (lbl) lbl.style.borderColor = r.checked ? '#50A5B1' : '';
+            });
+            updateSplitFeePreview();
         }
 
         sportSelect.addEventListener('change', function () {
             updateMatchType();
             updateSkill();
-            updateSplitFeeVisibility();
+            updatePriceModeVisibility();
             sportWarnMatchtype.classList.add('hidden');
             sportWarnSkill.classList.add('hidden');
         });
@@ -433,9 +474,14 @@
             });
         });
 
-        splitFeeChk.addEventListener('change', function () {
-            isSplitFeeHidden.value = this.checked ? 'true' : 'false';
-            updateSplitFeePreview();
+        priceModeRadios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                if (this.checked) applyPriceMode(this.value);
+                priceModeRadios.forEach(r => {
+                    const lbl = r.closest('label');
+                    if (lbl) lbl.style.borderColor = r.checked ? '#50A5B1' : '';
+                });
+            });
         });
         priceVndInput.addEventListener('input', updateSplitFeePreview);
         maxParticipantsInput.addEventListener('input', updateSplitFeePreview);
@@ -470,7 +516,7 @@
         // Init — populate UI then pre-fill existing values
         updateMatchType();
         updateSkill();
-        updateSplitFeeVisibility();
+        updatePriceModeVisibility();
         prePopulate();
 
         SportHubLocationPicker.init({

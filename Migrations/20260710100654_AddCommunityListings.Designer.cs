@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportHub.Data;
 
@@ -11,9 +12,11 @@ using SportHub.Data;
 namespace SportHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710100654_AddCommunityListings")]
+    partial class AddCommunityListings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -688,6 +691,9 @@ namespace SportHub.Migrations
                     b.Property<bool>("IsRecurring")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsSplitFee")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("MatchDate")
                         .HasColumnType("date");
 
@@ -700,16 +706,6 @@ namespace SportHub.Migrations
 
                     b.Property<int?>("ParentMatchId")
                         .HasColumnType("int");
-
-                    b.Property<decimal?>("PriceFemaleVnd")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("PriceMaleVnd")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PriceMode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RecurringDays")
                         .HasColumnType("nvarchar(max)");

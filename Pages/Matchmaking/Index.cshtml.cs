@@ -114,6 +114,7 @@ namespace SportHub.Pages.Matchmaking
         public List<string> SportOptions { get; set; } = new();
 
         public List<MatchCardItem> Matches { get; set; } = new();
+        public List<CommunityListingCardItem> CommunityListings { get; set; } = new();
         public List<JoinedMatchItem> UpcomingJoinedMatches { get; set; } = new();
         public List<JoinedMatchItem> JoinedMatchHistory { get; set; } = new();
         public List<PendingRequestItem> PendingRequestMatches { get; set; } = new();
@@ -293,7 +294,7 @@ namespace SportHub.Pages.Matchmaking
                         var amount = BuildMatchPriceAmount(m);
                         if (!amount.HasValue) return !MinPrice.HasValue || MinPrice.Value <= 0;
                         // Trận chia đều: card hiển thị giá/người nên filter cũng phải so giá/người
-                        if (m.IsSplitFee && m.MaxParticipants > 0)
+                        if (m.PriceMode == "SplitEven" && m.MaxParticipants > 0)
                             amount = Math.Ceiling(amount.Value / m.MaxParticipants);
                         if (MinPrice.HasValue && amount.Value < MinPrice.Value) return false;
                         if (MaxPrice.HasValue && amount.Value > MaxPrice.Value) return false;
@@ -370,7 +371,129 @@ namespace SportHub.Pages.Matchmaking
                 .ToList();
 
             await LoadJoinedMatchesAsync(currentUserId);
+            await LoadCommunityListingsAsync();
         }
+
+        private async Task LoadCommunityListingsAsync()
+        {
+            var listings = await _context.CommunityListings
+                .Include(c => c.Sport)
+                .Where(c => c.Status == "Active" && c.ExpiresAt > DateTime.UtcNow)
+                .OrderBy(c => c.MatchDate ?? DateOnly.MaxValue)
+                .Take(100)
+                .ToListAsync();
+
+            // Áp cùng bộ lọc như trận thật. Nguyên tắc: tin thiếu dữ liệu ở trường đang lọc thì GIỮ lại
+            // (không loại oan) — trừ giá, mô phỏng đúng cách filter trận thật xử lý trận không có giá.
+            if (!string.IsNullOrWhiteSpace(Sport))
+                listings = listings.Where(c => c.Sport != null
+                    && string.Equals(NormalizeSportName(c.Sport.SportName), Sport, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!string.IsNullOrWhiteSpace(Q))
+                listings = listings.Where(c => CommunityContains(c.Title, Q) || CommunityContains(c.VenueName, Q)
+                    || CommunityContains(c.Address, Q) || CommunityContains(c.RawText, Q)).ToList();
+
+            if (!string.IsNullOrWhiteSpace(Skill) && !string.Equals(Skill, "Any", StringComparison.OrdinalIgnoreCase))
+                listings = listings.Where(c => MatchesSkillFilter(c.SkillRequired, Skill)).ToList();
+
+            if (MatchDate.HasValue)
+            {
+                var d = DateOnly.FromDateTime(MatchDate.Value);
+                listings = listings.Where(c => !c.MatchDate.HasValue || c.MatchDate.Value == d).ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(TimeFrom) && TimeSpan.TryParse(TimeFrom, out var fromTime))
+                listings = listings.Where(c => !c.StartTime.HasValue || c.StartTime.Value >= fromTime).ToList();
+
+            if (!string.IsNullOrWhiteSpace(TimeTo) && TimeSpan.TryParse(TimeTo, out var toTime))
+                listings = listings.Where(c => !c.StartTime.HasValue || c.StartTime.Value <= toTime).ToList();
+
+            if (!string.IsNullOrWhiteSpace(Time) && !string.Equals(Time, "Any", StringComparison.OrdinalIgnoreCase))
+                listings = listings.Where(c => !c.StartTime.HasValue || Time switch
+                {
+                    "Morning" => c.StartTime.Value < new TimeSpan(12, 0, 0),
+                    "Afternoon" => c.StartTime.Value >= new TimeSpan(12, 0, 0) && c.StartTime.Value < new TimeSpan(17, 0, 0),
+                    "Evening" => c.StartTime.Value >= new TimeSpan(17, 0, 0),
+                    _ => true
+                }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(Location))
+                listings = listings.Where(c =>
+                {
+                    var all = string.Join(" ", new[] { c.VenueName, c.Address }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return all.Contains(Location, StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+
+            if (MinPrice.HasValue || MaxPrice.HasValue)
+                listings = listings.Where(c =>
+                {
+                    var amount = CommunityPriceAmount(c);
+                    if (!amount.HasValue) return !MinPrice.HasValue || MinPrice.Value <= 0;
+                    if (MinPrice.HasValue && amount.Value < MinPrice.Value) return false;
+                    if (MaxPrice.HasValue && amount.Value > MaxPrice.Value) return false;
+                    return true;
+                }).ToList();
+
+            if (CanFilterByDistance && UserLat.HasValue && UserLon.HasValue)
+            {
+                var radiusKm = (double)(Radius ?? 10m);
+                listings = listings.Where(c =>
+                {
+                    if (!c.Latitude.HasValue || !c.Longitude.HasValue) return true; // thiếu tọa độ vẫn hiện
+                    return HaversineKm(UserLat.Value, UserLon.Value, (double)c.Latitude.Value, (double)c.Longitude.Value) <= radiusKm;
+                }).ToList();
+            }
+
+            CommunityListings = listings.Take(30).Select(c => new CommunityListingCardItem
+            {
+                Title = string.IsNullOrWhiteSpace(c.Title) ? "Tin tuyển vãng lai" : c.Title,
+                SportName = c.Sport?.SportName,
+                ParseStatus = c.ParseStatus,
+                StartText = BuildCommunityStartText(c),
+                Venue = string.IsNullOrWhiteSpace(c.VenueName) ? c.Address : c.VenueName,
+                SkillRequired = c.SkillRequired,
+                PriceDisplay = BuildCommunityPriceDisplay(c),
+                RawTextPreview = TruncateRaw(c.RawText, 220),
+                SourceAuthorName = c.SourceAuthorName,
+                SourceUrl = c.SourceUrl,
+                Latitude = c.Latitude,
+                Longitude = c.Longitude
+            }).ToList();
+        }
+
+        private static bool CommunityContains(string? haystack, string needle) =>
+            !string.IsNullOrEmpty(haystack) && haystack.Contains(needle, StringComparison.OrdinalIgnoreCase);
+
+        private static decimal? CommunityPriceAmount(SportHub.Models.Entities.CommunityListing c)
+        {
+            if (c.CostMaleVnd.HasValue && c.CostFemaleVnd.HasValue)
+                return Math.Min(c.CostMaleVnd.Value, c.CostFemaleVnd.Value);
+            return c.CostMaleVnd ?? c.CostFemaleVnd;
+        }
+
+        private static string? BuildCommunityStartText(SportHub.Models.Entities.CommunityListing c)
+        {
+            var vi = new CultureInfo("vi-VN");
+            if (c.MatchDate.HasValue && c.StartTime.HasValue)
+                return $"{c.MatchDate.Value.ToDateTime(TimeOnly.MinValue).ToString("ddd, dd/MM", vi)} · {c.StartTime.Value:hh\\:mm}";
+            if (c.MatchDate.HasValue)
+                return c.MatchDate.Value.ToDateTime(TimeOnly.MinValue).ToString("ddd, dd/MM", vi);
+            if (c.StartTime.HasValue)
+                return c.StartTime.Value.ToString(@"hh\:mm");
+            return null;
+        }
+
+        private static string? BuildCommunityPriceDisplay(SportHub.Models.Entities.CommunityListing c)
+        {
+            if (c.CostMaleVnd.HasValue && c.CostFemaleVnd.HasValue)
+                return $"Nam {c.CostMaleVnd.Value:N0}đ · Nữ {c.CostFemaleVnd.Value:N0}đ";
+            if (c.CostMaleVnd.HasValue) return $"{c.CostMaleVnd.Value:N0}đ";
+            if (c.CostFemaleVnd.HasValue) return $"{c.CostFemaleVnd.Value:N0}đ";
+            return null;
+        }
+
+        private static string TruncateRaw(string text, int maxLen) =>
+            text.Length <= maxLen ? text : text[..maxLen] + "…";
 
         public async Task<IActionResult> OnGetGeocodeAsync(string q)
         {
@@ -636,13 +759,24 @@ namespace SportHub.Pages.Matchmaking
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
-            if (match.IsSplitFee) return "Chia đều cuối buổi";
+            if (match.PriceMode == "ByGender" && (match.PriceMaleVnd.HasValue || match.PriceFemaleVnd.HasValue))
+            {
+                var parts = new List<string>();
+                if (match.PriceMaleVnd.HasValue) parts.Add($"Nam {match.PriceMaleVnd.Value:N0}đ");
+                if (match.PriceFemaleVnd.HasValue) parts.Add($"Nữ {match.PriceFemaleVnd.Value:N0}đ");
+                return string.Join(" · ", parts);
+            }
+
+            if (match.PriceMode == "SplitEven") return "Chia đều cuối buổi";
 
             var amount = BuildMatchPriceAmount(match);
             if (amount.HasValue)
             {
                 if (match.Booking?.FinalAmount > 0)
                     return $"Tổng: {amount.Value:N0} xu";
+
+                if (match.CustomPriceVnd.HasValue)
+                    return $"{amount.Value:N0} xu/người";
 
                 return $"Từ {amount.Value:N0} xu/giờ";
             }
@@ -702,6 +836,16 @@ namespace SportHub.Pages.Matchmaking
 
         private static decimal? BuildMatchPriceAmount(Models.Entities.Match match)
         {
+            // ByGender: lấy giá thấp hơn giữa Nam/Nữ để filter khoảng giá không loại oan
+            // trận mà 1 trong 2 giới tính vẫn nằm trong khoảng lọc
+            if (match.PriceMode == "ByGender")
+            {
+                if (match.PriceMaleVnd.HasValue && match.PriceFemaleVnd.HasValue)
+                    return Math.Min(match.PriceMaleVnd.Value, match.PriceFemaleVnd.Value);
+                if (match.PriceMaleVnd.HasValue || match.PriceFemaleVnd.HasValue)
+                    return match.PriceMaleVnd ?? match.PriceFemaleVnd;
+            }
+
             var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
             if (customPrice.HasValue)
             {
@@ -998,6 +1142,24 @@ namespace SportHub.Pages.Matchmaking
             public decimal? HostRatingAvg { get; set; }
             public int HostRatingCount { get; set; }
             public bool ShowHostRating => HostRatingCount >= 3 && HostRatingAvg.HasValue;
+        }
+
+        // Tin tuyển vãng lai cào từ Facebook (Chrome Extension) — chỉ tham khảo, dẫn traffic ra bài gốc,
+        // không có luồng Join/Skip trong platform như MatchCardItem.
+        public class CommunityListingCardItem
+        {
+            public string Title { get; set; } = string.Empty;
+            public string? SportName { get; set; }
+            public string ParseStatus { get; set; } = "Parsed";
+            public string? StartText { get; set; }
+            public string? Venue { get; set; }
+            public string? SkillRequired { get; set; }
+            public string? PriceDisplay { get; set; }
+            public string RawTextPreview { get; set; } = string.Empty;
+            public string? SourceAuthorName { get; set; }
+            public string SourceUrl { get; set; } = string.Empty;
+            public decimal? Latitude { get; set; }
+            public decimal? Longitude { get; set; }
         }
 
         public class JoinedMatchItem

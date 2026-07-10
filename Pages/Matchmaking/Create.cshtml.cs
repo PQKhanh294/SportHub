@@ -95,7 +95,9 @@ namespace SportHub.Pages.Matchmaking
 
             public bool RequiresApproval { get; set; } = true;
 
-            public bool IsSplitFee { get; set; }
+            public string PriceMode { get; set; } = "PerPerson";
+            public decimal? PriceMaleVnd { get; set; }
+            public decimal? PriceFemaleVnd { get; set; }
             public bool IsRecurring { get; set; }
             public string? RecurringDays { get; set; }
             public DateTime? RecurringUntil { get; set; }
@@ -216,10 +218,12 @@ namespace SportHub.Pages.Matchmaking
                 CustomCourtName = string.IsNullOrWhiteSpace(Input.CourtName) ? null : Input.CourtName.Trim(),
                 CustomCourtAddress = string.IsNullOrWhiteSpace(Input.CourtAddress) ? null : Input.CourtAddress.Trim(),
                 CourtNumber = string.IsNullOrWhiteSpace(Input.CourtNumber) ? null : Input.CourtNumber.Trim(),
-                CustomPriceVnd = Input.PriceVnd,
+                PriceMode = Input.PriceMode,
+                CustomPriceVnd = Input.PriceMode == "ByGender" ? null : Input.PriceVnd,
+                PriceMaleVnd = Input.PriceMode == "ByGender" ? Input.PriceMaleVnd : null,
+                PriceFemaleVnd = Input.PriceMode == "ByGender" ? Input.PriceFemaleVnd : null,
                 CustomLatitude = Input.Latitude,
                 CustomLongitude = Input.Longitude,
-                IsSplitFee = Input.IsSplitFee,
                 IsRecurring = Input.IsRecurring,
                 RecurringDays = Input.IsRecurring && !string.IsNullOrWhiteSpace(Input.RecurringDays) ? Input.RecurringDays : null,
                 RecurringUntil = Input.IsRecurring ? Input.RecurringUntil : null,

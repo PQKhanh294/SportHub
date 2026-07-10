@@ -55,6 +55,10 @@
         <span class="material-symbols-outlined text-[15px]">gavel</span>
         @(isEn ? "Disputes" : "Khiếu nại")
     </a>
+    <a asp-page="/Admin/CommunityListings" class="@navItemBase @(current == "CommunityListings" ? navActive : navInactive)">
+        <span class="material-symbols-outlined text-[15px]">groups</span>
+        @(isEn ? "Community" : "Cộng đồng")
+    </a>
     <a asp-page="/Admin/Emails" class="@navItemBase @(current == "Emails" ? navActive : navInactive)">
         <span class="material-symbols-outlined text-[15px]">mail</span>
         @(isEn ? "Emails" : "Email")

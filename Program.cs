@@ -112,6 +112,7 @@ builder.Services.AddScoped<SportHub.Services.Interfaces.IUserBanService, SportHu
 builder.Services.AddScoped<SportHub.Services.Implementations.ChatModerationService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.ISubscriptionService, SportHub.Services.Implementations.SubscriptionService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IPromotionService, SportHub.Services.Implementations.PromotionService>();
+builder.Services.AddScoped<SportHub.Services.Interfaces.ICommunityListingService, SportHub.Services.Implementations.CommunityListingService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IEmailService, SportHub.Services.Implementations.ResendEmailService>();
 builder.Services.AddScoped<SportHub.Services.Interfaces.IDisputeService, SportHub.Services.Implementations.DisputeService>();
 builder.Services.AddHostedService<PendingJoinExpiryHostedService>();

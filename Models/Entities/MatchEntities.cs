@@ -80,6 +80,11 @@ namespace SportHub.Models.Entities
         public decimal? CustomLatitude { get; set; }
         public decimal? CustomLongitude { get; set; }
 
+        // PerPerson (CustomPriceVnd = giá mỗi người), SplitEven (CustomPriceVnd = tổng, chia đều), ByGender
+        public string PriceMode { get; set; } = "PerPerson";
+        public decimal? PriceMaleVnd { get; set; }
+        public decimal? PriceFemaleVnd { get; set; }
+
         // Status: Open, Full, InProgress, Completed, Cancelled, PendingDeposit
         public string Status { get; set; } = "PendingDeposit";
         public bool RequiresApproval { get; set; } = false;
@@ -92,8 +97,6 @@ namespace SportHub.Models.Entities
         // Phí platform
         public string DepositStatus { get; set; } = "NotPaid";     // NotPaid, Paid
         public string RemainingFeeStatus { get; set; } = "NotDue"; // NotDue, Notified, Paid
-
-        public bool IsSplitFee { get; set; } = false;
 
         public bool IsRecurring { get; set; } = false;
         public string? RecurringDays { get; set; }   // "1,3,5" (0=CN,1=T2,...,6=T7)

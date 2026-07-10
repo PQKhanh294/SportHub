@@ -1,0 +1,107 @@
+@page
+@model SportHub.Pages.Admin.CommunityListingsModel
+@{
+    ViewData["Title"] = "Admin — Cộng đồng";
+    ViewData["AdminPage"] = "CommunityListings";
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">Tin cộng đồng (Facebook)</h1>
+        <p class="text-sm text-slate-500 mt-1">@Model.Listings.Count tin — AI tự động hiển thị ngay, dùng trang này để ẩn tin sai/spam.</p>
+    </div>
+
+    @await Html.PartialAsync("_AdminNav")
+
+    @if (Model.Msg != null)
+    {
+        <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md text-emerald-700 dark:text-emerald-400 font-medium">@Model.Msg</div>
+    }
+
+    <form method="get" class="flex flex-wrap gap-2">
+        <select name="filterStatus" class="flex-1 min-w-[140px] rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Active" selected="@(Model.FilterStatus == "Active")">Đang hiện</option>
+            <option value="Expired" selected="@(Model.FilterStatus == "Expired")">Đã hết hạn</option>
+            <option value="Hidden" selected="@(Model.FilterStatus == "Hidden")">Đã ẩn</option>
+        </select>
+        <select name="filterParseStatus" class="flex-1 min-w-[140px] rounded-md border border-slate-300 dark:border-slate-700 dark:bg-slate-800 px-3 py-2 text-sm">
+            <option value="">Tất cả kết quả AI</option>
+            <option value="Parsed" selected="@(Model.FilterParseStatus == "Parsed")">Đã bóc tách</option>
+            <option value="Failed" selected="@(Model.FilterParseStatus == "Failed")">Bóc tách lỗi</option>
+        </select>
+        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-semibold shrink-0">Lọc</button>
+    </form>
+
+    @if (!Model.Listings.Any())
+    {
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-10 text-center">
+            <span class="material-symbols-outlined text-5xl text-slate-300 mb-3 block">groups</span>
+            <p class="text-slate-500 font-semibold">Chưa có tin cộng đồng nào.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-3">
+            @foreach (var c in Model.Listings)
+            {
+                var statusBadge = c.Status switch
+                {
+                    "Active" => "bg-emerald-100 text-emerald-700",
+                    "Expired" => "bg-slate-100 text-slate-500",
+                    _ => "bg-rose-100 text-rose-600"
+                };
+                var statusLabel = c.Status switch
+                {
+                    "Active" => "Đang hiện",
+                    "Expired" => "Hết hạn",
+                    _ => "Đã ẩn"
+                };
+                var parseBadge = c.ParseStatus == "Parsed" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700";
+
+                <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 p-4">
+                    <div class="flex items-start justify-between gap-3 flex-wrap">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md @statusBadge">@statusLabel</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md @parseBadge">@(c.ParseStatus == "Parsed" ? "AI đã bóc tách" : "AI bóc tách lỗi")</span>
+                                @if (c.Sport != null)
+                                {
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">@c.Sport.SportName</span>
+                                }
+                            </div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">@c.Title</p>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">@c.RawText</p>
+                            <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-2 flex-wrap">
+                                @if (c.MatchDate.HasValue)
+                                {
+                                    <span>@c.MatchDate.Value.ToString("dd/MM/yyyy")@(c.StartTime.HasValue ? $" {c.StartTime:hh\\:mm}" : "")</span>
+                                }
+                                @if (c.VenueName != null || c.Address != null)
+                                {
+                                    <span>@(c.VenueName ?? c.Address)</span>
+                                }
+                                <span>Hết hạn: @c.ExpiresAt.ToVietnamTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                <a href="@c.SourceUrl" target="_blank" rel="noopener" class="text-primary font-semibold hover:underline">Xem bài gốc</a>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            @if (c.Status == "Hidden")
+                            {
+                                <form method="post" asp-page-handler="Unhide" asp-route-id="@c.CommunityListingID">
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 hover:bg-emerald-100">Hiện lại</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Hide" asp-route-id="@c.CommunityListingID" onsubmit="return confirm('Ẩn tin này?')">
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-50 dark:bg-rose-900/20 text-rose-600 hover:bg-rose-100">Ẩn</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

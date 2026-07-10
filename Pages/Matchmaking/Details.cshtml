@@ -35,11 +35,18 @@ else
                                 <span>🏸 Cầu lông</span>
                             </span>
                         }
-                        @if (item.IsSplitFee)
+                        @if (item.PriceMode == "SplitEven")
                         {
                             <span class="px-3 py-1 bg-emerald-500 text-xs font-bold rounded-md flex items-center gap-1">
                                 <span class="material-symbols-outlined text-xs">group</span>
                                 Chia đều phí
+                            </span>
+                        }
+                        else if (item.PriceMode == "ByGender")
+                        {
+                            <span class="px-3 py-1 bg-emerald-500 text-xs font-bold rounded-md flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">wc</span>
+                                Giá theo giới tính
                             </span>
                         }
                         @if (item.IsRecurring && !string.IsNullOrEmpty(item.RecurringDays))
