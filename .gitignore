@@ -368,5 +368,10 @@ appsettings.Production.json
 appsettings.*.json
 !appsettings.Example.json
 
+# Chrome extension "Pack extension" output — .pem là khóa ký riêng tư, .crx là build artifact,
+# cả 2 không nên commit (GitGuardian đã cảnh báo lộ .pem ngày 2026-07-11, xem memory reference)
+*.pem
+*.crx
+
 # User-uploaded files
 wwwroot/uploads/
