@@ -494,6 +494,7 @@
                 <span class="material-symbols-outlined text-[18px]">gavel</span>@(_adminIsEn ? "Disputes" : "Khiếu nại")
                 <span id="sb-badge-disputes" class="hidden ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
             </a>
+            <a asp-page="/Admin/CommunityListings" class="@AdminNavCls("CommunityListings")"><span class="material-symbols-outlined text-[18px]">groups</span>@(_adminIsEn ? "Community" : "Cộng đồng")</a>
             <a asp-page="/Admin/Emails"          class="@AdminNavCls("Emails")"><span class="material-symbols-outlined text-[18px]">mail</span>@(_adminIsEn ? "Emails" : "Email")</a>
         </nav>
         <div class="p-3 border-t border-slate-100 dark:border-slate-800">

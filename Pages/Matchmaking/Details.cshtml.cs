@@ -152,7 +152,7 @@ namespace SportHub.Pages.Matchmaking
                     ? "/images/avatar-default.png"
                     : match.CreatedByUser!.AvatarUrl,
 
-                IsSplitFee      = match.IsSplitFee,
+                PriceMode       = match.PriceMode,
                 IsRecurring     = match.IsRecurring,
                 RecurringDays   = match.RecurringDays,
                 IsLockedByHost  = match.IsLockedByHost,
@@ -486,10 +486,18 @@ namespace SportHub.Pages.Matchmaking
 
         private static string BuildPriceDisplay(Models.Entities.Match match)
         {
-            if (match.IsSplitFee) return "Chia đều cuối buổi";
+            if (match.PriceMode == "ByGender" && (match.PriceMaleVnd.HasValue || match.PriceFemaleVnd.HasValue))
+            {
+                var parts = new List<string>();
+                if (match.PriceMaleVnd.HasValue) parts.Add($"Nam {match.PriceMaleVnd.Value:N0}đ");
+                if (match.PriceFemaleVnd.HasValue) parts.Add($"Nữ {match.PriceFemaleVnd.Value:N0}đ");
+                return string.Join(" · ", parts);
+            }
+
+            if (match.PriceMode == "SplitEven") return "Chia đều cuối buổi";
 
             var customPrice = match.CustomPriceVnd ?? ExtractCustomPrice(match.Description);
-            if (customPrice.HasValue) return $"{customPrice.Value:N0} xu";
+            if (customPrice.HasValue) return $"{customPrice.Value:N0} xu/người";
             if (match.Booking?.FinalAmount > 0) return $"{match.Booking.FinalAmount:N0} xu";
             if (match.Court?.PricingRules != null && match.Court.PricingRules.Any())
                 return $"Từ {match.Court.PricingRules.Min(p => p.UnitPrice):N0} xu/giờ";
@@ -540,7 +548,7 @@ namespace SportHub.Pages.Matchmaking
             public int HostId { get; set; }
             public string HostName { get; set; } = string.Empty;
             public string HostAvatar { get; set; } = string.Empty;
-            public bool IsSplitFee { get; set; }
+            public string PriceMode { get; set; } = "PerPerson";
             public bool IsRecurring { get; set; }
             public string? RecurringDays { get; set; }
 

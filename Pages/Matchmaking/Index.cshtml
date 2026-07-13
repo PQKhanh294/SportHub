@@ -529,6 +529,9 @@
                         </div>
                     </details>
 
+                        </div>
+                    </details>
+
                     <details class="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4">
                         <summary class="cursor-pointer select-none text-sm font-black uppercase text-slate-700 dark:text-slate-200">Thời gian</summary>
                         <div class="mt-4 space-y-5">
@@ -587,6 +590,9 @@
                             </p>
                         }
                     </div>
+
+                        </div>
+                    </details>
 
                         </div>
                     </details>
@@ -710,7 +716,10 @@
                 </div>
             }
 
-            @if (Model.Matches.Count == 0)
+            @{
+                var communityQueue = new Queue<SportHub.Pages.Matchmaking.IndexModel.CommunityListingCardItem>(Model.CommunityListings);
+            }
+            @if (Model.Matches.Count == 0 && communityQueue.Count == 0)
             {
                 <div class="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
                     <div class="text-5xl mb-3">🏸⚽🎾</div>
@@ -724,6 +733,7 @@
             }
             else
             {
+                int mmCardIndex = 0;
                 @foreach (var match in Model.Matches)
                 {
                     <div class="relative bg-white dark:bg-slate-900 p-2 sm:p-6 rounded-md sm:rounded-md border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all overflow-hidden group draggable-match-card"
@@ -932,6 +942,15 @@
                             </div>
                         </div>
                     </div>
+                    mmCardIndex++;
+                    @if (mmCardIndex % 3 == 0 && communityQueue.Count > 0)
+                    {
+                        <partial name="_CommunityListingCard" model="communityQueue.Dequeue()" />
+                    }
+                }
+                @while (communityQueue.Count > 0)
+                {
+                    <partial name="_CommunityListingCard" model="communityQueue.Dequeue()" />
                 }
             }
 
@@ -1581,6 +1600,10 @@
     const badmintonSkills = skillsBySport['Cầu Lông'];
     const defaultSkills   = skillsBySport['default'];
 
+    // Kept for backward compat references
+    const badmintonSkills = skillsBySport['Cầu Lông'];
+    const defaultSkills   = skillsBySport['default'];
+
     function updateSkillOptions() {
         const sportSelect = document.querySelector('select[name="Sport"]');
         const skillSelect = document.getElementById('skillSelect');
@@ -2144,6 +2167,7 @@
         let map;
         let matchMarkerLayer;
         const matchesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Matches));
+        const communityData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CommunityListings));
 
         function toggleMapView() {
             const mapSec = document.getElementById('mapSection');
@@ -2183,8 +2207,9 @@
             // Default center: Da Nang
             let center = [16.0544, 108.2022];
             
-            // Try to find first match with coordinates
-            const firstCoordMatch = matchesData.find(m => Number.isFinite(Number(m.Latitude)) && Number.isFinite(Number(m.Longitude)));
+            // Try to find first match with coordinates (rơi xuống tin cộng đồng nếu chưa có trận nào có tọa độ)
+            const firstCoordMatch = matchesData.find(m => Number.isFinite(Number(m.Latitude)) && Number.isFinite(Number(m.Longitude)))
+                || communityData.find(c => Number.isFinite(Number(c.Latitude)) && Number.isFinite(Number(c.Longitude)));
             if (firstCoordMatch) {
                 center = [Number(firstCoordMatch.Latitude), Number(firstCoordMatch.Longitude)];
             }
@@ -2344,6 +2369,47 @@
                         <div style="font-size:11px;color:#64748b;margin-bottom:8px;display:flex;align-items:center;gap:4px;"><span style="font-size:14px;vertical-align:middle;">💰</span> ${priceText}</div>
                         <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ${venueText}</div>
                         <a href="/Matchmaking/Details?id=${match.MatchId}" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#50A5B1;padding:5px 12px;border-radius:6px;text-decoration:none;">Chi tiết →</a>
+                    </div>
+                `);
+            }
+
+            // Marker tin cộng đồng — icon xanh da trời để phân biệt với trận thật (teal).
+            // Dùng divIcon (HTML thuần, không cần ảnh ngoài) để tránh chặn bởi CSP.
+            const communityIcon = L.divIcon({
+                className: 'sporthub-community-marker',
+                html: '<div style="background:#0ea5e9;width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:12px;line-height:1;">🏸</span></div>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -22]
+            });
+
+            for (const cl of communityData) {
+                const lat = Number(cl.Latitude);
+                const lon = Number(cl.Longitude);
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+                const titleText = safeText(cl.Title, "Tin cộng đồng");
+                const timeText = safeText(cl.StartText, "--");
+                const priceText = safeText(cl.PriceDisplay, "Liên hệ");
+                const venueText = safeText(cl.Venue, "Không rõ");
+                const srcUrl = safeText(cl.SourceUrl, "#");
+
+                const marker = L.marker([lat, lon], { icon: communityIcon }).addTo(matchMarkerLayer);
+                placedMarkers.push(marker);
+
+                marker.bindTooltip(
+                    `<div style="background:#0ea5e9;color:#fff;font-weight:700;font-size:11px;line-height:1.3;padding:5px 8px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.18);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${titleText}</div>`,
+                    { permanent: true, direction: "top", offset: [0, -12], opacity: 1, className: "match-map-tooltip" }
+                );
+
+                marker.bindPopup(`
+                    <div style="min-width:200px;max-width:240px;padding:10px 12px;">
+                        <div style="font-weight:800;font-size:13px;margin-bottom:4px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${titleText}</div>
+                        <div style="font-size:10px;color:#0ea5e9;font-weight:700;margin-bottom:6px;">📣 Từ cộng đồng Facebook</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:3px;">🕒 ${timeText}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:3px;">💰 ${priceText}</div>
+                        <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ${venueText}</div>
+                        <a href="${srcUrl}" target="_blank" rel="noopener" style="display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#1877F2;padding:5px 12px;border-radius:6px;text-decoration:none;">Xem bài gốc →</a>
                     </div>
                 `);
             }

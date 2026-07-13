@@ -378,7 +378,9 @@ namespace SportHub.Services.Implementations
             match.CustomPriceVnd = updatedMatch.CustomPriceVnd;
             match.CustomLatitude = updatedMatch.CustomLatitude;
             match.CustomLongitude = updatedMatch.CustomLongitude;
-            match.IsSplitFee = updatedMatch.IsSplitFee;
+            match.PriceMode = updatedMatch.PriceMode;
+            match.PriceMaleVnd = updatedMatch.PriceMaleVnd;
+            match.PriceFemaleVnd = updatedMatch.PriceFemaleVnd;
             match.RequiresApproval = true;
 
             await _context.SaveChangesAsync();

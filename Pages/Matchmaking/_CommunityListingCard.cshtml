@@ -1,0 +1,68 @@
+@model SportHub.Pages.Matchmaking.IndexModel.CommunityListingCardItem
+@{
+    var cl = Model;
+}
+<div class="relative bg-white dark:bg-slate-900 p-2 sm:p-6 rounded-md border border-dashed border-sky-300 dark:border-sky-800 shadow-sm hover:shadow-md transition-all overflow-hidden"
+     style="border-left:4px solid @(cl.SportName != null ? SportHub.Pages.Matchmaking.IndexModel.GetSportColor(cl.SportName) : "#94a3b8")">
+    <div class="flex flex-row gap-2 sm:gap-5">
+        <div class="flex-shrink-0 flex items-center justify-center size-9 sm:size-28 rounded-md bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400">
+            <span class="material-symbols-outlined text-xl sm:text-4xl">groups</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1 mb-0.5 sm:mb-2 flex-wrap">
+                <span class="bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-md flex-shrink-0 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px]">groups</span> Từ cộng đồng
+                </span>
+                @if (cl.SportName != null)
+                {
+                    <span class="text-white text-[10px] font-black uppercase px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-md flex items-center gap-0.5 flex-shrink-0"
+                          style="background:@SportHub.Pages.Matchmaking.IndexModel.GetSportColor(cl.SportName)">
+                        <span>@SportHub.Pages.Matchmaking.IndexModel.GetSportEmoji(cl.SportName)</span><span class="hidden sm:inline"> @cl.SportName</span>
+                    </span>
+                }
+            </div>
+
+            <h3 class="text-[13px] sm:text-xl font-bold sm:font-extrabold mb-1 sm:mb-3 line-clamp-2 leading-snug">@cl.Title</h3>
+
+            @if (cl.ParseStatus == "Parsed" && (cl.StartText != null || cl.Venue != null || cl.SkillRequired != null || cl.PriceDisplay != null))
+            {
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 sm:gap-y-2 mb-3 sm:mb-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                    @if (cl.StartText != null)
+                    {
+                        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">event</span><span class="font-medium">@cl.StartText</span></div>
+                    }
+                    @if (cl.Venue != null)
+                    {
+                        <div class="flex items-center gap-2 min-w-0"><span class="material-symbols-outlined text-primary text-lg flex-shrink-0">location_on</span><span class="font-medium truncate" title="@cl.Venue">@cl.Venue</span></div>
+                    }
+                    @if (cl.SkillRequired != null)
+                    {
+                        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">school</span><span class="font-medium">Trình độ: @cl.SkillRequired</span></div>
+                    }
+                    @if (cl.PriceDisplay != null)
+                    {
+                        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">payments</span><span class="font-medium">@cl.PriceDisplay</span></div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-3">@cl.RawTextPreview</p>
+            }
+
+            <div class="flex items-center gap-1.5 pt-1.5 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div class="flex-1 min-w-0 text-[11px] text-slate-400 truncate">
+                    @if (cl.SourceAuthorName != null)
+                    {
+                        <span>Đăng bởi @cl.SourceAuthorName trên Facebook</span>
+                    }
+                </div>
+                <a href="@cl.SourceUrl" target="_blank" rel="noopener" class="flex-none px-2.5 sm:px-6 py-1.5 sm:py-2.5 text-[11px] sm:text-sm font-bold text-white rounded-md transition-all flex items-center gap-1.5" style="background:#1877F2">
+                    <span class="material-symbols-outlined text-[14px] sm:text-base">open_in_new</span>
+                    <span class="hidden sm:inline">Xem bài gốc / Liên hệ</span>
+                    <span class="sm:hidden">Xem bài gốc</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

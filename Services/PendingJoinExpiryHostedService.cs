@@ -245,6 +245,16 @@ namespace SportHub.Services
             }
         }
 
+        private async Task ExpireCommunityListingsAsync(IServiceScope scope, CancellationToken ct)
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var count = await db.CommunityListings
+                .Where(c => c.Status == "Active" && c.ExpiresAt <= DateTime.UtcNow)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, "Expired"), ct);
+            if (count > 0)
+                _logger.LogInformation("Expired {Count} community listing(s).", count);
+        }
+
         private async Task SendMatchRemindersAsync(IServiceScope scope, CancellationToken ct)
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -354,6 +364,10 @@ namespace SportHub.Services
                     // 6. AI analysis cho khiếu nại quá hạn nhân chứng 48h
                     var disputeService = scope.ServiceProvider.GetRequiredService<IDisputeService>();
                     await disputeService.ProcessPendingAiAnalysisAsync(stoppingToken);
+
+                    // 7. Đánh dấu Expired cho tin cộng đồng quá hạn (feed đã tự lọc theo ExpiresAt,
+                    // bước này chỉ để cập nhật cờ Status phục vụ trang Admin)
+                    await ExpireCommunityListingsAsync(scope, stoppingToken);
                 }
                 catch (Exception ex)
                 {

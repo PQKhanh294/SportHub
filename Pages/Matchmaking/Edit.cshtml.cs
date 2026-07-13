@@ -78,7 +78,9 @@ namespace SportHub.Pages.Matchmaking
             public decimal? PriceVnd { get; set; }
 
             public string? Description { get; set; }
-            public bool IsSplitFee { get; set; }
+            public string PriceMode { get; set; } = "PerPerson";
+            public decimal? PriceMaleVnd { get; set; }
+            public decimal? PriceFemaleVnd { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync(int id)
@@ -115,7 +117,9 @@ namespace SportHub.Pages.Matchmaking
                 SkillRequired = string.IsNullOrWhiteSpace(match.SkillRequired) ? "Any" : match.SkillRequired,
                 MaxParticipants = match.MaxParticipants,
                 PriceVnd = match.CustomPriceVnd,
-                IsSplitFee = match.IsSplitFee,
+                PriceMode = match.PriceMode,
+                PriceMaleVnd = match.PriceMaleVnd,
+                PriceFemaleVnd = match.PriceFemaleVnd,
                 Description = match.Description
             };
 
@@ -205,10 +209,12 @@ namespace SportHub.Pages.Matchmaking
                 Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description.Trim(),
                 CustomCourtName = string.IsNullOrWhiteSpace(Input.CourtName) ? null : Input.CourtName.Trim(),
                 CustomCourtAddress = string.IsNullOrWhiteSpace(Input.CourtAddress) ? null : Input.CourtAddress.Trim(),
-                CustomPriceVnd = Input.PriceVnd,
+                PriceMode = Input.PriceMode,
+                CustomPriceVnd = Input.PriceMode == "ByGender" ? null : Input.PriceVnd,
+                PriceMaleVnd = Input.PriceMode == "ByGender" ? Input.PriceMaleVnd : null,
+                PriceFemaleVnd = Input.PriceMode == "ByGender" ? Input.PriceFemaleVnd : null,
                 CustomLatitude = Input.Latitude,
-                CustomLongitude = Input.Longitude,
-                IsSplitFee = Input.IsSplitFee
+                CustomLongitude = Input.Longitude
             };
 
             var (updated, message) = await _matchService.UpdateMatchAsync(Input.MatchId, userId, updatedMatch);

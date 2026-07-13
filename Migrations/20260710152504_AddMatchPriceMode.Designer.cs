@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportHub.Data;
 
@@ -11,9 +12,11 @@ using SportHub.Data;
 namespace SportHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710152504_AddMatchPriceMode")]
+    partial class AddMatchPriceMode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -686,9 +689,6 @@ namespace SportHub.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsRecurring")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSplitFee")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("MatchDate")

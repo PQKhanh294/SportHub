@@ -35,11 +35,18 @@ else
                                 <span>🏸 Cầu lông</span>
                             </span>
                         }
-                        @if (item.IsSplitFee)
+                        @if (item.PriceMode == "SplitEven")
                         {
                             <span class="px-3 py-1 bg-emerald-500 text-xs font-bold rounded-md flex items-center gap-1">
                                 <span class="material-symbols-outlined text-xs">group</span>
                                 Chia đều phí
+                            </span>
+                        }
+                        else if (item.PriceMode == "ByGender")
+                        {
+                            <span class="px-3 py-1 bg-emerald-500 text-xs font-bold rounded-md flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">wc</span>
+                                Giá theo giới tính
                             </span>
                         }
                         @if (item.IsRecurring && !string.IsNullOrEmpty(item.RecurringDays))
@@ -330,6 +337,78 @@ else
                         Thanh toán phí còn lại
                     </a>
                 </div>
+                <form method="post" asp-page-handler="Leave" asp-route-id="@item.MatchId"
+                      onsubmit="return confirm('Bạn có chắc muốn hủy yêu cầu tham gia không?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="w-full py-2.5 flex items-center justify-center gap-2 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 bg-white dark:bg-transparent rounded-md hover:bg-amber-50 dark:hover:bg-amber-900/20 font-semibold text-sm transition-colors mb-5">
+                        <span class="material-symbols-outlined text-base">cancel</span>
+                        Hủy yêu cầu
+                    </button>
+                </form>
+            }
+            else if (item.IsApproved)
+            {
+                var feeDeadline = item.PlayerFeeDeadline?.ToVietnamTime();
+                var minsLeft = feeDeadline.HasValue ? (int)(feeDeadline.Value - VietnamTime.Now).TotalMinutes : 0;
+                var urgent = minsLeft < 15 && minsLeft >= 0;
+                <div class="mb-5 p-4 @(urgent ? "bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800") rounded-md">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined @(urgent ? "text-rose-500" : "text-amber-500")">payment</span>
+                        <div>
+                            <p class="font-bold @(urgent ? "text-rose-700 dark:text-rose-400" : "text-amber-700 dark:text-amber-400")">Được duyệt — Chờ thanh toán</p>
+                            <p class="text-xs @(urgent ? "text-rose-600 dark:text-rose-500" : "text-amber-600 dark:text-amber-500")">
+                                Thanh toán 5,000 xu trước
+                                @(feeDeadline.HasValue ? feeDeadline.Value.ToString("HH:mm dd/MM") : "hết hạn")
+                                @if (minsLeft > 0) { <span class="font-bold"> (còn @minsLeft phút)</span> }
+                                else { <span class="font-bold text-rose-600"> (đã hết hạn)</span> }
+                            </p>
+                        </div>
+                    </div>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="playerfee"
+                       class="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-md text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Thanh toán 5,000 xu ngay
+                    </a>
+                </div>
+            }
+
+            <!-- Host deposit prompt -->
+            @if (item.ShowHostDepositPrompt)
+            {
+                <div class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-md">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-amber-500">lock</span>
+                        <p class="font-bold text-amber-700 dark:text-amber-400">Trận chưa được đăng</p>
+                    </div>
+                    <p class="text-xs text-amber-600 dark:text-amber-500 mb-3">
+                        Đặt cọc <span class="font-bold">@item.HostDepositAmount.ToString("N0") xu</span> để trận được đăng công khai.
+                    </p>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="deposit"
+                       class="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-md text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Đặt cọc ngay
+                    </a>
+                </div>
+            }
+
+            <!-- Host remaining fee prompt -->
+            @if (item.ShowRemainingFeePrompt)
+            {
+                <div class="mb-4 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-300 dark:border-rose-700 rounded-md">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-rose-500">payments</span>
+                        <p class="font-bold text-rose-700 dark:text-rose-400">Trận đã bắt đầu</p>
+                    </div>
+                    <p class="text-xs text-rose-600 dark:text-rose-500 mb-3">
+                        Hoàn thành phí dịch vụ còn lại <span class="font-bold">@item.RemainingFeeAmount.ToString("N0") xu</span>.
+                    </p>
+                    <a asp-page="/Matchmaking/Payment" asp-route-matchId="@item.MatchId" asp-route-type="remaining"
+                       class="w-full py-2.5 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-md text-sm flex items-center justify-center gap-2 transition-all">
+                        <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                        Thanh toán phí còn lại
+                    </a>
+                </div>
             }
 
             <!-- Action buttons -->
@@ -462,6 +541,39 @@ else
                     Xóa ngay
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal hủy trận với lý do -->
+    <div id="hostCancelModal" class="hidden fixed inset-0 z-[1200]">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="document.getElementById('hostCancelModal').classList.add('hidden')"></div>
+        <div class="relative mx-auto mt-24 w-[92%] max-w-md rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6">
+            <div class="flex items-start gap-3 mb-4">
+                <div class="size-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined">cancel</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 dark:text-white">Hủy trận và hoàn tiền?</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Tiền phí đã thu của người tham gia sẽ được hoàn về ví. Thao tác không thể hoàn tác.</p>
+                </div>
+            </div>
+            <form method="post" asp-page-handler="HostCancel">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@item?.MatchId" />
+                <textarea name="cancelReason" rows="3" required
+                          placeholder="Nhập lý do hủy trận (bắt buộc)..."
+                          class="w-full rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800 text-sm p-3 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('hostCancelModal').classList.add('hidden')"
+                            class="flex-1 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 text-sm transition-colors">
+                        Quay lại
+                    </button>
+                    <button type="submit"
+                            class="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md text-sm transition-colors">
+                        Xác nhận hủy
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
