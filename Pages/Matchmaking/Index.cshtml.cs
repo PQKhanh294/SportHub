@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -724,51 +724,7 @@ namespace SportHub.Pages.Matchmaking
             }
         }
 
-        private async Task ApplyAiBoostAsync(int userId)
-        {
-            try
-            {
-                var top5 = Matches.Take(5).ToList();
-                var matchSummaries = string.Join("\n", top5.Select((m, i) =>
-                    $"[{i}] id={m.MatchId} sport={m.SportName} skill={m.SkillRequired} score={m.MatchScore} dist={m.DistanceDisplay}"));
 
-                var systemPrompt = "You are a sports match recommender. Return ONLY a JSON array, no other text.";
-                var userMessage = $"Given these matches, return a JSON array of objects {{idx, boost}} where boost is -5 to 10 (higher=better fit):\n{matchSummaries}";
-
-                var json = await _aiChat.ChatAsync(systemPrompt, new List<AiChatHistoryItem>(), userMessage);
-                if (string.IsNullOrWhiteSpace(json)) return;
-
-                // Parse JSON array of {idx, boost}
-                var start = json.IndexOf('[');
-                var end = json.LastIndexOf(']');
-                if (start < 0 || end <= start) return;
-
-                var arr = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(json[start..(end + 1)]);
-                if (arr == null) return;
-
-                foreach (var el in arr)
-                {
-                    if (!el.TryGetProperty("idx", out var idxEl) || !el.TryGetProperty("boost", out var boostEl)) continue;
-                    var idx = idxEl.GetInt32();
-                    var boost = boostEl.GetInt32();
-                    if (idx >= 0 && idx < top5.Count)
-                    {
-                        var blended = (int)Math.Round(top5[idx].MatchScore * 0.75 + boost * 2.5);
-                        top5[idx].MatchScore = Math.Clamp(blended, 35, 99);
-                    }
-                }
-
-                // Re-sort after boost
-                Matches = Matches
-                    .OrderByDescending(m => m.MatchScore)
-                    .ThenBy(m => m.DistanceKm ?? double.MaxValue)
-                    .ToList();
-            }
-            catch
-            {
-                // AI boost is best-effort — ignore errors silently
-            }
-        }
 
         private async Task<(double Lat, double Lon)?> ResolveUserOriginAsync(int userId)
         {
@@ -1005,38 +961,7 @@ namespace SportHub.Pages.Matchmaking
             };
         }
 
-        private static List<Models.Entities.Match> ApplyStatusFilter(List<Models.Entities.Match> matches, string statusFilter, int currentUserId)
-        {
-            var today = DateTime.Today;
-            var nextSevenDays = today.AddDays(7);
 
-            return statusFilter switch
-            {
-                "OpenSlots" => matches
-                    .Where(m => m.Status == "Open" && m.Participants.Count(p => p.JoinStatus == "Accepted") < m.MaxParticipants)
-                    .ToList(),
-                "AlmostFull" => matches
-                    .Where(m =>
-                    {
-                        var accepted = m.Participants.Count(p => p.JoinStatus == "Accepted");
-                        return accepted > 0 && accepted < m.MaxParticipants && accepted >= m.MaxParticipants - 1;
-                    })
-                    .ToList(),
-                "Upcoming" => matches
-                    .Where(m => m.MatchDate.Date >= today && m.MatchDate.Date <= nextSevenDays)
-                    .ToList(),
-                "Pending" => currentUserId <= 0
-                    ? new List<Models.Entities.Match>()
-                    : matches.Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Pending")).ToList(),
-                "Joined" => currentUserId <= 0
-                    ? new List<Models.Entities.Match>()
-                    : matches.Where(m => m.Participants.Any(p => p.UserID == currentUserId && p.JoinStatus == "Accepted")).ToList(),
-                "Owned" => currentUserId <= 0
-                    ? new List<Models.Entities.Match>()
-                    : matches.Where(m => m.CreatedByUserID == currentUserId).ToList(),
-                _ => matches
-            };
-        }
 
         private static string BuildVenueName(Models.Entities.Match match)
         {
